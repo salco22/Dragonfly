@@ -1,4 +1,4 @@
-package dragonfly.ui.theme
+package com.salco.dragonfly.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
