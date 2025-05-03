@@ -217,5 +217,5 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
-###Internal files ###
-secrets.default.properties
+###secrets files ###
+secrets.properties

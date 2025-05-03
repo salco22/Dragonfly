@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.dragonfly.android.application)
     alias(libs.plugins.dragonfly.android.application.compose)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -37,6 +38,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+secrets{
+    propertiesFileName = "secrets.properties"
 }
 
 dependencies {
