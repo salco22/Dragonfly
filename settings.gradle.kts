@@ -1,12 +1,7 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -21,4 +16,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Dragonfly"
 include(":app")
- 
+include(":feature:login")
+include(":core:navigation")
+include(":core:network")
