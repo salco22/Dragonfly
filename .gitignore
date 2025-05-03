@@ -216,3 +216,6 @@ fabric.properties
 ### AndroidStudio Patch ###
 
 !/gradle/wrapper/gradle-wrapper.jar
+
+###Internal files ###
+secrets.default.properties
