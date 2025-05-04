@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.dragonfly.android.application)
     alias(libs.plugins.dragonfly.android.application.compose)
+    alias(libs.plugins.dragonfly.android.hilt)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
@@ -27,9 +28,6 @@ android {
             )
         }
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
@@ -45,6 +43,12 @@ secrets{
 }
 
 dependencies {
+
+    //Core
+    implementation(project(":core:navigation"))
+
+    //Features
+    implementation(project(":feature:login"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

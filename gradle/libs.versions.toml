@@ -15,6 +15,8 @@ material = "1.12.0"
 androidxHiltNavigationCompose = "1.2.0"
 androidxComposeNavigation = "2.8.9"
 secretsGradlePlugin = "2.0.1"
+kotlinxCoroutines = "1.10.1"
+uiTooling = "1.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,12 +40,14 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-navigation-compose = { group="androidx.navigation", name="navigation-compose", version.ref="androidxComposeNavigation"}
 secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 
 #build-logic
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 compose-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 
 
 [plugins]
@@ -59,5 +63,6 @@ dragonfly-android-application = { id = "dragonfly.android.application", version 
 dragonfly-android-application-compose = { id = "dragonfly.android.application.compose", version = "unspecified" }
 dragonfly-android-library = { id = "dragonfly.android.library", version = "unspecified" }
 dragonfly-android-library-compose = { id = "dragonfly.android.library.compose", version = "unspecified" }
+dragonfly-android-feature = { id = "dragonfly.android.feature", version = "unspecified" }
 dragonfly-android-hilt = { id = "dragonfly.android.hilt", version = "unspecified" }
 

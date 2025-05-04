@@ -37,5 +37,9 @@ gradlePlugin {
             id = "dragonfly.android.hilt"
             implementationClass = "AndroidHiltConventionPlugin"
         }
+        register("androidFeature") {
+            id = "dragonfly.android.feature"
+            implementationClass = "AndroidFeatureConventionPlugin"
+        }
     }
 }
