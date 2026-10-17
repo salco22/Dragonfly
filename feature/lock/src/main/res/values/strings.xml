@@ -1,0 +1,7 @@
+<resources>
+    <string name="feature_lock_title">Dragonfly è bloccata</string>
+    <string name="feature_lock_message">Sblocca con l\'impronta, il volto o il PIN del dispositivo per vedere le tue finanze.</string>
+    <string name="feature_lock_unlock">Sblocca</string>
+    <string name="feature_lock_prompt_title">Sblocca Dragonfly</string>
+    <string name="feature_lock_prompt_subtitle">Conferma la tua identità</string>
+</resources>

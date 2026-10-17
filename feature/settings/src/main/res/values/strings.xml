@@ -1,0 +1,9 @@
+<resources>
+    <string name="feature_settings_title">Impostazioni</string>
+    <string name="feature_settings_security">Sicurezza</string>
+    <string name="feature_settings_app_lock">Blocco biometrico</string>
+    <string name="feature_settings_app_lock_description">Chiedi impronta, volto o PIN del dispositivo all\'apertura dell\'app.</string>
+    <string name="feature_settings_app_lock_unavailable">Imposta un blocco schermo sul dispositivo per usare questa opzione.</string>
+    <string name="feature_settings_general">Generali</string>
+    <string name="feature_settings_default_currency">Valuta predefinita</string>
+</resources>

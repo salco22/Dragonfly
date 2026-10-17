@@ -1,0 +1,45 @@
+<resources>
+    <string name="feature_accounts_title">Conti</string>
+    <string name="feature_accounts_add">Aggiungi conto</string>
+    <string name="feature_accounts_net_worth">Patrimonio netto</string>
+    <string name="feature_accounts_empty_title">Nessun conto</string>
+    <string name="feature_accounts_empty_message">Aggiungi il tuo primo conto corrente, carta o salvadanaio per iniziare a tracciare le tue finanze.</string>
+    <string name="feature_accounts_inactive">Inattivo</string>
+
+    <string name="feature_accounts_type_asset">Attività</string>
+    <string name="feature_accounts_type_expense">Conti di spesa</string>
+    <string name="feature_accounts_type_revenue">Conti di entrata</string>
+    <string name="feature_accounts_type_liability">Passività</string>
+
+    <string name="feature_accounts_role_default">Conto corrente</string>
+    <string name="feature_accounts_role_savings">Risparmio</string>
+    <string name="feature_accounts_role_shared">Condiviso</string>
+    <string name="feature_accounts_role_credit_card">Carta di credito</string>
+    <string name="feature_accounts_role_cash_wallet">Contanti</string>
+
+    <string name="feature_accounts_liability_debt">Debito</string>
+    <string name="feature_accounts_liability_loan">Prestito</string>
+    <string name="feature_accounts_liability_mortgage">Mutuo</string>
+
+    <string name="feature_accounts_new">Nuovo conto</string>
+    <string name="feature_accounts_edit">Modifica conto</string>
+    <string name="feature_accounts_save">Salva</string>
+    <string name="feature_accounts_delete">Elimina</string>
+    <string name="feature_accounts_back">Indietro</string>
+    <string name="feature_accounts_name">Nome</string>
+    <string name="feature_accounts_type">Tipo</string>
+    <string name="feature_accounts_role">Ruolo</string>
+    <string name="feature_accounts_liability_kind">Tipo di passività</string>
+    <string name="feature_accounts_currency">Valuta</string>
+    <string name="feature_accounts_opening_balance">Saldo iniziale</string>
+    <string name="feature_accounts_debt_amount">Importo dovuto</string>
+    <string name="feature_accounts_iban">IBAN</string>
+    <string name="feature_accounts_notes">Note</string>
+    <string name="feature_accounts_active">Attivo</string>
+    <string name="feature_accounts_include_net_worth">Includi nel patrimonio netto</string>
+    <string name="feature_accounts_error_name">Inserisci un nome</string>
+    <string name="feature_accounts_error_amount">Importo non valido</string>
+    <string name="feature_accounts_delete_title">Eliminare il conto?</string>
+    <string name="feature_accounts_delete_message">Il conto verrà eliminato definitivamente.</string>
+    <string name="feature_accounts_cancel">Annulla</string>
+</resources>

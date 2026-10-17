@@ -16,6 +16,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "Dragonfly"
 include(":app")
-include(":feature:login")
-include(":core:navigation")
-include(":core:network")
+
+include(":core:model")
+include(":core:database")
+include(":core:datastore")
+include(":core:data")
+include(":core:designsystem")
+
+include(":feature:accounts")
+include(":feature:lock")
+include(":feature:settings")

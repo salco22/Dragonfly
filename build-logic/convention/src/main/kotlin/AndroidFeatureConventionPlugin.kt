@@ -6,14 +6,28 @@ import org.gradle.kotlin.dsl.dependencies
 class AndroidFeatureConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            pluginManager.apply {
-                apply("com.android.library")
-                apply("org.jetbrains.kotlin.android")
+            with(pluginManager) {
+                apply("dragonfly.android.library")
+                apply("dragonfly.android.library.compose")
+                apply("dragonfly.android.hilt")
+                apply("org.jetbrains.kotlin.plugin.serialization")
             }
 
             dependencies {
-                add("implementation", project(":core:navigation"))
+                add("implementation", project(":core:designsystem"))
+                add("implementation", project(":core:data"))
+                add("implementation", project(":core:model"))
+
+                add("implementation", libs.findLibrary("androidx.navigation.compose").get())
+                add("implementation", libs.findLibrary("androidx.lifecycle.runtime.compose").get())
+                add("implementation", libs.findLibrary("androidx.lifecycle.viewmodel.compose").get())
+                add("implementation", libs.findLibrary("androidx.hilt.lifecycle.viewmodel.compose").get())
                 add("implementation", libs.findLibrary("kotlinx.coroutines.android").get())
+                add("implementation", libs.findLibrary("kotlinx.serialization.json").get())
+
+                add("testImplementation", libs.findLibrary("junit").get())
+                add("testImplementation", libs.findLibrary("kotlinx.coroutines.test").get())
+                add("testImplementation", libs.findLibrary("turbine").get())
             }
         }
     }
