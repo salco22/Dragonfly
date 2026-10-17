@@ -4,12 +4,16 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import com.salco.dragonfly.feature.accounts.detail.AccountDetailScreen
 import com.salco.dragonfly.feature.accounts.edit.AccountEditScreen
 import com.salco.dragonfly.feature.accounts.list.AccountsScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
 data object AccountsRoute
+
+@Serializable
+data class AccountDetailRoute(val accountId: Long)
 
 /** [accountId] is 0 when creating a new account. */
 @Serializable
@@ -21,12 +25,31 @@ fun NavController.navigateToAccounts(navOptions: NavOptions? = null) =
 fun NavController.navigateToAccountEdit(accountId: Long = 0L) =
     navigate(route = AccountEditRoute(accountId))
 
+fun NavController.navigateToAccountDetail(accountId: Long) =
+    navigate(route = AccountDetailRoute(accountId))
+
 fun NavGraphBuilder.accountsScreen(
     onAccountClick: (Long) -> Unit,
     onAddAccountClick: () -> Unit,
 ) {
     composable<AccountsRoute> {
         AccountsScreen(onAccountClick = onAccountClick, onAddAccountClick = onAddAccountClick)
+    }
+}
+
+fun NavGraphBuilder.accountDetailScreen(
+    onBack: () -> Unit,
+    onEdit: (Long) -> Unit,
+    onTransactionClick: (Long) -> Unit,
+    onAddTransaction: (Long) -> Unit,
+) {
+    composable<AccountDetailRoute> {
+        AccountDetailScreen(
+            onBack = onBack,
+            onEdit = onEdit,
+            onTransactionClick = onTransactionClick,
+            onAddTransaction = onAddTransaction,
+        )
     }
 }
 

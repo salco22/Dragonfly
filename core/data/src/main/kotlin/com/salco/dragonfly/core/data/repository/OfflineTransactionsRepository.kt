@@ -8,6 +8,7 @@ import com.salco.dragonfly.core.database.model.asExternalModel
 import com.salco.dragonfly.core.model.AccountRef
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionDraft
+import com.salco.dragonfly.core.model.TransactionFilter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -25,6 +26,17 @@ internal class OfflineTransactionsRepository @Inject constructor(
 
     override fun observeTransaction(id: Long): Flow<Transaction?> =
         transactionDao.observeById(id).map { it?.asExternalModel() }
+
+    override fun searchTransactions(filter: TransactionFilter): Flow<List<Transaction>> =
+        transactionDao.search(
+            query = filter.query?.trim()?.takeIf { it.isNotEmpty() },
+            type = filter.type?.name,
+            categoryId = filter.categoryId,
+            tagId = filter.tagId,
+            accountId = filter.accountId,
+            fromEpochDay = filter.from?.toEpochDay(),
+            toEpochDay = filter.to?.toEpochDay(),
+        ).map(List<PopulatedTransaction>::asModels)
 
     override suspend fun saveTransaction(draft: TransactionDraft): Long =
         transactionDao.save(

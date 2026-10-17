@@ -138,4 +138,28 @@ class TransactionDaoTest {
         val after = transactionDao.observeById(id).first()!!
         assertEquals(null, after.transaction.categoryId)
     }
+
+    @Test
+    fun search_matchesTextAndFilters() = runTest {
+        val checking = accountDao.upsert(account("Conto", AccountType.ASSET))
+        val shop = accountDao.upsert(account("Supermercato", AccountType.EXPENSE))
+        val bar = accountDao.upsert(account("Bar", AccountType.EXPENSE))
+        transactionDao.save(transaction(TransactionType.WITHDRAWAL, 3_000, checking, shop).copy(description = "Spesa", date = 100), categoryName = "Cibo", tagNames = listOf("Casa"))
+        transactionDao.save(transaction(TransactionType.WITHDRAWAL, 500, checking, bar).copy(description = "Caffè", date = 200), tagNames = listOf("Lavoro"))
+
+        suspend fun search(
+            query: String? = null, type: String? = null, tagId: Long? = null, accountId: Long? = null,
+            from: Long? = null, to: Long? = null,
+        ) = transactionDao.search(query, type, null, tagId, accountId, from, to).first().map { it.transaction.description }
+
+        assertEquals(listOf("Spesa"), search(query = "SUPERMERC"))
+        assertEquals(listOf("Spesa"), search(query = "cibo"))
+        assertEquals(listOf("Caffè"), search(query = "lavoro"))
+        assertEquals(listOf("Caffè"), search(accountId = bar))
+        assertEquals(listOf("Caffè", "Spesa"), search(type = "WITHDRAWAL"))
+        assertEquals(emptyList<String>(), search(type = "DEPOSIT"))
+        assertEquals(listOf("Spesa"), search(from = 50, to = 150))
+        val casa = db.tagDao().findByName("casa")!!.id
+        assertEquals(listOf("Spesa"), search(tagId = casa))
+    }
 }

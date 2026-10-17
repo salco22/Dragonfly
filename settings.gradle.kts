@@ -23,6 +23,7 @@ include(":core:datastore")
 include(":core:data")
 include(":core:designsystem")
 include(":core:testing")
+include(":core:ui")
 
 include(":feature:accounts")
 include(":feature:classification")

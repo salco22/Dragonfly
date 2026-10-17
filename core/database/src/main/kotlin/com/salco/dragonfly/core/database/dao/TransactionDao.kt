@@ -38,6 +38,38 @@ abstract class TransactionDao {
     @Query("$POPULATED_SELECT WHERE t.source_account_id = :accountId OR t.destination_account_id = :accountId ORDER BY t.date DESC, t.id DESC")
     abstract fun observeForAccount(accountId: Long): Flow<List<PopulatedTransaction>>
 
+    /** Every parameter is optional: null skips that condition. [query] is matched with LIKE, ignoring case. */
+    @Transaction
+    @Query(
+        """
+        $POPULATED_SELECT
+        WHERE (:query IS NULL
+                OR t.description LIKE '%' || :query || '%'
+                OR t.notes LIKE '%' || :query || '%'
+                OR s.name LIKE '%' || :query || '%'
+                OR d.name LIKE '%' || :query || '%'
+                OR c.name LIKE '%' || :query || '%'
+                OR EXISTS (SELECT 1 FROM transaction_tags tt JOIN tags g ON g.id = tt.tag_id
+                           WHERE tt.transaction_id = t.id AND g.name LIKE '%' || :query || '%'))
+            AND (:type IS NULL OR t.type = :type)
+            AND (:categoryId IS NULL OR t.category_id = :categoryId)
+            AND (:tagId IS NULL OR EXISTS (SELECT 1 FROM transaction_tags tt WHERE tt.transaction_id = t.id AND tt.tag_id = :tagId))
+            AND (:accountId IS NULL OR t.source_account_id = :accountId OR t.destination_account_id = :accountId)
+            AND (:fromEpochDay IS NULL OR t.date >= :fromEpochDay)
+            AND (:toEpochDay IS NULL OR t.date <= :toEpochDay)
+        ORDER BY t.date DESC, t.id DESC
+        """,
+    )
+    abstract fun search(
+        query: String?,
+        type: String?,
+        categoryId: Long?,
+        tagId: Long?,
+        accountId: Long?,
+        fromEpochDay: Long?,
+        toEpochDay: Long?,
+    ): Flow<List<PopulatedTransaction>>
+
     @Transaction
     @Query("$POPULATED_SELECT WHERE t.id = :id")
     abstract fun observeById(id: Long): Flow<PopulatedTransaction?>

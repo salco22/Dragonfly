@@ -14,6 +14,7 @@ import com.salco.dragonfly.core.model.AccountRef
 import com.salco.dragonfly.core.model.AccountSummary
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionDraft
+import com.salco.dragonfly.core.model.TransactionFilter
 import java.time.LocalDate
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.UserPreferences
@@ -78,6 +79,21 @@ class FakeTransactionsRepository(
         }
 
     override fun observeTransaction(id: Long): Flow<Transaction?> = transactions.map { list -> list.find { it.id == id } }
+
+    override fun searchTransactions(filter: TransactionFilter): Flow<List<Transaction>> =
+        transactions.map { list -> list.filter { it.matches(filter) }.sortedWith(newestFirst) }
+
+    private fun Transaction.matches(filter: TransactionFilter): Boolean {
+        val query = filter.query?.trim()?.takeIf { it.isNotEmpty() }
+        val texts = listOfNotNull(description, notes, source.name, destination.name, category?.name) + tags.map { it.name }
+        return (query == null || texts.any { it.contains(query, ignoreCase = true) }) &&
+            (filter.type == null || type == filter.type) &&
+            (filter.categoryId == null || category?.id == filter.categoryId) &&
+            (filter.tagId == null || tags.any { it.id == filter.tagId }) &&
+            (filter.accountId == null || source.id == filter.accountId || destination.id == filter.accountId) &&
+            (filter.from == null || date >= filter.from) &&
+            (filter.to == null || date <= filter.to)
+    }
 
     override suspend fun saveTransaction(draft: TransactionDraft): Long {
         val id = if (draft.id == 0L) nextId++ else draft.id

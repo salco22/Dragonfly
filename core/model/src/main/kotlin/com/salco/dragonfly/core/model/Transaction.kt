@@ -67,3 +67,20 @@ data class TransactionDraft(
     /** Tags matched by name (ignoring case) or created when new. */
     val tagNames: List<String> = emptyList(),
 )
+
+/** Criteria for searching transactions; null fields do not filter. */
+data class TransactionFilter(
+    /** Text matched against description, notes, account names, category and tags, ignoring case. */
+    val query: String? = null,
+    val type: TransactionType? = null,
+    val categoryId: Long? = null,
+    val tagId: Long? = null,
+    /** Matches transactions where the account is either source or destination. */
+    val accountId: Long? = null,
+    val from: LocalDate? = null,
+    val to: LocalDate? = null,
+) {
+    /** True when the user narrowed the results beyond a date range. */
+    val hasCriteria: Boolean
+        get() = !query.isNullOrBlank() || type != null || categoryId != null || tagId != null || accountId != null
+}

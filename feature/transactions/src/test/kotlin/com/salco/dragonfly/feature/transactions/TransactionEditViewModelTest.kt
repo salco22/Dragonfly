@@ -43,8 +43,8 @@ class TransactionEditViewModelTest {
         shopId = accounts.saveAccount(Account(name = "Supermercato", type = AccountType.EXPENSE, currencyCode = "EUR"))
     }
 
-    private fun viewModel(id: Long = 0L) = TransactionEditViewModel(
-        SavedStateHandle(mapOf("transactionId" to id)), transactions, accounts, categories, tags, clock,
+    private fun viewModel(id: Long = 0L, accountId: Long = 0L) = TransactionEditViewModel(
+        SavedStateHandle(mapOf("transactionId" to id, "accountId" to accountId)), transactions, accounts, categories, tags, clock,
     )
 
     @Test
@@ -179,5 +179,15 @@ class TransactionEditViewModelTest {
         vm.addTag("Casa")
         vm.removeTag("Lavoro")
         assertEquals(listOf("Casa"), vm.uiState.value.tags)
+    }
+
+    @Test
+    fun newTransaction_isPrefilledFromAccount() = runTest {
+        assertEquals(savingsUsdId, viewModel(accountId = savingsUsdId).uiState.value.accountId)
+        with(viewModel(accountId = shopId).uiState.value) {
+            assertEquals(TransactionType.WITHDRAWAL, type)
+            assertEquals("Supermercato", counterparty)
+            assertEquals(checkingId, accountId)
+        }
     }
 }

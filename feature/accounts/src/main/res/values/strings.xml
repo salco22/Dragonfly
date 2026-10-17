@@ -41,5 +41,12 @@
     <string name="feature_accounts_error_amount">Importo non valido</string>
     <string name="feature_accounts_delete_title">Eliminare il conto?</string>
     <string name="feature_accounts_delete_message">Il conto e tutte le sue transazioni verranno eliminati definitivamente.</string>
+    <string name="feature_accounts_new_transaction">Nuova transazione</string>
+    <string name="feature_accounts_search_transactions">Cerca nei movimenti</string>
+    <string name="feature_accounts_clear_search">Cancella ricerca</string>
+    <string name="feature_accounts_no_transactions">Ancora nessun movimento su questo conto.</string>
+    <string name="feature_accounts_no_results">Nessun movimento corrisponde alla ricerca.</string>
+    <string name="feature_accounts_incoming">Entrate</string>
+    <string name="feature_accounts_outgoing">Uscite</string>
     <string name="feature_accounts_cancel">Annulla</string>
 </resources>

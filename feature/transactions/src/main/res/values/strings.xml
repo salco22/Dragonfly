@@ -8,6 +8,22 @@
     <string name="feature_transactions_empty_title">Nessuna transazione</string>
     <string name="feature_transactions_empty_message">Registra spese, entrate e trasferimenti per vedere dove vanno i tuoi soldi.</string>
 
+    <string name="feature_transactions_search">Cerca</string>
+    <string name="feature_transactions_close_search">Chiudi ricerca</string>
+    <string name="feature_transactions_search_hint">Cerca descrizione, conto, categoria, tag…</string>
+    <string name="feature_transactions_filter_type">Tipo</string>
+    <string name="feature_transactions_filter_category">Categoria</string>
+    <string name="feature_transactions_filter_tag">Tag</string>
+    <string name="feature_transactions_filter_account">Conto</string>
+    <string name="feature_transactions_filter_all">Tutti</string>
+    <string name="feature_transactions_clear_filters">Azzera</string>
+    <plurals name="feature_transactions_results">
+        <item quantity="one">%d risultato in tutti i periodi</item>
+        <item quantity="other">%d risultati in tutti i periodi</item>
+    </plurals>
+    <string name="feature_transactions_no_results_title">Nessun risultato</string>
+    <string name="feature_transactions_no_results_message">Prova a cambiare il testo cercato o a togliere qualche filtro.</string>
+
     <string name="feature_transactions_type_withdrawal">Uscita</string>
     <string name="feature_transactions_type_deposit">Entrata</string>
     <string name="feature_transactions_type_transfer">Trasferimento</string>

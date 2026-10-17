@@ -50,6 +50,7 @@ class TransactionEditViewModel internal constructor(
 
     // Read the argument by name so the ViewModel stays testable without Android's Bundle.
     private val transactionId: Long = savedStateHandle[TransactionEditRoute::transactionId.name] ?: 0L
+    private val prefillAccountId: Long = savedStateHandle[TransactionEditRoute::accountId.name] ?: 0L
 
     private val _uiState = MutableStateFlow(
         TransactionEditUiState(isNew = transactionId == 0L, isLoading = true, date = LocalDate.now(clock)),
@@ -75,7 +76,19 @@ class TransactionEditViewModel internal constructor(
                     revenueNames = allAccounts.namesOf(AccountType.REVENUE),
                 )
                 if (transaction == null) {
-                    base.copy(accountId = ownAccounts.firstOrNull { it.type == AccountType.ASSET }?.id ?: ownAccounts.firstOrNull()?.id)
+                    val defaultAccountId = ownAccounts.firstOrNull { it.type == AccountType.ASSET }?.id ?: ownAccounts.firstOrNull()?.id
+                    val prefill = allAccounts.firstOrNull { it.id == prefillAccountId }
+                    when (prefill?.type) {
+                        AccountType.ASSET, AccountType.LIABILITY ->
+                            base.copy(accountId = prefill.id.takeIf { id -> ownAccounts.any { it.id == id } } ?: defaultAccountId)
+                        AccountType.EXPENSE -> base.copy(accountId = defaultAccountId, counterparty = prefill.name)
+                        AccountType.REVENUE -> base.copy(
+                            type = TransactionType.DEPOSIT,
+                            accountId = defaultAccountId,
+                            counterparty = prefill.name,
+                        )
+                        null -> base.copy(accountId = defaultAccountId)
+                    }
                 } else {
                     val ownId = if (transaction.type == TransactionType.DEPOSIT) transaction.destination.id else transaction.source.id
                     base.copy(
