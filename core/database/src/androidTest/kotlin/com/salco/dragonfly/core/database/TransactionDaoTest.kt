@@ -70,12 +70,12 @@ class TransactionDaoTest {
         val checking = accountDao.upsert(account("Conto", AccountType.ASSET))
         val shop = accountDao.upsert(account("Supermercato", AccountType.EXPENSE))
 
-        transactionDao.upsertResolvingAccounts(
+        transactionDao.save(
             transaction(TransactionType.WITHDRAWAL, 1_000, checking, 0),
             newSource = null,
             newDestination = account("supermercato", AccountType.EXPENSE),
         )
-        transactionDao.upsertResolvingAccounts(
+        transactionDao.save(
             transaction(TransactionType.WITHDRAWAL, 2_000, checking, 0),
             newSource = null,
             newDestination = account("Farmacia", AccountType.EXPENSE),
@@ -96,5 +96,46 @@ class TransactionDaoTest {
         accountDao.deleteById(shop)
 
         assertTrue(transactionDao.observeForAccount(checking).first().isEmpty())
+    }
+
+    @Test
+    fun save_resolvesCategoryAndTagsAndTotals() = runTest {
+        val checking = accountDao.upsert(account("Conto", AccountType.ASSET))
+        val shop = accountDao.upsert(account("Supermercato", AccountType.EXPENSE))
+
+        val id = transactionDao.save(
+            transaction(TransactionType.WITHDRAWAL, 3_000, checking, shop),
+            categoryName = "Spesa",
+            tagNames = listOf("Casa", "casa", "Vacanze"),
+        )
+        transactionDao.save(
+            transaction(TransactionType.WITHDRAWAL, 2_000, checking, shop),
+            categoryName = "spesa ",
+            tagNames = listOf("Casa"),
+        )
+
+        val saved = transactionDao.observeById(id).first()!!
+        assertEquals("Spesa", saved.categoryName)
+        assertEquals(setOf("Casa", "Vacanze"), saved.tags.map { it.name }.toSet())
+
+        val totals = db.categoryDao().observeTotals(0, 100_000).first().single()
+        assertEquals(5_000L, totals.spent)
+        assertEquals(mapOf("Casa" to 2, "Vacanze" to 1), db.tagDao().observeUsage().first().associate { it.name to it.transactionCount })
+
+        // Editing replaces the tags instead of adding to them.
+        transactionDao.save(saved.transaction, tagNames = listOf("Lavoro"))
+        assertEquals(listOf("Lavoro"), transactionDao.observeById(id).first()!!.tags.map { it.name })
+    }
+
+    @Test
+    fun deletingCategory_keepsTransactionsUncategorized() = runTest {
+        val checking = accountDao.upsert(account("Conto", AccountType.ASSET))
+        val shop = accountDao.upsert(account("Supermercato", AccountType.EXPENSE))
+        val id = transactionDao.save(transaction(TransactionType.WITHDRAWAL, 1_000, checking, shop), categoryName = "Spesa")
+
+        db.categoryDao().deleteById(transactionDao.observeById(id).first()!!.transaction.categoryId!!)
+
+        val after = transactionDao.observeById(id).first()!!
+        assertEquals(null, after.transaction.categoryId)
     }
 }

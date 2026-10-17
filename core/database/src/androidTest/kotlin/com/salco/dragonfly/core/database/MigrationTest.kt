@@ -33,6 +33,27 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate2To3_keepsTransactions() {
+        helper.createDatabase(DB_NAME, 2).use { db ->
+            db.execSQL(
+                """INSERT INTO accounts (id, name, type, currency_code, opening_balance, active, include_in_net_worth, created_at)
+                   VALUES (1, 'Conto', 'ASSET', 'EUR', 0, 1, 1, 0), (2, 'Bar', 'EXPENSE', 'EUR', 0, 1, 0, 0)""",
+            )
+            db.execSQL(
+                """INSERT INTO transactions (type, description, date, amount, currency_code, source_account_id, destination_account_id)
+                   VALUES ('WITHDRAWAL', 'Caffè', 20000, 120, 'EUR', 1, 2)""",
+            )
+        }
+        helper.runMigrationsAndValidate(DB_NAME, 3, true).use { db ->
+            db.query("SELECT description, category_id FROM transactions").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals("Caffè", cursor.getString(0))
+                assertEquals(true, cursor.isNull(1))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

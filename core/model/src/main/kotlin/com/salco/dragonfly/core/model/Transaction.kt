@@ -38,6 +38,8 @@ data class Transaction(
     val source: AccountSummary,
     val destination: AccountSummary,
     val notes: String? = null,
+    val category: Category? = null,
+    val tags: List<Tag> = emptyList(),
 )
 
 /**
@@ -60,4 +62,8 @@ data class TransactionDraft(
     val source: AccountRef,
     val destination: AccountRef,
     val notes: String? = null,
+    /** Category matched by name (ignoring case) or created when new; null leaves it uncategorized. */
+    val categoryName: String? = null,
+    /** Tags matched by name (ignoring case) or created when new. */
+    val tagNames: List<String> = emptyList(),
 )

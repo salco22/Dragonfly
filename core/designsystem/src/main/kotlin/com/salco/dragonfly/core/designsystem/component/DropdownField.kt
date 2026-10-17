@@ -15,7 +15,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 
 /** Read-only field that opens a menu of [options]. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,6 +71,10 @@ fun AutocompleteField(
     modifier: Modifier = Modifier.fillMaxWidth(),
     isError: Boolean = false,
     supportingText: String? = null,
+    onSuggestionClick: (String) -> Unit = onValueChange,
+    /** When set, the keyboard shows a Done action that calls it. */
+    onDone: (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val matches = remember(value, suggestions) {
@@ -90,7 +96,12 @@ fun AutocompleteField(
             singleLine = true,
             isError = isError,
             supportingText = supportingText?.let { { Text(it) } },
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            trailingIcon = trailingIcon,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = if (onDone != null) ImeAction.Done else ImeAction.Default,
+            ),
+            keyboardActions = KeyboardActions(onDone = onDone?.let { { it() } }),
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
@@ -103,7 +114,7 @@ fun AutocompleteField(
                 DropdownMenuItem(
                     text = { Text(suggestion) },
                     onClick = {
-                        onValueChange(suggestion)
+                        onSuggestionClick(suggestion)
                         expanded = false
                     },
                 )

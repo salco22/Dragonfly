@@ -3,6 +3,9 @@ package com.salco.dragonfly.feature.transactions.edit
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -23,6 +28,8 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -86,6 +93,10 @@ internal fun TransactionEditScreen(
             onToAccountChange = viewModel::onToAccountChange,
             onCounterpartyChange = viewModel::onCounterpartyChange,
             onNotesChange = viewModel::onNotesChange,
+            onCategoryChange = viewModel::onCategoryChange,
+            onTagInputChange = viewModel::onTagInputChange,
+            onAddTag = viewModel::addTag,
+            onRemoveTag = viewModel::removeTag,
         ),
     )
 }
@@ -103,6 +114,10 @@ internal data class TransactionEditActions(
     val onToAccountChange: (Long) -> Unit = {},
     val onCounterpartyChange: (String) -> Unit = {},
     val onNotesChange: (String) -> Unit = {},
+    val onCategoryChange: (String) -> Unit = {},
+    val onTagInputChange: (String) -> Unit = {},
+    val onAddTag: (String) -> Unit = {},
+    val onRemoveTag: (String) -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -246,6 +261,22 @@ internal fun TransactionEditContent(uiState: TransactionEditUiState, actions: Tr
                 }
             }
 
+            AutocompleteField(
+                label = stringResource(R.string.feature_transactions_category),
+                value = uiState.category,
+                onValueChange = actions.onCategoryChange,
+                suggestions = uiState.categoryNames,
+            )
+
+            TagsField(
+                tags = uiState.tags,
+                input = uiState.tagInput,
+                suggestions = uiState.tagSuggestions.filterNot { s -> uiState.tags.any { it.equals(s, true) } },
+                onInputChange = actions.onTagInputChange,
+                onAdd = actions.onAddTag,
+                onRemove = actions.onRemoveTag,
+            )
+
             OutlinedTextField(
                 value = uiState.notes,
                 onValueChange = actions.onNotesChange,
@@ -340,6 +371,51 @@ private fun DateField(date: LocalDate, onClick: () -> Unit) {
         interactionSource = interactionSource,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TagsField(
+    tags: List<String>,
+    input: String,
+    suggestions: List<String>,
+    onInputChange: (String) -> Unit,
+    onAdd: (String) -> Unit,
+    onRemove: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        AutocompleteField(
+            label = stringResource(R.string.feature_transactions_tags),
+            value = input,
+            onValueChange = onInputChange,
+            suggestions = suggestions,
+            onSuggestionClick = onAdd,
+            onDone = { onAdd(input) },
+            trailingIcon = {
+                IconButton(onClick = { onAdd(input) }, enabled = input.isNotBlank()) {
+                    Icon(Icons.Filled.Add, stringResource(R.string.feature_transactions_add_tag))
+                }
+            },
+        )
+        if (tags.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                tags.forEach { tag ->
+                    InputChip(
+                        selected = false,
+                        onClick = { onRemove(tag) },
+                        label = { Text(tag) },
+                        trailingIcon = {
+                            Icon(
+                                Icons.Filled.Close,
+                                stringResource(R.string.feature_transactions_remove_tag, tag),
+                                modifier = Modifier.size(InputChipDefaults.IconSize),
+                            )
+                        },
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable

@@ -2,12 +2,17 @@ package com.salco.dragonfly.feature.settings
 
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,7 +40,11 @@ import com.salco.dragonfly.feature.lock.isAppLockAvailable
 import com.salco.dragonfly.feature.lock.showAppLockPrompt
 
 @Composable
-internal fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+internal fun SettingsScreen(
+    onCategoriesClick: () -> Unit,
+    onTagsClick: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lockAvailable = remember(context) { isAppLockAvailable(context) }
@@ -53,6 +62,8 @@ internal fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             }
         },
         onDefaultCurrencyChange = viewModel::setDefaultCurrency,
+        onCategoriesClick = onCategoriesClick,
+        onTagsClick = onTagsClick,
     )
 }
 
@@ -63,6 +74,8 @@ internal fun SettingsContent(
     lockAvailable: Boolean,
     onAppLockChange: (Boolean) -> Unit,
     onDefaultCurrencyChange: (String) -> Unit,
+    onCategoriesClick: () -> Unit = {},
+    onTagsClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_settings_title)) }) },
@@ -92,6 +105,18 @@ internal fun SettingsContent(
                         enabled = lockAvailable || preferences.appLockEnabled,
                     )
                 },
+            )
+
+            SectionTitle(stringResource(R.string.feature_settings_organization))
+            ListItem(
+                modifier = Modifier.clickable(onClick = onCategoriesClick),
+                leadingContent = { Icon(Icons.Filled.Category, contentDescription = null) },
+                headlineContent = { Text(stringResource(R.string.feature_settings_categories)) },
+            )
+            ListItem(
+                modifier = Modifier.clickable(onClick = onTagsClick),
+                leadingContent = { Icon(Icons.Filled.Sell, contentDescription = null) },
+                headlineContent = { Text(stringResource(R.string.feature_settings_tags)) },
             )
 
             SectionTitle(stringResource(R.string.feature_settings_general))

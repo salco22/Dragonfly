@@ -5,6 +5,8 @@ import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeCategoriesRepository
+import com.salco.dragonfly.core.testing.FakeTagsRepository
 import com.salco.dragonfly.core.testing.FakeTransactionsRepository
 import com.salco.dragonfly.core.testing.MainDispatcherRule
 import com.salco.dragonfly.feature.transactions.edit.TransactionEditViewModel
@@ -26,7 +28,9 @@ class TransactionEditViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val accounts = FakeAccountsRepository()
-    private val transactions = FakeTransactionsRepository(accounts)
+    private val categories = FakeCategoriesRepository()
+    private val tags = FakeTagsRepository()
+    private val transactions = FakeTransactionsRepository(accounts, categories, tags)
     private val clock = Clock.fixed(LocalDate.of(2026, 10, 17).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
     private var checkingId = 0L
     private var savingsUsdId = 0L
@@ -40,7 +44,7 @@ class TransactionEditViewModelTest {
     }
 
     private fun viewModel(id: Long = 0L) = TransactionEditViewModel(
-        SavedStateHandle(mapOf("transactionId" to id)), transactions, accounts, clock,
+        SavedStateHandle(mapOf("transactionId" to id)), transactions, accounts, categories, tags, clock,
     )
 
     @Test
@@ -142,5 +146,38 @@ class TransactionEditViewModelTest {
         }
         vm.delete()
         assertTrue(transactions.transactions.value.isEmpty())
+    }
+
+    @Test
+    fun categoryAndTags_areSavedAndReloaded() = runTest {
+        categories.saveCategory(com.salco.dragonfly.core.model.Category(name = "Spesa alimentare"))
+        val vm = viewModel()
+        assertEquals(listOf("Spesa alimentare"), vm.uiState.value.categoryNames)
+        vm.onAmountChange("30")
+        vm.onDescriptionChange("Spesa")
+        vm.onCounterpartyChange("Supermercato")
+        vm.onCategoryChange("spesa alimentare")
+        vm.addTag("Casa")
+        vm.addTag("casa")
+        vm.onTagInputChange("Vacanze ")
+        vm.save()
+
+        val saved = transactions.transactions.value.single()
+        assertEquals("Spesa alimentare", saved.category?.name)
+        assertEquals(1, categories.categories.value.size)
+        assertEquals(listOf("Casa", "Vacanze"), saved.tags.map { it.name })
+
+        val reloaded = viewModel(saved.id).uiState.value
+        assertEquals("Spesa alimentare", reloaded.category)
+        assertEquals(listOf("Casa", "Vacanze"), reloaded.tags)
+    }
+
+    @Test
+    fun removeTag_dropsIt() = runTest {
+        val vm = viewModel()
+        vm.addTag("Lavoro")
+        vm.addTag("Casa")
+        vm.removeTag("Lavoro")
+        assertEquals(listOf("Casa"), vm.uiState.value.tags)
     }
 }

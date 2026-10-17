@@ -25,6 +25,7 @@ include(":core:designsystem")
 include(":core:testing")
 
 include(":feature:accounts")
+include(":feature:classification")
 include(":feature:lock")
 include(":feature:settings")
 include(":feature:transactions")

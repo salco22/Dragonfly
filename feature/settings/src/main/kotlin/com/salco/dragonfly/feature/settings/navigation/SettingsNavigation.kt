@@ -13,8 +13,8 @@ data object SettingsRoute
 fun NavController.navigateToSettings(navOptions: NavOptions? = null) =
     navigate(route = SettingsRoute, navOptions = navOptions)
 
-fun NavGraphBuilder.settingsScreen() {
+fun NavGraphBuilder.settingsScreen(onCategoriesClick: () -> Unit, onTagsClick: () -> Unit) {
     composable<SettingsRoute> {
-        SettingsScreen()
+        SettingsScreen(onCategoriesClick = onCategoriesClick, onTagsClick = onTagsClick)
     }
 }

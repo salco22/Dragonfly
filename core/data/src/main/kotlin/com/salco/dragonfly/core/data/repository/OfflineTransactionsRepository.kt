@@ -27,7 +27,7 @@ internal class OfflineTransactionsRepository @Inject constructor(
         transactionDao.observeById(id).map { it?.asExternalModel() }
 
     override suspend fun saveTransaction(draft: TransactionDraft): Long =
-        transactionDao.upsertResolvingAccounts(
+        transactionDao.save(
             transaction = TransactionEntity(
                 id = draft.id,
                 type = draft.type,
@@ -42,6 +42,8 @@ internal class OfflineTransactionsRepository @Inject constructor(
             ),
             newSource = (draft.source as? AccountRef.New)?.asEntity(),
             newDestination = (draft.destination as? AccountRef.New)?.asEntity(),
+            categoryName = draft.categoryName,
+            tagNames = draft.tagNames,
         )
 
     override suspend fun deleteTransaction(id: Long) = transactionDao.deleteById(id)

@@ -43,6 +43,7 @@ dependencies {
 
     //Features
     implementation(project(":feature:accounts"))
+    implementation(project(":feature:classification"))
     implementation(project(":feature:lock"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:transactions"))

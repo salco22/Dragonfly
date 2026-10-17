@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.CategoriesRepository
+import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountRef
@@ -29,6 +31,8 @@ class TransactionEditViewModel internal constructor(
     savedStateHandle: SavedStateHandle,
     private val transactionsRepository: TransactionsRepository,
     accountsRepository: AccountsRepository,
+    categoriesRepository: CategoriesRepository,
+    tagsRepository: TagsRepository,
     clock: Clock,
 ) : ViewModel() {
 
@@ -37,7 +41,12 @@ class TransactionEditViewModel internal constructor(
         savedStateHandle: SavedStateHandle,
         transactionsRepository: TransactionsRepository,
         accountsRepository: AccountsRepository,
-    ) : this(savedStateHandle, transactionsRepository, accountsRepository, Clock.systemDefaultZone())
+        categoriesRepository: CategoriesRepository,
+        tagsRepository: TagsRepository,
+    ) : this(
+        savedStateHandle, transactionsRepository, accountsRepository, categoriesRepository, tagsRepository,
+        Clock.systemDefaultZone(),
+    )
 
     // Read the argument by name so the ViewModel stays testable without Android's Bundle.
     private val transactionId: Long = savedStateHandle[TransactionEditRoute::transactionId.name] ?: 0L
@@ -53,10 +62,14 @@ class TransactionEditViewModel internal constructor(
         viewModelScope.launch {
             allAccounts = accountsRepository.observeAccounts().first()
             val ownAccounts = allAccounts.filter { it.active && it.type.isOwn }
+            val categoryNames = categoriesRepository.observeCategories().first().map { it.name }
+            val tagNames = tagsRepository.observeTags().first().map { it.name }
             val transaction = if (transactionId != 0L) transactionsRepository.observeTransaction(transactionId).first() else null
             _uiState.update { state ->
                 val base = state.copy(
                     isLoading = false,
+                    categoryNames = categoryNames,
+                    tagSuggestions = tagNames,
                     ownAccounts = ownAccounts,
                     expenseNames = allAccounts.namesOf(AccountType.EXPENSE),
                     revenueNames = allAccounts.namesOf(AccountType.REVENUE),
@@ -81,6 +94,8 @@ class TransactionEditViewModel internal constructor(
                             TransactionType.TRANSFER -> ""
                         },
                         notes = transaction.notes.orEmpty(),
+                        category = transaction.category?.name.orEmpty(),
+                        tags = transaction.tags.map { it.name },
                         // An archived account still has to be selectable for its old transactions.
                         ownAccounts = (ownAccounts + allAccounts.filter { it.id == ownId || it.id == transaction.destination.id && it.type.isOwn })
                             .distinctBy { it.id },
@@ -99,6 +114,20 @@ class TransactionEditViewModel internal constructor(
     fun onToAccountChange(id: Long) = _uiState.update { it.copy(toAccountId = id).clearErrors() }
     fun onCounterpartyChange(value: String) = _uiState.update { it.copy(counterparty = value, counterpartyError = false) }
     fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
+    fun onCategoryChange(value: String) = _uiState.update { it.copy(category = value) }
+    fun onTagInputChange(value: String) = _uiState.update { it.copy(tagInput = value) }
+
+    /** Adds [name] (or the text being typed) as a tag, ignoring blanks and duplicates. */
+    fun addTag(name: String = _uiState.value.tagInput) = _uiState.update { state ->
+        val tag = name.trim()
+        if (tag.isEmpty() || state.tags.any { it.equals(tag, ignoreCase = true) }) {
+            state.copy(tagInput = "")
+        } else {
+            state.copy(tags = state.tags + tag, tagInput = "")
+        }
+    }
+
+    fun removeTag(name: String) = _uiState.update { it.copy(tags = it.tags - name) }
 
     fun save() {
         val state = _uiState.value
@@ -141,6 +170,9 @@ class TransactionEditViewModel internal constructor(
             source = source,
             destination = destination,
             notes = state.notes.trim().ifEmpty { null },
+            categoryName = state.category.trim().ifEmpty { null },
+            // A tag still being typed when saving is kept too.
+            tagNames = (state.tags + state.tagInput.trim()).filter { it.isNotEmpty() },
         )
         viewModelScope.launch {
             transactionsRepository.saveTransaction(draft)
@@ -183,9 +215,14 @@ data class TransactionEditUiState(
     /** Payee of a withdrawal or payer of a deposit, matched or created by name. */
     val counterparty: String = "",
     val notes: String = "",
+    val category: String = "",
+    val tags: List<String> = emptyList(),
+    val tagInput: String = "",
     val ownAccounts: List<Account> = emptyList(),
     val expenseNames: List<String> = emptyList(),
     val revenueNames: List<String> = emptyList(),
+    val categoryNames: List<String> = emptyList(),
+    val tagSuggestions: List<String> = emptyList(),
     val amountError: Boolean = false,
     val foreignAmountError: Boolean = false,
     val descriptionError: Boolean = false,

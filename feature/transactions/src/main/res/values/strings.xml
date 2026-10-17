@@ -28,6 +28,10 @@
     <string name="feature_transactions_payee">Beneficiario</string>
     <string name="feature_transactions_payer">Pagante</string>
     <string name="feature_transactions_notes">Note</string>
+    <string name="feature_transactions_category">Categoria</string>
+    <string name="feature_transactions_tags">Tag</string>
+    <string name="feature_transactions_add_tag">Aggiungi tag</string>
+    <string name="feature_transactions_remove_tag">Rimuovi %1$s</string>
     <string name="feature_transactions_error_amount">Inserisci un importo maggiore di zero</string>
     <string name="feature_transactions_error_description">Inserisci una descrizione</string>
     <string name="feature_transactions_error_account">Scegli un conto</string>

@@ -196,7 +196,19 @@ private fun TransactionRow(transaction: Transaction, onClick: () -> Unit) {
         modifier = Modifier.clickable(onClick = onClick),
         leadingContent = { TypeIcon(icon, color) },
         headlineContent = { Text(transaction.description) },
-        supportingContent = { Text("${transaction.source.name} → ${transaction.destination.name}") },
+        supportingContent = {
+            Column {
+                Text("${transaction.source.name} → ${transaction.destination.name}")
+                val labels = listOfNotNull(transaction.category?.name) + transaction.tags.map { "#${it.name}" }
+                if (labels.isNotEmpty()) {
+                    Text(
+                        text = labels.joinToString(" · "),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        },
         trailingContent = {
             Text(
                 text = sign + formatMoney(transaction.amount, transaction.currencyCode),
