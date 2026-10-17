@@ -1,6 +1,7 @@
 package com.salco.dragonfly.core.database.model
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.salco.dragonfly.core.model.Account
@@ -25,14 +26,21 @@ data class AccountEntity(
     @ColumnInfo(name = "created_at") val createdAt: Long,
 )
 
-// Balance equals the opening balance until transactions are introduced.
-fun AccountEntity.asExternalModel() = Account(
+/** An account with its balance: opening balance plus incoming minus outgoing transactions. */
+data class AccountWithBalance(
+    @Embedded val account: AccountEntity,
+    val balance: Long,
+)
+
+fun AccountWithBalance.asExternalModel() = account.asExternalModel(balance)
+
+fun AccountEntity.asExternalModel(balance: Long = openingBalance) = Account(
     id = id,
     name = name,
     type = type,
     currencyCode = currencyCode,
     openingBalance = openingBalance,
-    balance = openingBalance,
+    balance = balance,
     iban = iban,
     notes = notes,
     active = active,

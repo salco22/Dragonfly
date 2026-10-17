@@ -7,6 +7,9 @@ import com.salco.dragonfly.feature.accounts.list.AccountsUiState
 import com.salco.dragonfly.feature.accounts.list.AccountsViewModel
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeUserDataRepository
+import com.salco.dragonfly.core.testing.MainDispatcherRule
 import org.junit.Rule
 import org.junit.Test
 

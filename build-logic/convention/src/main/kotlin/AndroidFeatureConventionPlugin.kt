@@ -25,9 +25,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("kotlinx.coroutines.android").get())
                 add("implementation", libs.findLibrary("kotlinx.serialization.json").get())
 
-                add("testImplementation", libs.findLibrary("junit").get())
-                add("testImplementation", libs.findLibrary("kotlinx.coroutines.test").get())
-                add("testImplementation", libs.findLibrary("turbine").get())
+                add("testImplementation", project(":core:testing"))
             }
         }
     }

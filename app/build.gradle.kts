@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":feature:accounts"))
     implementation(project(":feature:lock"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:transactions"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

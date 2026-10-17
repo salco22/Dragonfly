@@ -9,6 +9,9 @@ import com.salco.dragonfly.feature.accounts.navigation.accountEditScreen
 import com.salco.dragonfly.feature.accounts.navigation.accountsScreen
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountEdit
 import com.salco.dragonfly.feature.settings.navigation.settingsScreen
+import com.salco.dragonfly.feature.transactions.navigation.navigateToTransactionEdit
+import com.salco.dragonfly.feature.transactions.navigation.transactionEditScreen
+import com.salco.dragonfly.feature.transactions.navigation.transactionsScreen
 
 @Composable
 fun DragonflyNavHost(
@@ -25,6 +28,11 @@ fun DragonflyNavHost(
             onAddAccountClick = { navController.navigateToAccountEdit() },
         )
         accountEditScreen(onBack = navController::popBackStack)
+        transactionsScreen(
+            onTransactionClick = navController::navigateToTransactionEdit,
+            onAddTransactionClick = { navController.navigateToTransactionEdit() },
+        )
+        transactionEditScreen(onBack = navController::popBackStack)
         settingsScreen()
     }
 }

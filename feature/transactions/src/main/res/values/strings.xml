@@ -1,0 +1,40 @@
+<resources>
+    <string name="feature_transactions_title">Transazioni</string>
+    <string name="feature_transactions_add">Nuova</string>
+    <string name="feature_transactions_previous_month">Mese precedente</string>
+    <string name="feature_transactions_next_month">Mese successivo</string>
+    <string name="feature_transactions_income">Entrate</string>
+    <string name="feature_transactions_expenses">Uscite</string>
+    <string name="feature_transactions_empty_title">Nessuna transazione</string>
+    <string name="feature_transactions_empty_message">Registra spese, entrate e trasferimenti per vedere dove vanno i tuoi soldi.</string>
+
+    <string name="feature_transactions_type_withdrawal">Uscita</string>
+    <string name="feature_transactions_type_deposit">Entrata</string>
+    <string name="feature_transactions_type_transfer">Trasferimento</string>
+
+    <string name="feature_transactions_new">Nuova transazione</string>
+    <string name="feature_transactions_edit">Modifica transazione</string>
+    <string name="feature_transactions_back">Indietro</string>
+    <string name="feature_transactions_save">Salva</string>
+    <string name="feature_transactions_delete">Elimina</string>
+    <string name="feature_transactions_cancel">Annulla</string>
+    <string name="feature_transactions_ok">OK</string>
+    <string name="feature_transactions_amount">Importo</string>
+    <string name="feature_transactions_foreign_amount">Importo ricevuto (%1$s)</string>
+    <string name="feature_transactions_description">Descrizione</string>
+    <string name="feature_transactions_date">Data</string>
+    <string name="feature_transactions_from_account">Dal conto</string>
+    <string name="feature_transactions_to_account">Al conto</string>
+    <string name="feature_transactions_payee">Beneficiario</string>
+    <string name="feature_transactions_payer">Pagante</string>
+    <string name="feature_transactions_notes">Note</string>
+    <string name="feature_transactions_error_amount">Inserisci un importo maggiore di zero</string>
+    <string name="feature_transactions_error_description">Inserisci una descrizione</string>
+    <string name="feature_transactions_error_account">Scegli un conto</string>
+    <string name="feature_transactions_error_counterparty">Inserisci un nome</string>
+    <string name="feature_transactions_error_same_account">Scegli due conti diversi</string>
+    <string name="feature_transactions_no_accounts_title">Nessun conto disponibile</string>
+    <string name="feature_transactions_no_accounts_message">Crea prima un conto di tipo attività o passività dalla sezione Conti.</string>
+    <string name="feature_transactions_delete_title">Eliminare la transazione?</string>
+    <string name="feature_transactions_delete_message">La transazione verrà eliminata definitivamente e i saldi dei conti verranno aggiornati.</string>
+</resources>

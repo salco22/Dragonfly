@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.salco.dragonfly.core.database.DragonflyDatabase
 import com.salco.dragonfly.core.database.dao.AccountDao
+import com.salco.dragonfly.core.database.dao.TransactionDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,4 +28,7 @@ internal object DatabaseModule {
 
     @Provides
     fun providesAccountDao(database: DragonflyDatabase): AccountDao = database.accountDao()
+
+    @Provides
+    fun providesTransactionDao(database: DragonflyDatabase): TransactionDao = database.transactionDao()
 }

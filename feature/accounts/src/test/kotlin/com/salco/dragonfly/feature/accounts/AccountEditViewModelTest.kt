@@ -9,6 +9,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeUserDataRepository
+import com.salco.dragonfly.core.testing.MainDispatcherRule
 import org.junit.Rule
 import org.junit.Test
 

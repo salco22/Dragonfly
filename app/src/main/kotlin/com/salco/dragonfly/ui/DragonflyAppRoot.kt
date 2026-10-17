@@ -27,6 +27,7 @@ import com.salco.dragonfly.MainActivityUiState
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccounts
 import com.salco.dragonfly.feature.lock.LockScreen
 import com.salco.dragonfly.feature.settings.navigation.navigateToSettings
+import com.salco.dragonfly.feature.transactions.navigation.navigateToTransactions
 import com.salco.dragonfly.navigation.DragonflyNavHost
 import com.salco.dragonfly.navigation.TopLevelDestination
 
@@ -93,6 +94,7 @@ private fun NavHostController.navigateToTopLevel(destination: TopLevelDestinatio
     }
     when (destination) {
         TopLevelDestination.ACCOUNTS -> navigateToAccounts(options)
+        TopLevelDestination.TRANSACTIONS -> navigateToTransactions(options)
         TopLevelDestination.SETTINGS -> navigateToSettings(options)
     }
 }
