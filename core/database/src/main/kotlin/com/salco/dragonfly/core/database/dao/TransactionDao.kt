@@ -19,11 +19,13 @@ private const val POPULATED_SELECT = """
     SELECT t.*,
         s.name AS source_name, s.type AS source_type, s.currency_code AS source_currency,
         d.name AS destination_name, d.type AS destination_type, d.currency_code AS destination_currency,
-        c.name AS category_name
+        c.name AS category_name,
+        b.name AS budget_name
     FROM transactions t
     JOIN accounts s ON s.id = t.source_account_id
     JOIN accounts d ON d.id = t.destination_account_id
     LEFT JOIN categories c ON c.id = t.category_id
+    LEFT JOIN budgets b ON b.id = t.budget_id
 """
 
 @Dao
@@ -53,6 +55,7 @@ abstract class TransactionDao {
                            WHERE tt.transaction_id = t.id AND g.name LIKE '%' || :query || '%'))
             AND (:type IS NULL OR t.type = :type)
             AND (:categoryId IS NULL OR t.category_id = :categoryId)
+            AND (:budgetId IS NULL OR t.budget_id = :budgetId)
             AND (:tagId IS NULL OR EXISTS (SELECT 1 FROM transaction_tags tt WHERE tt.transaction_id = t.id AND tt.tag_id = :tagId))
             AND (:accountId IS NULL OR t.source_account_id = :accountId OR t.destination_account_id = :accountId)
             AND (:fromEpochDay IS NULL OR t.date >= :fromEpochDay)
@@ -65,6 +68,7 @@ abstract class TransactionDao {
         type: String?,
         categoryId: Long?,
         tagId: Long?,
+        budgetId: Long?,
         accountId: Long?,
         fromEpochDay: Long?,
         toEpochDay: Long?,

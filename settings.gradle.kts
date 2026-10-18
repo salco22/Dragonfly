@@ -26,6 +26,7 @@ include(":core:testing")
 include(":core:ui")
 
 include(":feature:accounts")
+include(":feature:budgets")
 include(":feature:classification")
 include(":feature:lock")
 include(":feature:settings")

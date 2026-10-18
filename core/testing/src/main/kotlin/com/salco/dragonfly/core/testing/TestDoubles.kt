@@ -1,11 +1,16 @@
 package com.salco.dragonfly.core.testing
 
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.DuplicateNameException
 import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
+import com.salco.dragonfly.core.model.Budget
+import com.salco.dragonfly.core.model.BudgetRef
+import com.salco.dragonfly.core.model.BudgetSpending
 import com.salco.dragonfly.core.model.Category
+import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.CategorySummary
 import com.salco.dragonfly.core.model.Tag
 import com.salco.dragonfly.core.model.TagSummary
@@ -21,6 +26,7 @@ import com.salco.dragonfly.core.model.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestDispatcher
@@ -66,6 +72,7 @@ class FakeTransactionsRepository(
     private val accounts: FakeAccountsRepository = FakeAccountsRepository(),
     private val categories: FakeCategoriesRepository = FakeCategoriesRepository(),
     private val tags: FakeTagsRepository = FakeTagsRepository(),
+    private val budgets: FakeBudgetsRepository = FakeBudgetsRepository(),
 ) : TransactionsRepository {
     val transactions = MutableStateFlow<List<Transaction>>(emptyList())
     private var nextId = 1L
@@ -90,6 +97,7 @@ class FakeTransactionsRepository(
             (filter.type == null || type == filter.type) &&
             (filter.categoryId == null || category?.id == filter.categoryId) &&
             (filter.tagId == null || tags.any { it.id == filter.tagId }) &&
+            (filter.budgetId == null || budget?.id == filter.budgetId) &&
             (filter.accountId == null || source.id == filter.accountId || destination.id == filter.accountId) &&
             (filter.from == null || date >= filter.from) &&
             (filter.to == null || date <= filter.to)
@@ -111,6 +119,9 @@ class FakeTransactionsRepository(
             category = draft.categoryName?.trim()?.takeIf { it.isNotEmpty() }?.let { categories.resolve(it) },
             tags = draft.tagNames.map { it.trim() }.filter { it.isNotEmpty() }.distinctBy { it.lowercase() }
                 .map { tags.resolve(it) },
+            budget = draft.budgetId.takeIf { draft.type == TransactionType.WITHDRAWAL }
+                ?.let { id -> budgets.budgets.value.firstOrNull { it.id == id } }
+                ?.let { BudgetRef(it.id, it.name) },
         )
         transactions.update { list -> list.filterNot { it.id == id } + transaction }
         return id
@@ -177,4 +188,51 @@ class FakeTagsRepository : TagsRepository {
 
     suspend fun resolve(name: String): Tag =
         tags.value.firstOrNull { it.name.equals(name, true) } ?: Tag(name = name).let { it.copy(id = saveTag(it)) }
+}
+
+/** Budgets whose spending is computed from [transactions] once [attach] is called. */
+class FakeBudgetsRepository : BudgetsRepository {
+    val budgets = MutableStateFlow<List<Budget>>(emptyList())
+    private var transactions: MutableStateFlow<List<Transaction>> = MutableStateFlow(emptyList())
+    private var nextId = 1L
+
+    fun attach(repository: FakeTransactionsRepository) {
+        transactions = repository.transactions
+    }
+
+    override fun observeBudgets(): Flow<List<Budget>> = budgets
+
+    override fun observeBudget(id: Long): Flow<Budget?> = budgets.map { list -> list.find { it.id == id } }
+
+    override fun observeBudgetSpending(from: LocalDate, to: LocalDate): Flow<List<BudgetSpending>> =
+        combine(budgets, transactions) { budgets, transactions ->
+            budgets.map { budget ->
+                BudgetSpending(
+                    budget,
+                    transactions.filter {
+                        it.budget?.id == budget.id && it.type == TransactionType.WITHDRAWAL &&
+                            it.currencyCode == budget.currencyCode && it.date in from..to
+                    }.sumOf { it.amount },
+                )
+            }
+        }
+
+    override fun observeUnbudgetedSpending(from: LocalDate, to: LocalDate): Flow<Map<String, Long>> =
+        transactions.map { list ->
+            list.filter { it.type == TransactionType.WITHDRAWAL && it.budget == null && it.date in from..to }
+                .groupBy { it.currencyCode }.mapValues { (_, l) -> l.sumOf { it.amount } }
+        }
+
+    override suspend fun saveBudget(budget: Budget): Long {
+        val name = budget.name.trim()
+        if (budgets.value.any { it.name.equals(name, true) && it.id != budget.id }) throw DuplicateNameException(name)
+        val saved = budget.copy(id = if (budget.id == 0L) nextId++ else budget.id, name = name)
+        budgets.update { list -> list.filterNot { it.id == saved.id } + saved }
+        return saved.id
+    }
+
+    override suspend fun deleteBudget(id: Long) {
+        budgets.update { list -> list.filterNot { it.id == id } }
+        transactions.update { list -> list.map { if (it.budget?.id == id) it.copy(budget = null) else it } }
+    }
 }

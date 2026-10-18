@@ -150,7 +150,7 @@ class TransactionDaoTest {
         suspend fun search(
             query: String? = null, type: String? = null, tagId: Long? = null, accountId: Long? = null,
             from: Long? = null, to: Long? = null,
-        ) = transactionDao.search(query, type, null, tagId, accountId, from, to).first().map { it.transaction.description }
+        ) = transactionDao.search(query, type, null, tagId, null, accountId, from, to).first().map { it.transaction.description }
 
         assertEquals(listOf("Spesa"), search(query = "SUPERMERC"))
         assertEquals(listOf("Spesa"), search(query = "cibo"))
@@ -161,5 +161,23 @@ class TransactionDaoTest {
         assertEquals(listOf("Spesa"), search(from = 50, to = 150))
         val casa = db.tagDao().findByName("casa")!!.id
         assertEquals(listOf("Spesa"), search(tagId = casa))
+    }
+
+    @Test
+    fun budgetSpending_countsOnlyItsWithdrawalsInPeriodAndCurrency() = runTest {
+        val checking = accountDao.upsert(account("Conto", AccountType.ASSET))
+        val shop = accountDao.upsert(account("Supermercato", AccountType.EXPENSE))
+        val budget = db.budgetDao().upsert(com.salco.dragonfly.core.database.model.BudgetEntity(name = "Spesa", amount = 40_000, currencyCode = "EUR", active = true))
+        transactionDao.save(transaction(TransactionType.WITHDRAWAL, 3_000, checking, shop).copy(budgetId = budget, date = 100))
+        transactionDao.save(transaction(TransactionType.WITHDRAWAL, 9_000, checking, shop).copy(budgetId = budget, date = 500))
+        transactionDao.save(transaction(TransactionType.WITHDRAWAL, 700, checking, shop).copy(budgetId = budget, date = 100, currencyCode = "USD"))
+        transactionDao.save(transaction(TransactionType.WITHDRAWAL, 2_000, checking, shop).copy(date = 100))
+
+        assertEquals(3_000L, db.budgetDao().observeSpending(0, 200).first().single().spent)
+        assertEquals(mapOf("EUR" to 2_000L), db.budgetDao().observeUnbudgeted(0, 200).first().associate { it.currencyCode to it.total })
+        assertEquals(listOf("Spesa", "Spesa"), transactionDao.search(null, null, null, null, budget, null, 0, 200).first().map { it.budgetName })
+
+        db.budgetDao().deleteById(budget)
+        assertTrue(transactionDao.observeForAccount(checking).first().all { it.transaction.budgetId == null })
     }
 }

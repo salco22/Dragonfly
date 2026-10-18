@@ -5,6 +5,7 @@ import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeBudgetsRepository
 import com.salco.dragonfly.core.testing.FakeCategoriesRepository
 import com.salco.dragonfly.core.testing.FakeTagsRepository
 import com.salco.dragonfly.core.testing.FakeTransactionsRepository
@@ -30,7 +31,8 @@ class TransactionEditViewModelTest {
     private val accounts = FakeAccountsRepository()
     private val categories = FakeCategoriesRepository()
     private val tags = FakeTagsRepository()
-    private val transactions = FakeTransactionsRepository(accounts, categories, tags)
+    private val budgets = FakeBudgetsRepository()
+    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets)
     private val clock = Clock.fixed(LocalDate.of(2026, 10, 17).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
     private var checkingId = 0L
     private var savingsUsdId = 0L
@@ -44,7 +46,7 @@ class TransactionEditViewModelTest {
     }
 
     private fun viewModel(id: Long = 0L, accountId: Long = 0L) = TransactionEditViewModel(
-        SavedStateHandle(mapOf("transactionId" to id, "accountId" to accountId)), transactions, accounts, categories, tags, clock,
+        SavedStateHandle(mapOf("transactionId" to id, "accountId" to accountId)), transactions, accounts, categories, tags, budgets, clock,
     )
 
     @Test
@@ -189,5 +191,28 @@ class TransactionEditViewModelTest {
             assertEquals("Supermercato", counterparty)
             assertEquals(checkingId, accountId)
         }
+    }
+
+    @Test
+    fun budget_isSavedOnlyForWithdrawals() = runTest {
+        val groceries = budgets.saveBudget(com.salco.dragonfly.core.model.Budget(name = "Spesa", amount = 40_000, currencyCode = "EUR"))
+        budgets.saveBudget(com.salco.dragonfly.core.model.Budget(name = "Vecchio", amount = 1, currencyCode = "EUR", active = false))
+        val vm = viewModel()
+        assertEquals(listOf("Spesa"), vm.uiState.value.budgets.map { it.name })
+        vm.onAmountChange("20")
+        vm.onDescriptionChange("Spesa")
+        vm.onCounterpartyChange("Supermercato")
+        vm.onBudgetChange(groceries)
+        vm.save()
+        assertEquals(groceries, transactions.transactions.value.single().budget?.id)
+
+        val deposit = viewModel()
+        deposit.onTypeChange(TransactionType.DEPOSIT)
+        deposit.onAmountChange("20")
+        deposit.onDescriptionChange("Rimborso")
+        deposit.onCounterpartyChange("Amico")
+        deposit.onBudgetChange(groceries)
+        deposit.save()
+        assertNull(transactions.transactions.value.single { it.description == "Rimborso" }.budget)
     }
 }

@@ -9,6 +9,7 @@ import com.salco.dragonfly.core.model.AccountRef
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionFilter
+import com.salco.dragonfly.core.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -33,6 +34,7 @@ internal class OfflineTransactionsRepository @Inject constructor(
             type = filter.type?.name,
             categoryId = filter.categoryId,
             tagId = filter.tagId,
+            budgetId = filter.budgetId,
             accountId = filter.accountId,
             fromEpochDay = filter.from?.toEpochDay(),
             toEpochDay = filter.to?.toEpochDay(),
@@ -51,6 +53,7 @@ internal class OfflineTransactionsRepository @Inject constructor(
                 sourceAccountId = (draft.source as? AccountRef.Existing)?.id ?: 0,
                 destinationAccountId = (draft.destination as? AccountRef.Existing)?.id ?: 0,
                 notes = draft.notes,
+                budgetId = draft.budgetId.takeIf { draft.type == TransactionType.WITHDRAWAL },
             ),
             newSource = (draft.source as? AccountRef.New)?.asEntity(),
             newDestination = (draft.destination as? AccountRef.New)?.asEntity(),

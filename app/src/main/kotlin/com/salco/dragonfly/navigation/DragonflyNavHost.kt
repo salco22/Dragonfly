@@ -10,6 +10,9 @@ import com.salco.dragonfly.feature.accounts.navigation.accountEditScreen
 import com.salco.dragonfly.feature.accounts.navigation.accountsScreen
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountDetail
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountEdit
+import com.salco.dragonfly.feature.budgets.navigation.budgetsScreens
+import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetDetail
+import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetEdit
 import com.salco.dragonfly.feature.classification.navigation.classificationScreens
 import com.salco.dragonfly.feature.classification.navigation.navigateToCategories
 import com.salco.dragonfly.feature.classification.navigation.navigateToTags
@@ -45,6 +48,13 @@ fun DragonflyNavHost(
             onAddTransactionClick = { navController.navigateToTransactionEdit() },
         )
         transactionEditScreen(onBack = navController::popBackStack)
+        budgetsScreens(
+            onBack = navController::popBackStack,
+            onBudgetClick = navController::navigateToBudgetDetail,
+            onAddBudget = { navController.navigateToBudgetEdit() },
+            onEditBudget = navController::navigateToBudgetEdit,
+            onTransactionClick = navController::navigateToTransactionEdit,
+        )
         settingsScreen(
             onCategoriesClick = navController::navigateToCategories,
             onTagsClick = navController::navigateToTags,

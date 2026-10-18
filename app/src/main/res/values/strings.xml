@@ -2,5 +2,6 @@
     <string name="app_name">Dragonfly</string>
     <string name="nav_accounts">Conti</string>
     <string name="nav_transactions">Transazioni</string>
+    <string name="nav_budgets">Budget</string>
     <string name="nav_settings">Impostazioni</string>
 </resources>

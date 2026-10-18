@@ -4,12 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountRef
 import com.salco.dragonfly.core.model.AccountType
+import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.minorUnitsToInput
@@ -33,6 +35,7 @@ class TransactionEditViewModel internal constructor(
     accountsRepository: AccountsRepository,
     categoriesRepository: CategoriesRepository,
     tagsRepository: TagsRepository,
+    budgetsRepository: BudgetsRepository,
     clock: Clock,
 ) : ViewModel() {
 
@@ -43,9 +46,10 @@ class TransactionEditViewModel internal constructor(
         accountsRepository: AccountsRepository,
         categoriesRepository: CategoriesRepository,
         tagsRepository: TagsRepository,
+        budgetsRepository: BudgetsRepository,
     ) : this(
         savedStateHandle, transactionsRepository, accountsRepository, categoriesRepository, tagsRepository,
-        Clock.systemDefaultZone(),
+        budgetsRepository, Clock.systemDefaultZone(),
     )
 
     // Read the argument by name so the ViewModel stays testable without Android's Bundle.
@@ -65,12 +69,14 @@ class TransactionEditViewModel internal constructor(
             val ownAccounts = allAccounts.filter { it.active && it.type.isOwn }
             val categoryNames = categoriesRepository.observeCategories().first().map { it.name }
             val tagNames = tagsRepository.observeTags().first().map { it.name }
+            val budgets = budgetsRepository.observeBudgets().first()
             val transaction = if (transactionId != 0L) transactionsRepository.observeTransaction(transactionId).first() else null
             _uiState.update { state ->
                 val base = state.copy(
                     isLoading = false,
                     categoryNames = categoryNames,
                     tagSuggestions = tagNames,
+                    budgets = budgets.filter { it.active },
                     ownAccounts = ownAccounts,
                     expenseNames = allAccounts.namesOf(AccountType.EXPENSE),
                     revenueNames = allAccounts.namesOf(AccountType.REVENUE),
@@ -109,6 +115,9 @@ class TransactionEditViewModel internal constructor(
                         notes = transaction.notes.orEmpty(),
                         category = transaction.category?.name.orEmpty(),
                         tags = transaction.tags.map { it.name },
+                        budgetId = transaction.budget?.id,
+                        // An inactive budget stays selectable for the transactions already using it.
+                        budgets = budgets.filter { it.active || it.id == transaction.budget?.id },
                         // An archived account still has to be selectable for its old transactions.
                         ownAccounts = (ownAccounts + allAccounts.filter { it.id == ownId || it.id == transaction.destination.id && it.type.isOwn })
                             .distinctBy { it.id },
@@ -128,6 +137,7 @@ class TransactionEditViewModel internal constructor(
     fun onCounterpartyChange(value: String) = _uiState.update { it.copy(counterparty = value, counterpartyError = false) }
     fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
     fun onCategoryChange(value: String) = _uiState.update { it.copy(category = value) }
+    fun onBudgetChange(id: Long?) = _uiState.update { it.copy(budgetId = id) }
     fun onTagInputChange(value: String) = _uiState.update { it.copy(tagInput = value) }
 
     /** Adds [name] (or the text being typed) as a tag, ignoring blanks and duplicates. */
@@ -186,6 +196,7 @@ class TransactionEditViewModel internal constructor(
             categoryName = state.category.trim().ifEmpty { null },
             // A tag still being typed when saving is kept too.
             tagNames = (state.tags + state.tagInput.trim()).filter { it.isNotEmpty() },
+            budgetId = state.budgetId.takeIf { state.type == TransactionType.WITHDRAWAL },
         )
         viewModelScope.launch {
             transactionsRepository.saveTransaction(draft)
@@ -231,6 +242,9 @@ data class TransactionEditUiState(
     val category: String = "",
     val tags: List<String> = emptyList(),
     val tagInput: String = "",
+    val budgetId: Long? = null,
+    /** Budgets a withdrawal can be assigned to. */
+    val budgets: List<Budget> = emptyList(),
     val ownAccounts: List<Account> = emptyList(),
     val expenseNames: List<String> = emptyList(),
     val revenueNames: List<String> = emptyList(),

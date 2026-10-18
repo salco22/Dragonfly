@@ -93,6 +93,7 @@ internal fun TransactionsScreen(
             onTypeFilter = viewModel::onTypeFilter,
             onCategoryFilter = viewModel::onCategoryFilter,
             onTagFilter = viewModel::onTagFilter,
+            onBudgetFilter = viewModel::onBudgetFilter,
             onAccountFilter = viewModel::onAccountFilter,
             onClearFilters = viewModel::clearFilters,
         ),
@@ -109,6 +110,7 @@ internal data class TransactionsActions(
     val onTypeFilter: (TransactionType?) -> Unit = {},
     val onCategoryFilter: (Long?) -> Unit = {},
     val onTagFilter: (Long?) -> Unit = {},
+    val onBudgetFilter: (Long?) -> Unit = {},
     val onAccountFilter: (Long?) -> Unit = {},
     val onClearFilters: () -> Unit = {},
 )
@@ -252,6 +254,16 @@ private fun FilterRow(state: TransactionsUiState.Success, actions: TransactionsA
             optionLabel = { "#${it.name}" },
             onSelected = { actions.onTagFilter(it?.id) },
         )
+        if (state.options.budgets.isNotEmpty()) {
+            MenuFilterChip(
+                label = state.options.budgets.firstOrNull { it.id == filter.budgetId }?.name
+                    ?: stringResource(R.string.feature_transactions_filter_budget),
+                selected = filter.budgetId != null,
+                options = state.options.budgets,
+                optionLabel = { it.name },
+                onSelected = { actions.onBudgetFilter(it?.id) },
+            )
+        }
         MenuFilterChip(
             label = state.options.accounts.firstOrNull { it.id == filter.accountId }?.name
                 ?: stringResource(R.string.feature_transactions_filter_account),

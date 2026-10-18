@@ -60,6 +60,7 @@ import com.salco.dragonfly.core.designsystem.component.EmptyState
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
+import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.formatMoney
 import com.salco.dragonfly.feature.transactions.R
@@ -94,6 +95,7 @@ internal fun TransactionEditScreen(
             onCounterpartyChange = viewModel::onCounterpartyChange,
             onNotesChange = viewModel::onNotesChange,
             onCategoryChange = viewModel::onCategoryChange,
+            onBudgetChange = viewModel::onBudgetChange,
             onTagInputChange = viewModel::onTagInputChange,
             onAddTag = viewModel::addTag,
             onRemoveTag = viewModel::removeTag,
@@ -115,6 +117,7 @@ internal data class TransactionEditActions(
     val onCounterpartyChange: (String) -> Unit = {},
     val onNotesChange: (String) -> Unit = {},
     val onCategoryChange: (String) -> Unit = {},
+    val onBudgetChange: (Long?) -> Unit = {},
     val onTagInputChange: (String) -> Unit = {},
     val onAddTag: (String) -> Unit = {},
     val onRemoveTag: (String) -> Unit = {},
@@ -267,6 +270,17 @@ internal fun TransactionEditContent(uiState: TransactionEditUiState, actions: Tr
                 onValueChange = actions.onCategoryChange,
                 suggestions = uiState.categoryNames,
             )
+
+            if (uiState.type == TransactionType.WITHDRAWAL && uiState.budgets.isNotEmpty()) {
+                val noBudget = stringResource(R.string.feature_transactions_no_budget)
+                DropdownField(
+                    label = stringResource(R.string.feature_transactions_budget),
+                    options = listOf<Budget?>(null) + uiState.budgets,
+                    selected = uiState.budgets.firstOrNull { it.id == uiState.budgetId },
+                    optionLabel = { it?.name ?: noBudget },
+                    onSelected = { actions.onBudgetChange(it?.id) },
+                )
+            }
 
             TagsField(
                 tags = uiState.tags,

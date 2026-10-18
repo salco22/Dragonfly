@@ -1,0 +1,34 @@
+<resources>
+    <string name="feature_budgets_title">Budget</string>
+    <string name="feature_budgets_add">Nuovo budget</string>
+    <string name="feature_budgets_back">Indietro</string>
+    <string name="feature_budgets_previous_month">Mese precedente</string>
+    <string name="feature_budgets_next_month">Mese successivo</string>
+    <string name="feature_budgets_empty_title">Nessun budget</string>
+    <string name="feature_budgets_empty_message">Crea un budget mensile, per esempio Spesa o Svago, e assegnagli le uscite per vedere quanto ti resta da spendere.</string>
+    <string name="feature_budgets_budgeted">Budget</string>
+    <string name="feature_budgets_spent">Speso</string>
+    <string name="feature_budgets_left">Rimane</string>
+    <string name="feature_budgets_spent_of">%1$s di %2$s</string>
+    <string name="feature_budgets_remaining">Rimangono %1$s</string>
+    <string name="feature_budgets_remaining_per_day">Rimangono %1$s · %2$s al giorno</string>
+    <string name="feature_budgets_overspent">Sforato di %1$s</string>
+    <string name="feature_budgets_unbudgeted">Uscite senza budget</string>
+    <string name="feature_budgets_inactive">Budget inattivi</string>
+    <string name="feature_budgets_new">Nuovo budget</string>
+    <string name="feature_budgets_edit">Modifica budget</string>
+    <string name="feature_budgets_name">Nome</string>
+    <string name="feature_budgets_amount">Importo mensile</string>
+    <string name="feature_budgets_currency">Valuta</string>
+    <string name="feature_budgets_active">Attivo</string>
+    <string name="feature_budgets_amount_hint">Il budget riparte da questo importo ogni mese.</string>
+    <string name="feature_budgets_save">Salva</string>
+    <string name="feature_budgets_delete">Elimina</string>
+    <string name="feature_budgets_cancel">Annulla</string>
+    <string name="feature_budgets_error_name">Inserisci un nome</string>
+    <string name="feature_budgets_error_duplicate">Esiste già un budget con questo nome</string>
+    <string name="feature_budgets_error_amount">Inserisci un importo maggiore di zero</string>
+    <string name="feature_budgets_delete_title">Eliminare il budget?</string>
+    <string name="feature_budgets_delete_message">Le uscite assegnate resteranno, ma senza budget.</string>
+    <string name="feature_budgets_no_transactions">Nessuna uscita assegnata a questo budget nel mese.</string>
+</resources>

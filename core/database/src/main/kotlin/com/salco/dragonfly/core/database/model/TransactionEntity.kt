@@ -10,6 +10,7 @@ import androidx.room.Relation
 import androidx.room.PrimaryKey
 import com.salco.dragonfly.core.model.AccountSummary
 import com.salco.dragonfly.core.model.AccountType
+import com.salco.dragonfly.core.model.BudgetRef
 import com.salco.dragonfly.core.model.Category
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionType
@@ -36,12 +37,19 @@ import java.time.LocalDate
             childColumns = ["category_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
+        ForeignKey(
+            entity = BudgetEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["budget_id"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
     ],
     indices = [
         Index("source_account_id"),
         Index("destination_account_id"),
         Index("date"),
         Index("category_id"),
+        Index("budget_id"),
     ],
 )
 data class TransactionEntity(
@@ -57,6 +65,7 @@ data class TransactionEntity(
     @ColumnInfo(name = "destination_account_id") val destinationAccountId: Long,
     val notes: String?,
     @ColumnInfo(name = "category_id", defaultValue = "NULL") val categoryId: Long? = null,
+    @ColumnInfo(name = "budget_id", defaultValue = "NULL") val budgetId: Long? = null,
 )
 
 /** A transaction joined with the summary of both its accounts. */
@@ -69,6 +78,7 @@ data class PopulatedTransaction(
     @ColumnInfo(name = "destination_type") val destinationType: AccountType,
     @ColumnInfo(name = "destination_currency") val destinationCurrency: String,
     @ColumnInfo(name = "category_name") val categoryName: String?,
+    @ColumnInfo(name = "budget_name") val budgetName: String?,
     @Relation(
         parentColumn = "id",
         entityColumn = "id",
@@ -90,4 +100,5 @@ fun PopulatedTransaction.asExternalModel() = Transaction(
     notes = transaction.notes,
     category = transaction.categoryId?.let { id -> categoryName?.let { Category(id, it) } },
     tags = tags.map { it.asExternalModel() }.sortedBy { it.name.lowercase() },
+    budget = transaction.budgetId?.let { id -> budgetName?.let { BudgetRef(id, it) } },
 )

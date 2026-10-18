@@ -7,6 +7,7 @@ import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeBudgetsRepository
 import com.salco.dragonfly.core.testing.FakeCategoriesRepository
 import com.salco.dragonfly.core.testing.FakeTagsRepository
 import com.salco.dragonfly.core.testing.FakeTransactionsRepository
@@ -31,7 +32,8 @@ class TransactionsViewModelTest {
     private val accounts = FakeAccountsRepository()
     private val categories = FakeCategoriesRepository()
     private val tags = FakeTagsRepository()
-    private val transactions = FakeTransactionsRepository(accounts, categories, tags)
+    private val budgets = FakeBudgetsRepository()
+    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets)
     private val clock = Clock.fixed(LocalDate.of(2026, 10, 17).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
     private suspend fun add(
@@ -67,7 +69,7 @@ class TransactionsViewModelTest {
         add(TransactionType.DEPOSIT, LocalDate.of(2026, 10, 10), 200_000, "Stipendio")
         add(TransactionType.WITHDRAWAL, LocalDate.of(2026, 9, 30), 9_999, "Settembre")
 
-        TransactionsViewModel(transactions, accounts, categories, tags, clock).uiState.test {
+        TransactionsViewModel(transactions, accounts, categories, tags, budgets, clock).uiState.test {
             val state = awaitItem() as TransactionsUiState.Success
             assertEquals(YearMonth.of(2026, 10), state.month)
             assertEquals(listOf(LocalDate.of(2026, 10, 10), LocalDate.of(2026, 10, 3)), state.days.map { it.date })
@@ -80,7 +82,7 @@ class TransactionsViewModelTest {
     fun previousMonth_showsOlderTransactions() = runTest {
         accounts.saveAccount(Account(name = "Conto", type = AccountType.ASSET, currencyCode = "EUR"))
         add(TransactionType.WITHDRAWAL, LocalDate.of(2026, 9, 30), 9_999, "Settembre")
-        val viewModel = TransactionsViewModel(transactions, accounts, categories, tags, clock)
+        val viewModel = TransactionsViewModel(transactions, accounts, categories, tags, budgets, clock)
 
         viewModel.uiState.test {
             assertEquals(0, (awaitItem() as TransactionsUiState.Success).days.size)
@@ -98,7 +100,7 @@ class TransactionsViewModelTest {
         add(TransactionType.WITHDRAWAL, LocalDate.of(2025, 1, 15), 2_500, "Supermercato", category = "Spesa")
         add(TransactionType.WITHDRAWAL, LocalDate.of(2026, 10, 4), 900, "Bar", category = "Svago", tagNames = listOf("Casa"))
         add(TransactionType.DEPOSIT, LocalDate.of(2026, 10, 10), 200_000, "Stipendio")
-        val viewModel = TransactionsViewModel(transactions, accounts, categories, tags, clock)
+        val viewModel = TransactionsViewModel(transactions, accounts, categories, tags, budgets, clock)
 
         viewModel.uiState.test {
             awaitItem()

@@ -3,10 +3,12 @@ package com.salco.dragonfly.feature.transactions.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
 import com.salco.dragonfly.core.model.Account
+import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.Category
 import com.salco.dragonfly.core.model.Tag
 import com.salco.dragonfly.core.model.Transaction
@@ -32,6 +34,7 @@ class TransactionsViewModel internal constructor(
     accountsRepository: AccountsRepository,
     categoriesRepository: CategoriesRepository,
     tagsRepository: TagsRepository,
+    budgetsRepository: BudgetsRepository,
     clock: Clock,
 ) : ViewModel() {
 
@@ -41,7 +44,11 @@ class TransactionsViewModel internal constructor(
         accountsRepository: AccountsRepository,
         categoriesRepository: CategoriesRepository,
         tagsRepository: TagsRepository,
-    ) : this(transactionsRepository, accountsRepository, categoriesRepository, tagsRepository, Clock.systemDefaultZone())
+        budgetsRepository: BudgetsRepository,
+    ) : this(
+        transactionsRepository, accountsRepository, categoriesRepository, tagsRepository, budgetsRepository,
+        Clock.systemDefaultZone(),
+    )
 
     private val month = MutableStateFlow(YearMonth.now(clock))
 
@@ -52,7 +59,8 @@ class TransactionsViewModel internal constructor(
         accountsRepository.observeAccounts(),
         categoriesRepository.observeCategories(),
         tagsRepository.observeTags(),
-    ) { accounts, categories, tags -> FilterOptions(accounts, categories, tags) }
+        budgetsRepository.observeBudgets(),
+    ) { accounts, categories, tags, budgets -> FilterOptions(accounts, categories, tags, budgets) }
 
     val uiState: StateFlow<TransactionsUiState> = combine(month, criteria, ::Pair)
         .flatMapLatest { (month, criteria) ->
@@ -79,6 +87,7 @@ class TransactionsViewModel internal constructor(
     fun onTypeFilter(type: TransactionType?) = criteria.update { it.copy(type = type) }
     fun onCategoryFilter(categoryId: Long?) = criteria.update { it.copy(categoryId = categoryId) }
     fun onTagFilter(tagId: Long?) = criteria.update { it.copy(tagId = tagId) }
+    fun onBudgetFilter(budgetId: Long?) = criteria.update { it.copy(budgetId = budgetId) }
     fun onAccountFilter(accountId: Long?) = criteria.update { it.copy(accountId = accountId) }
     fun clearFilters() {
         _query.value = ""
@@ -118,6 +127,7 @@ data class FilterOptions(
     val accounts: List<Account> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tags: List<Tag> = emptyList(),
+    val budgets: List<Budget> = emptyList(),
 )
 
 sealed interface TransactionsUiState {

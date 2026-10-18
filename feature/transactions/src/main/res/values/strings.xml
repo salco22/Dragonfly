@@ -46,6 +46,9 @@
     <string name="feature_transactions_notes">Note</string>
     <string name="feature_transactions_category">Categoria</string>
     <string name="feature_transactions_tags">Tag</string>
+    <string name="feature_transactions_budget">Budget</string>
+    <string name="feature_transactions_no_budget">Nessun budget</string>
+    <string name="feature_transactions_filter_budget">Budget</string>
     <string name="feature_transactions_add_tag">Aggiungi tag</string>
     <string name="feature_transactions_remove_tag">Rimuovi %1$s</string>
     <string name="feature_transactions_error_amount">Inserisci un importo maggiore di zero</string>

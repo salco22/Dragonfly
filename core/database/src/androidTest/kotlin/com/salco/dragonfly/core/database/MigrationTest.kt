@@ -54,6 +54,17 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate3To4_addsBudgets() {
+        helper.createDatabase(DB_NAME, 3).close()
+        helper.runMigrationsAndValidate(DB_NAME, 4, true).use { db ->
+            db.query("SELECT COUNT(*) FROM budgets").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }
