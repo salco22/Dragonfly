@@ -9,6 +9,8 @@ import com.salco.dragonfly.feature.accounts.navigation.accountEditScreen
 import com.salco.dragonfly.feature.accounts.navigation.accountsScreen
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountDetail
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountEdit
+import com.salco.dragonfly.feature.backup.navigation.backupScreen
+import com.salco.dragonfly.feature.backup.navigation.navigateToBackup
 import com.salco.dragonfly.feature.bills.navigation.billsScreens
 import com.salco.dragonfly.feature.bills.navigation.navigateToBills
 import com.salco.dragonfly.feature.bills.navigation.navigateToBillDetail
@@ -109,7 +111,9 @@ fun DragonflyNavHost(
             onPiggyBanksClick = navController::navigateToPiggyBanks,
             onRecurringClick = navController::navigateToRecurringTransactions,
             onRulesClick = navController::navigateToRules,
+            onBackupClick = navController::navigateToBackup,
         )
+        backupScreen(onBack = navController::popBackStack)
         rulesScreens(
             onBack = navController::popBackStack,
             onRuleClick = navController::navigateToRuleEdit,

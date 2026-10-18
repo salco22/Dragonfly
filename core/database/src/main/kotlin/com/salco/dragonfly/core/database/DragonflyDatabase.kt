@@ -4,6 +4,7 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.salco.dragonfly.core.database.dao.AccountDao
+import com.salco.dragonfly.core.database.dao.BackupDao
 import com.salco.dragonfly.core.database.dao.BillDao
 import com.salco.dragonfly.core.database.dao.BudgetDao
 import com.salco.dragonfly.core.database.dao.CategoryDao
@@ -43,7 +44,7 @@ import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
         RuleTriggerEntity::class,
         RuleActionEntity::class,
     ],
-    version = 8,
+    version = DragonflyDatabase.VERSION,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -56,6 +57,12 @@ import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
     exportSchema = true,
 )
 abstract class DragonflyDatabase : RoomDatabase() {
+    companion object {
+        /** Keep in sync with [Database.version]; written into backups. */
+        const val VERSION = 8
+    }
+
+
     abstract fun accountDao(): AccountDao
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
@@ -64,6 +71,7 @@ abstract class DragonflyDatabase : RoomDatabase() {
     abstract fun billDao(): BillDao
     abstract fun insightsDao(): InsightsDao
     abstract fun ruleDao(): RuleDao
+    abstract fun backupDao(): BackupDao
     abstract fun piggyBankDao(): PiggyBankDao
     abstract fun recurringTransactionDao(): RecurringTransactionDao
 }

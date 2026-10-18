@@ -1,6 +1,7 @@
 package com.salco.dragonfly.core.database.model
 
 import androidx.room.ColumnInfo
+import kotlinx.serialization.Serializable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.salco.dragonfly.core.model.Bill
@@ -10,6 +11,7 @@ import com.salco.dragonfly.core.model.RecurrenceRule
 import java.time.LocalDate
 
 @Entity(tableName = "bills")
+@Serializable
 data class BillEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,

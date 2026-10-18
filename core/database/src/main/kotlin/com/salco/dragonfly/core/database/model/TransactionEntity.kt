@@ -1,6 +1,7 @@
 package com.salco.dragonfly.core.database.model
 
 import androidx.room.ColumnInfo
+import kotlinx.serialization.Serializable
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -60,6 +61,7 @@ import java.time.LocalDate
         Index("bill_id"),
     ],
 )
+@Serializable
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val type: TransactionType,

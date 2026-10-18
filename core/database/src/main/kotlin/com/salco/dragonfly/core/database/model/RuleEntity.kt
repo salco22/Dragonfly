@@ -1,6 +1,7 @@
 package com.salco.dragonfly.core.database.model
 
 import androidx.room.ColumnInfo
+import kotlinx.serialization.Serializable
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -15,6 +16,7 @@ import com.salco.dragonfly.core.model.TriggerField
 import com.salco.dragonfly.core.model.TriggerOperator
 
 @Entity(tableName = "rules")
+@Serializable
 data class RuleEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
@@ -29,6 +31,7 @@ data class RuleEntity(
     foreignKeys = [ForeignKey(entity = RuleEntity::class, parentColumns = ["id"], childColumns = ["rule_id"], onDelete = ForeignKey.CASCADE)],
     indices = [Index("rule_id")],
 )
+@Serializable
 data class RuleTriggerEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "rule_id") val ruleId: Long,
@@ -44,6 +47,7 @@ data class RuleTriggerEntity(
     foreignKeys = [ForeignKey(entity = RuleEntity::class, parentColumns = ["id"], childColumns = ["rule_id"], onDelete = ForeignKey.CASCADE)],
     indices = [Index("rule_id")],
 )
+@Serializable
 data class RuleActionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "rule_id") val ruleId: Long,

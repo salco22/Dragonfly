@@ -27,6 +27,7 @@ include(":core:ui")
 include(":core:work")
 
 include(":feature:accounts")
+include(":feature:backup")
 include(":feature:bills")
 include(":feature:budgets")
 include(":feature:classification")

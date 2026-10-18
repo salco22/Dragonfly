@@ -20,6 +20,7 @@ fun NavGraphBuilder.settingsScreen(
     onPiggyBanksClick: () -> Unit,
     onRecurringClick: () -> Unit,
     onRulesClick: () -> Unit,
+    onBackupClick: () -> Unit,
 ) {
     composable<SettingsRoute> {
         SettingsScreen(
@@ -29,6 +30,7 @@ fun NavGraphBuilder.settingsScreen(
             onPiggyBanksClick = onPiggyBanksClick,
             onRecurringClick = onRecurringClick,
             onRulesClick = onRulesClick,
+            onBackupClick = onBackupClick,
         )
     }
 }

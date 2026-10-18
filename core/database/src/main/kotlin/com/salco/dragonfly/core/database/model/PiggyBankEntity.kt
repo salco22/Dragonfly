@@ -1,6 +1,7 @@
 package com.salco.dragonfly.core.database.model
 
 import androidx.room.ColumnInfo
+import kotlinx.serialization.Serializable
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -18,6 +19,7 @@ import java.time.LocalDate
     ],
     indices = [Index("account_id")],
 )
+@Serializable
 data class PiggyBankEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
@@ -40,6 +42,7 @@ data class PiggyBankEntity(
     ],
     indices = [Index("piggy_bank_id")],
 )
+@Serializable
 data class PiggyBankEventEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "piggy_bank_id") val piggyBankId: Long,

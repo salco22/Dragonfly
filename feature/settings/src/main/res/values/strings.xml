@@ -12,6 +12,7 @@
     <string name="feature_settings_organization">Organizzazione</string>
     <string name="feature_settings_categories">Categorie</string>
     <string name="feature_settings_tags">Tag</string>
+    <string name="feature_settings_backup">Backup e dati</string>
     <string name="feature_settings_rules">Regole automatiche</string>
     <string name="feature_settings_general">Generali</string>
     <string name="feature_settings_default_currency">Valuta predefinita</string>

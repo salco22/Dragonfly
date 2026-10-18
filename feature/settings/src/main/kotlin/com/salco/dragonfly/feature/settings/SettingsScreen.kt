@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Savings
@@ -52,6 +53,7 @@ internal fun SettingsScreen(
     onPiggyBanksClick: () -> Unit,
     onRecurringClick: () -> Unit,
     onRulesClick: () -> Unit,
+    onBackupClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,6 +79,7 @@ internal fun SettingsScreen(
         onPiggyBanksClick = onPiggyBanksClick,
         onRecurringClick = onRecurringClick,
         onRulesClick = onRulesClick,
+        onBackupClick = onBackupClick,
     )
 }
 
@@ -93,6 +96,7 @@ internal fun SettingsContent(
     onPiggyBanksClick: () -> Unit = {},
     onRecurringClick: () -> Unit = {},
     onRulesClick: () -> Unit = {},
+    onBackupClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_settings_title)) }) },
@@ -135,6 +139,7 @@ internal fun SettingsContent(
             NavigationItem(Icons.Filled.AutoFixHigh, stringResource(R.string.feature_settings_rules), onRulesClick)
 
             SectionTitle(stringResource(R.string.feature_settings_general))
+            NavigationItem(Icons.Filled.Backup, stringResource(R.string.feature_settings_backup), onBackupClick)
             DropdownField(
                 label = stringResource(R.string.feature_settings_default_currency),
                 options = SupportedCurrencyCodes,

@@ -86,6 +86,8 @@ class FakeUserDataRepository(currency: String = "EUR") : UserDataRepository {
     override suspend fun setAppLockEnabled(enabled: Boolean) = prefs.update { it.copy(appLockEnabled = enabled) }
     override suspend fun setDefaultCurrencyCode(currencyCode: String) =
         prefs.update { it.copy(defaultCurrencyCode = currencyCode) }
+    override suspend fun setAutoBackupFolder(uri: String?) = prefs.update { it.copy(autoBackupFolder = uri) }
+    override suspend fun setLastBackupAt(epochMillis: Long) = prefs.update { it.copy(lastBackupAt = epochMillis) }
 }
 
 /** In-memory transactions that resolve accounts against [accounts], mirroring the Room implementation. */

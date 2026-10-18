@@ -1,6 +1,7 @@
 package com.salco.dragonfly.core.database.model
 
 import androidx.room.ColumnInfo
+import kotlinx.serialization.Serializable
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -9,6 +10,7 @@ import com.salco.dragonfly.core.model.Category
 import com.salco.dragonfly.core.model.Tag
 
 @Entity(tableName = "categories")
+@Serializable
 data class CategoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
@@ -18,6 +20,7 @@ fun CategoryEntity.asExternalModel() = Category(id = id, name = name)
 fun Category.asEntity() = CategoryEntity(id = id, name = name)
 
 @Entity(tableName = "tags")
+@Serializable
 data class TagEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
@@ -45,6 +48,7 @@ fun Tag.asEntity() = TagEntity(id = id, name = name)
     ],
     indices = [Index("tag_id")],
 )
+@Serializable
 data class TransactionTagCrossRef(
     @ColumnInfo(name = "transaction_id") val transactionId: Long,
     @ColumnInfo(name = "tag_id") val tagId: Long,

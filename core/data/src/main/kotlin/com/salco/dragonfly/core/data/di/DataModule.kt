@@ -1,6 +1,8 @@
 package com.salco.dragonfly.core.data.di
 
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BackupRepository
+import com.salco.dragonfly.core.data.repository.OfflineBackupRepository
 import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.OfflineBillsRepository
@@ -36,6 +38,9 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun bindsTransactionsRepository(impl: OfflineTransactionsRepository): TransactionsRepository
+
+    @Binds
+    abstract fun bindsBackupRepository(impl: OfflineBackupRepository): BackupRepository
 
     @Binds
     abstract fun bindsBillsRepository(impl: OfflineBillsRepository): BillsRepository

@@ -1,0 +1,32 @@
+<resources>
+    <string name="feature_backup_title">Backup e dati</string>
+    <string name="feature_backup_back">Indietro</string>
+    <string name="feature_backup_intro">I tuoi dati restano solo su questo telefono. Salva un backup in un posto sicuro, per esempio Google Drive, così puoi ripristinarlo su un altro telefono.</string>
+    <string name="feature_backup_section_backup">Backup</string>
+    <string name="feature_backup_export">Esporta backup</string>
+    <string name="feature_backup_export_description">Un file JSON con tutti i conti, le transazioni e le impostazioni di budget, bollette, salvadanai e regole.</string>
+    <string name="feature_backup_restore">Ripristina da backup</string>
+    <string name="feature_backup_restore_description">Sostituisce tutti i dati attuali con quelli del file.</string>
+    <string name="feature_backup_section_auto">Backup automatico</string>
+    <string name="feature_backup_auto">Backup settimanale in una cartella</string>
+    <string name="feature_backup_auto_off">Scegli una cartella, per esempio di Google Drive. Vengono tenuti gli ultimi 5 backup.</string>
+    <string name="feature_backup_auto_folder">Cartella: %1$s</string>
+    <string name="feature_backup_last">Ultimo backup: %1$s</string>
+    <string name="feature_backup_never">Nessun backup ancora</string>
+    <string name="feature_backup_run_now">Esegui ora</string>
+    <string name="feature_backup_section_export">Esportazione</string>
+    <string name="feature_backup_csv">Esporta transazioni (CSV)</string>
+    <string name="feature_backup_csv_description">Per aprirle in Excel, Fogli Google o Numbers.</string>
+    <string name="feature_backup_privacy">I file non sono cifrati: contengono le tue informazioni finanziarie, conservali con cura.</string>
+    <string name="feature_backup_done_export">Backup salvato</string>
+    <string name="feature_backup_done_csv">Transazioni esportate</string>
+    <string name="feature_backup_done_restore">Dati ripristinati</string>
+    <string name="feature_backup_done_scheduled">Backup automatico avviato</string>
+    <string name="feature_backup_error_invalid">Il file scelto non è un backup di Dragonfly valido</string>
+    <string name="feature_backup_error_newer">Il backup è stato creato da una versione più recente di Dragonfly: aggiorna l\'app</string>
+    <string name="feature_backup_error_io">Non è stato possibile leggere o scrivere il file</string>
+    <string name="feature_backup_restore_title">Ripristinare questo backup?</string>
+    <string name="feature_backup_restore_message">Backup del %1$s\nConti: %2$d · Transazioni: %3$d · Budget: %4$d · Bollette: %5$d · Salvadanai: %6$d · Regole: %7$d\n\nTutti i dati attuali verranno sostituiti. Conviene esportare prima un backup.</string>
+    <string name="feature_backup_restore_confirm">Ripristina</string>
+    <string name="feature_backup_cancel">Annulla</string>
+</resources>

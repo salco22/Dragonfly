@@ -9,6 +9,8 @@ interface UserDataRepository {
     val userPreferences: Flow<UserPreferences>
     suspend fun setAppLockEnabled(enabled: Boolean)
     suspend fun setDefaultCurrencyCode(currencyCode: String)
+    suspend fun setAutoBackupFolder(uri: String?)
+    suspend fun setLastBackupAt(epochMillis: Long)
 }
 
 internal class OfflineUserDataRepository @Inject constructor(
@@ -18,4 +20,6 @@ internal class OfflineUserDataRepository @Inject constructor(
     override suspend fun setAppLockEnabled(enabled: Boolean) = dataSource.setAppLockEnabled(enabled)
     override suspend fun setDefaultCurrencyCode(currencyCode: String) =
         dataSource.setDefaultCurrencyCode(currencyCode)
+    override suspend fun setAutoBackupFolder(uri: String?) = dataSource.setAutoBackupFolder(uri)
+    override suspend fun setLastBackupAt(epochMillis: Long) = dataSource.setLastBackupAt(epochMillis)
 }

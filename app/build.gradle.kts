@@ -44,6 +44,7 @@ dependencies {
 
     //Features
     implementation(project(":feature:accounts"))
+    implementation(project(":feature:backup"))
     implementation(project(":feature:bills"))
     implementation(project(":feature:budgets"))
     implementation(project(":feature:classification"))

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.dragonfly.android.library)
     alias(libs.plugins.dragonfly.android.hilt)
     alias(libs.plugins.dragonfly.android.room)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -13,6 +14,7 @@ android {
 dependencies {
     api(project(":core:model"))
     implementation(libs.kotlinx.coroutines.android)
+    api(libs.kotlinx.serialization.json)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.test.runner)
