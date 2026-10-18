@@ -1,0 +1,34 @@
+<resources>
+    <plurals name="core_ui_every_day">
+        <item quantity="one">Ogni giorno</item>
+        <item quantity="other">Ogni %d giorni</item>
+    </plurals>
+    <plurals name="core_ui_every_week">
+        <item quantity="one">Ogni settimana</item>
+        <item quantity="other">Ogni %d settimane</item>
+    </plurals>
+    <plurals name="core_ui_every_month">
+        <item quantity="one">Ogni mese</item>
+        <item quantity="other">Ogni %d mesi</item>
+    </plurals>
+    <plurals name="core_ui_every_year">
+        <item quantity="one">Ogni anno</item>
+        <item quantity="other">Ogni %d anni</item>
+    </plurals>
+    <plurals name="core_ui_unit_day">
+        <item quantity="one">giorno</item>
+        <item quantity="other">giorni</item>
+    </plurals>
+    <plurals name="core_ui_unit_week">
+        <item quantity="one">settimana</item>
+        <item quantity="other">settimane</item>
+    </plurals>
+    <plurals name="core_ui_unit_month">
+        <item quantity="one">mese</item>
+        <item quantity="other">mesi</item>
+    </plurals>
+    <plurals name="core_ui_unit_year">
+        <item quantity="one">anno</item>
+        <item quantity="other">anni</item>
+    </plurals>
+</resources>

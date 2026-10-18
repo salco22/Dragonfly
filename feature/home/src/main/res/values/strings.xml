@@ -1,0 +1,31 @@
+<resources>
+    <string name="feature_home_title">Dragonfly</string>
+    <string name="feature_home_net_worth">Patrimonio netto</string>
+    <string name="feature_home_net_worth_chart">Andamento del patrimonio netto negli ultimi 12 mesi, da %1$s a %2$s</string>
+    <string name="feature_home_this_month">Questo mese</string>
+    <string name="feature_home_income">Entrate</string>
+    <string name="feature_home_expenses">Uscite</string>
+    <string name="feature_home_balance">Saldo</string>
+    <string name="feature_home_cash_flow_chart">Entrate e uscite degli ultimi 6 mesi</string>
+    <string name="feature_home_spending_by_category">Spese per categoria</string>
+    <string name="feature_home_spending_chart">Spese del mese per categoria: %1$s</string>
+    <string name="feature_home_uncategorized">Senza categoria</string>
+    <string name="feature_home_other_categories">Altre</string>
+    <string name="feature_home_no_spending">Ancora nessuna uscita questo mese.</string>
+    <string name="feature_home_budgets">Budget</string>
+    <string name="feature_home_bills">Bollette in scadenza</string>
+    <string name="feature_home_no_bills">Nessuna bolletta in scadenza nei prossimi 14 giorni.</string>
+    <string name="feature_home_piggy_banks">Salvadanai</string>
+    <string name="feature_home_reports">Report</string>
+    <string name="feature_home_see_all">Vedi tutto</string>
+    <string name="feature_home_pay">Paga</string>
+    <string name="feature_home_due">Scade il %1$s</string>
+    <string name="feature_home_overdue">Scaduta il %1$s</string>
+    <string name="feature_home_spent_of">%1$s di %2$s</string>
+    <string name="feature_home_saved_of">%1$s di %2$s</string>
+    <string name="feature_home_saved">%1$s risparmiati</string>
+    <string name="feature_home_welcome_title">Benvenuto in Dragonfly</string>
+    <string name="feature_home_welcome_message">Aggiungi il tuo primo conto per iniziare: qui vedrai patrimonio, entrate, uscite, budget e scadenze.</string>
+    <string name="feature_home_add_account">Aggiungi un conto</string>
+    <string name="feature_home_other_currencies">Grafici in %1$s; altre valute: %2$s</string>
+</resources>

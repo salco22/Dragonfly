@@ -1,0 +1,29 @@
+<resources>
+    <string name="feature_classification_categories">Categorie</string>
+    <string name="feature_classification_tags">Tag</string>
+    <string name="feature_classification_back">Indietro</string>
+    <string name="feature_classification_add">Aggiungi</string>
+    <string name="feature_classification_new_category">Nuova categoria</string>
+    <string name="feature_classification_edit_category">Modifica categoria</string>
+    <string name="feature_classification_new_tag">Nuovo tag</string>
+    <string name="feature_classification_edit_tag">Modifica tag</string>
+    <string name="feature_classification_name">Nome</string>
+    <string name="feature_classification_save">Salva</string>
+    <string name="feature_classification_delete">Elimina</string>
+    <string name="feature_classification_cancel">Annulla</string>
+    <string name="feature_classification_error_blank">Inserisci un nome</string>
+    <string name="feature_classification_error_duplicate">Esiste già con questo nome</string>
+    <string name="feature_classification_spent">Uscite del mese: %1$s</string>
+    <string name="feature_classification_earned">Entrate del mese: %1$s</string>
+    <string name="feature_classification_unused">Nessun movimento questo mese</string>
+    <plurals name="feature_classification_transaction_count">
+        <item quantity="one">%d transazione</item>
+        <item quantity="other">%d transazioni</item>
+    </plurals>
+    <string name="feature_classification_categories_empty_title">Nessuna categoria</string>
+    <string name="feature_classification_categories_empty_message">Crea categorie come Spesa, Casa o Trasporti, oppure scrivile direttamente quando registri una transazione.</string>
+    <string name="feature_classification_tags_empty_title">Nessun tag</string>
+    <string name="feature_classification_tags_empty_message">I tag ti aiutano a raggruppare transazioni di categorie diverse, per esempio un viaggio o un progetto.</string>
+    <string name="feature_classification_delete_category_message">Le transazioni di questa categoria resteranno senza categoria.</string>
+    <string name="feature_classification_delete_tag_message">Il tag verrà rimosso da tutte le transazioni.</string>
+</resources>

@@ -1,0 +1,21 @@
+<resources>
+    <string name="feature_settings_title">Altro</string>
+    <string name="feature_settings_security">Sicurezza</string>
+    <string name="feature_settings_app_lock">Blocco biometrico</string>
+    <string name="feature_settings_app_lock_description">Chiedi impronta, volto o PIN del dispositivo all\'apertura dell\'app.</string>
+    <string name="feature_settings_app_lock_unavailable">Imposta un blocco schermo sul dispositivo per usare questa opzione.</string>
+    <string name="feature_settings_analysis">Analisi</string>
+    <string name="feature_settings_reports">Report</string>
+    <string name="feature_settings_planning">Pianificazione</string>
+    <string name="feature_settings_bills">Bollette e abbonamenti</string>
+    <string name="feature_settings_piggy_banks">Salvadanai</string>
+    <string name="feature_settings_recurring">Transazioni ricorrenti</string>
+    <string name="feature_settings_settings">Impostazioni</string>
+    <string name="feature_settings_organization">Organizzazione</string>
+    <string name="feature_settings_categories">Categorie</string>
+    <string name="feature_settings_tags">Tag</string>
+    <string name="feature_settings_backup">Backup e dati</string>
+    <string name="feature_settings_rules">Regole automatiche</string>
+    <string name="feature_settings_general">Generali</string>
+    <string name="feature_settings_default_currency">Valuta predefinita</string>
+</resources>
