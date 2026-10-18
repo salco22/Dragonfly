@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.salco.dragonfly.core.database.dao.AccountDao
+import com.salco.dragonfly.core.database.dao.SplitPart
 import com.salco.dragonfly.core.database.dao.TransactionDao
 import com.salco.dragonfly.core.database.model.AccountEntity
 import com.salco.dragonfly.core.database.model.TransactionEntity
@@ -201,5 +202,66 @@ class TransactionDaoTest {
 
         db.billDao().deleteById(bill)
         assertEquals(null, transactionDao.observeById(paid).first()!!.transaction.billId)
+    }
+
+    @Test
+    fun saveGroup_createsUpdatesAndDissolvesSplitTransactions() = runTest {
+        val checking = accountDao.upsert(account("Conto", AccountType.ASSET, opening = 10_000))
+        val shop = accountDao.upsert(account("Supermercato", AccountType.EXPENSE))
+        val pharmacy = accountDao.upsert(account("Farmacia", AccountType.EXPENSE))
+
+        val groupId = transactionDao.saveGroup(
+            groupId = 0,
+            title = "Spesa al centro commerciale",
+            parts = listOf(
+                SplitPart(transaction(TransactionType.WITHDRAWAL, 3_000, checking, shop), categoryName = "Alimentari"),
+                SplitPart(transaction(TransactionType.WITHDRAWAL, 1_200, checking, pharmacy), categoryName = "Salute"),
+            ),
+        )
+        assertTrue(groupId > 0)
+        val parts = transactionDao.observeGroup(groupId).first()
+        assertEquals(listOf(3_000L, 1_200L), parts.map { it.transaction.amount })
+        assertEquals(listOf("Alimentari", "Salute"), parts.map { it.categoryName })
+        assertEquals("Spesa al centro commerciale", parts.first().groupTitle)
+        // Every part moves money on its own, so the balance sees the whole total.
+        assertEquals(10_000L - 4_200, accountDao.observeAll().first().first { it.account.id == checking }.balance)
+
+        // Edit part 1, drop part 2, add a new part 3.
+        val (first, _) = parts
+        transactionDao.saveGroup(
+            groupId = groupId,
+            title = "Centro commerciale",
+            parts = listOf(
+                SplitPart(first.transaction.copy(amount = 2_500)),
+                SplitPart(transaction(TransactionType.WITHDRAWAL, 800, checking, pharmacy)),
+            ),
+        )
+        val edited = transactionDao.observeGroup(groupId).first()
+        assertEquals(listOf(2_500L, 800L), edited.map { it.transaction.amount })
+        assertEquals(first.transaction.id, edited.first().transaction.id)
+        assertEquals("Centro commerciale", edited.first().groupTitle)
+
+        // A single part left becomes an ordinary transaction.
+        assertEquals(0L, transactionDao.saveGroup(groupId, "x", listOf(SplitPart(edited.first().transaction))))
+        val remaining = transactionDao.observeBetween(0, 100_000).first()
+        assertEquals(1, remaining.size)
+        assertEquals(null, remaining.single().transaction.groupId)
+    }
+
+    @Test
+    fun deleteGroup_deletesEveryPart() = runTest {
+        val checking = accountDao.upsert(account("Conto", AccountType.ASSET))
+        val shop = accountDao.upsert(account("Supermercato", AccountType.EXPENSE))
+        val other = transactionDao.upsert(transaction(TransactionType.WITHDRAWAL, 100, checking, shop))
+        val groupId = transactionDao.saveGroup(
+            0,
+            "Spesa",
+            listOf(
+                SplitPart(transaction(TransactionType.WITHDRAWAL, 1_000, checking, shop)),
+                SplitPart(transaction(TransactionType.WITHDRAWAL, 2_000, checking, shop)),
+            ),
+        )
+        transactionDao.deleteGroup(groupId)
+        assertEquals(listOf(other), transactionDao.observeBetween(0, 100_000).first().map { it.transaction.id })
     }
 }

@@ -88,4 +88,13 @@
         <item quantity="one">Finora è stata creata %d transazione.</item>
         <item quantity="other">Finora sono state create %d transazioni.</item>
     </plurals>
+    <string name="feature_transactions_split">Dividi la transazione</string>
+    <string name="feature_transactions_add_split">Aggiungi una parte</string>
+    <string name="feature_transactions_split_part">Parte %d</string>
+    <string name="feature_transactions_remove_split">Rimuovi la parte %d</string>
+    <string name="feature_transactions_split_title">Titolo</string>
+    <string name="feature_transactions_split_title_hint">Lo vedi negli elenchi al posto delle singole parti</string>
+    <string name="feature_transactions_error_split_title">Inserisci un titolo</string>
+    <string name="feature_transactions_split_total">Totale</string>
+    <string name="feature_transactions_delete_split_message">Verranno eliminate tutte le parti della transazione divisa.</string>
 </resources>

@@ -14,6 +14,7 @@ import com.salco.dragonfly.core.model.Tag
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionFilter
 import com.salco.dragonfly.core.model.TransactionType
+import com.salco.dragonfly.core.model.mergingSplits
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -109,13 +110,14 @@ private fun List<Transaction>.toUiState(
                 expenses = list.filter { it.type == TransactionType.WITHDRAWAL }.sumOf { it.amount },
             )
         }
+    val entries = mergingSplits()
     return TransactionsUiState.Success(
         month = month,
-        days = groupBy { it.date }.map { (date, list) -> DaySection(date, list) },
+        days = entries.groupBy { it.date }.map { (date, list) -> DaySection(date, list) },
         totals = totals,
         filter = criteria,
         options = options,
-        resultCount = size,
+        resultCount = entries.size,
     )
 }
 

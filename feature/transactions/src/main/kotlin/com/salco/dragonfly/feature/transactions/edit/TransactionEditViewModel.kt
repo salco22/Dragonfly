@@ -12,6 +12,8 @@ import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.Bill
 import com.salco.dragonfly.core.model.Budget
+import com.salco.dragonfly.core.model.Transaction
+import com.salco.dragonfly.core.model.TransactionGroupDraft
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.minorUnitsToInput
 import com.salco.dragonfly.feature.transactions.navigation.TransactionEditRoute
@@ -90,47 +92,83 @@ class TransactionEditViewModel internal constructor(
                     }
                 }
             } else {
+                val parts = transaction.groupId?.let { transactionsRepository.observeSplitTransaction(it).first() }.orEmpty()
+                val first = parts.firstOrNull() ?: transaction
                 base.copy(
-                    type = transaction.type,
-                    amount = minorUnitsToInput(transaction.amount, transaction.currencyCode),
-                    foreignAmount = transaction.foreignAmount
-                        ?.let { minorUnitsToInput(it, transaction.destination.currencyCode) }
+                    transactionId = first.id,
+                    groupId = transaction.groupId ?: 0,
+                    groupTitle = transaction.groupTitle.orEmpty(),
+                    splits = parts.drop(1).map { it.asSplitForm() },
+                    type = first.type,
+                    amount = minorUnitsToInput(first.amount, first.currencyCode),
+                    foreignAmount = first.foreignAmount
+                        ?.let { minorUnitsToInput(it, first.destination.currencyCode) }
                         .orEmpty(),
-                    description = transaction.description,
-                    date = transaction.date,
-                    accountId = if (transaction.type == TransactionType.DEPOSIT) transaction.destination.id else transaction.source.id,
-                    toAccountId = transaction.destination.id.takeIf { transaction.type == TransactionType.TRANSFER },
-                    counterparty = when (transaction.type) {
-                        TransactionType.WITHDRAWAL -> transaction.destination.name
-                        TransactionType.DEPOSIT -> transaction.source.name
+                    description = first.description,
+                    date = first.date,
+                    accountId = if (first.type == TransactionType.DEPOSIT) first.destination.id else first.source.id,
+                    toAccountId = first.destination.id.takeIf { first.type == TransactionType.TRANSFER },
+                    counterparty = when (first.type) {
+                        TransactionType.WITHDRAWAL -> first.destination.name
+                        TransactionType.DEPOSIT -> first.source.name
                         TransactionType.TRANSFER -> ""
                     },
-                    notes = transaction.notes.orEmpty(),
-                    category = transaction.category?.name.orEmpty(),
-                    tags = transaction.tags.map { it.name },
-                    budgetId = transaction.budget?.id,
-                    billId = transaction.bill?.id,
+                    notes = first.notes.orEmpty(),
+                    category = first.category?.name.orEmpty(),
+                    tags = first.tags.map { it.name },
+                    budgetId = first.budget?.id,
+                    billId = first.bill?.id,
                 ).keepingSelected()
             }
         }
     }
 
     fun save() {
-        val draft = validatedDraft(id = transactionId) ?: return
+        val state = _uiState.value
+        if (state.isSplit && state.canSplit) {
+            val group = validatedGroup(state.transactionId) ?: return
+            viewModelScope.launch {
+                transactionsRepository.saveSplitTransaction(group)
+                _uiState.update { it.copy(isFinished = true) }
+            }
+            return
+        }
+        val draft = validatedDraft(id = state.transactionId) ?: return
         viewModelScope.launch {
-            transactionsRepository.saveTransaction(draft)
+            if (state.groupId != 0L) {
+                // The other parts were removed: saving a single part dissolves the group.
+                transactionsRepository.saveSplitTransaction(TransactionGroupDraft(state.groupId, state.groupTitle, listOf(draft)))
+            } else {
+                transactionsRepository.saveTransaction(draft)
+            }
             _uiState.update { it.copy(isFinished = true) }
         }
     }
 
+    /** Deletes the transaction, or every part of a split transaction. */
     fun delete() {
-        if (transactionId == 0L) return
+        val state = _uiState.value
+        if (state.transactionId == 0L) return
         viewModelScope.launch {
-            transactionsRepository.deleteTransaction(transactionId)
+            if (state.groupId != 0L) {
+                transactionsRepository.deleteSplitTransaction(state.groupId)
+            } else {
+                transactionsRepository.deleteTransaction(state.transactionId)
+            }
             _uiState.update { it.copy(isFinished = true) }
         }
     }
 }
+
+private fun Transaction.asSplitForm() = SplitForm(
+    id = id,
+    description = description,
+    amount = minorUnitsToInput(amount, currencyCode),
+    counterparty = if (type == TransactionType.DEPOSIT) source.name else destination.name,
+    category = category?.name.orEmpty(),
+    budgetId = budget?.id,
+    tags = tags.map { it.name },
+)
 
 data class TransactionEditUiState(
     val isNew: Boolean,
@@ -167,9 +205,31 @@ data class TransactionEditUiState(
     val accountError: Boolean = false,
     val sameAccountError: Boolean = false,
     val counterpartyError: Boolean = false,
+    /** Split transaction being edited; 0 when it is not one yet. */
+    val groupId: Long = 0,
+    /** Title of a split transaction, shown in lists instead of the parts' descriptions. */
+    val groupTitle: String = "",
+    val groupTitleError: Boolean = false,
+    /** Parts after the first: the fields above are part 1. Empty for an ordinary transaction. */
+    val splits: List<SplitForm> = emptyList(),
+    /** Id of part 1 when editing an existing transaction. */
+    val transactionId: Long = 0,
     /** True once the transaction was saved or deleted and the screen should close. */
     val isFinished: Boolean = false,
 ) {
+    val isSplit: Boolean get() = splits.isNotEmpty()
+
+    /** Transfers move money between own accounts and are not split. */
+    val canSplit: Boolean get() = type != TransactionType.TRANSFER
+
+    /** Sum of every part that has a valid amount, in the account's currency. */
+    val splitTotal: Long?
+        get() {
+            val currency = currencyCode ?: return null
+            return (listOf(amount) + splits.map { it.amount })
+                .sumOf { com.salco.dragonfly.core.model.parseAmountToMinorUnits(it, currency)?.coerceAtLeast(0) ?: 0 }
+        }
+
     val account: Account? get() = ownAccounts.firstOrNull { it.id == accountId }
     val toAccount: Account? get() = ownAccounts.firstOrNull { it.id == toAccountId }
     val currencyCode: String? get() = account?.currencyCode
@@ -183,7 +243,25 @@ data class TransactionEditUiState(
         get() = if (type == TransactionType.DEPOSIT) revenueNames else expenseNames
 
     internal val hasErrors: Boolean
-        get() = amountError || foreignAmountError || descriptionError || accountError || sameAccountError || counterpartyError
+        get() = amountError || foreignAmountError || descriptionError || accountError || sameAccountError || counterpartyError ||
+            groupTitleError || splits.any { it.hasErrors }
 
     internal fun clearErrors() = copy(accountError = false, sameAccountError = false, foreignAmountError = false)
+}
+
+/** A part of a split transaction after the first. */
+data class SplitForm(
+    val id: Long = 0,
+    val description: String = "",
+    val amount: String = "",
+    val counterparty: String = "",
+    val category: String = "",
+    val budgetId: Long? = null,
+    val tags: List<String> = emptyList(),
+    val tagInput: String = "",
+    val amountError: Boolean = false,
+    val descriptionError: Boolean = false,
+    val counterpartyError: Boolean = false,
+) {
+    internal val hasErrors: Boolean get() = amountError || descriptionError || counterpartyError
 }

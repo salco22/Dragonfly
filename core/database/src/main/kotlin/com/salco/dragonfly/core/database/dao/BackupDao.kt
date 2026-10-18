@@ -15,6 +15,7 @@ import com.salco.dragonfly.core.database.model.RuleEntity
 import com.salco.dragonfly.core.database.model.RuleTriggerEntity
 import com.salco.dragonfly.core.database.model.TagEntity
 import com.salco.dragonfly.core.database.model.TransactionEntity
+import com.salco.dragonfly.core.database.model.TransactionGroupEntity
 import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
 
 /** Raw access to every table, used to write and restore full backups. */
@@ -25,6 +26,7 @@ interface BackupDao {
     @Query("SELECT * FROM tags") suspend fun tags(): List<TagEntity>
     @Query("SELECT * FROM budgets") suspend fun budgets(): List<BudgetEntity>
     @Query("SELECT * FROM bills") suspend fun bills(): List<BillEntity>
+    @Query("SELECT * FROM transaction_groups") suspend fun transactionGroups(): List<TransactionGroupEntity>
     @Query("SELECT * FROM transactions") suspend fun transactions(): List<TransactionEntity>
     @Query("SELECT * FROM transaction_tags") suspend fun transactionTags(): List<TransactionTagCrossRef>
     @Query("SELECT * FROM recurring_transactions") suspend fun recurringTransactions(): List<RecurringTransactionEntity>
@@ -40,6 +42,7 @@ interface BackupDao {
     @Query("DELETE FROM piggy_banks") suspend fun clearPiggyBanks()
     @Query("DELETE FROM recurring_transactions") suspend fun clearRecurringTransactions()
     @Query("DELETE FROM transactions") suspend fun clearTransactions()
+    @Query("DELETE FROM transaction_groups") suspend fun clearTransactionGroups()
     @Query("DELETE FROM rule_triggers") suspend fun clearRuleTriggers()
     @Query("DELETE FROM rule_actions") suspend fun clearRuleActions()
     @Query("DELETE FROM rules") suspend fun clearRules()
@@ -54,6 +57,7 @@ interface BackupDao {
     @Insert suspend fun insertTags(items: List<TagEntity>)
     @Insert suspend fun insertBudgets(items: List<BudgetEntity>)
     @Insert suspend fun insertBills(items: List<BillEntity>)
+    @Insert suspend fun insertTransactionGroups(items: List<TransactionGroupEntity>)
     @Insert suspend fun insertTransactions(items: List<TransactionEntity>)
     @Insert suspend fun insertTransactionTags(items: List<TransactionTagCrossRef>)
     @Insert suspend fun insertRecurringTransactions(items: List<RecurringTransactionEntity>)

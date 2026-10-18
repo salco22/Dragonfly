@@ -11,6 +11,7 @@ import com.salco.dragonfly.core.database.model.CategoryEntity
 import com.salco.dragonfly.core.database.model.PopulatedTransaction
 import com.salco.dragonfly.core.database.model.TagEntity
 import com.salco.dragonfly.core.database.model.TransactionEntity
+import com.salco.dragonfly.core.database.model.TransactionGroupEntity
 import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
 import com.salco.dragonfly.core.model.AccountType
 import kotlinx.coroutines.flow.Flow
@@ -21,13 +22,15 @@ private const val POPULATED_SELECT = """
         d.name AS destination_name, d.type AS destination_type, d.currency_code AS destination_currency,
         c.name AS category_name,
         b.name AS budget_name,
-        bl.name AS bill_name
+        bl.name AS bill_name,
+        g.title AS group_title
     FROM transactions t
     JOIN accounts s ON s.id = t.source_account_id
     JOIN accounts d ON d.id = t.destination_account_id
     LEFT JOIN categories c ON c.id = t.category_id
     LEFT JOIN budgets b ON b.id = t.budget_id
     LEFT JOIN bills bl ON bl.id = t.bill_id
+    LEFT JOIN transaction_groups g ON g.id = t.group_id
 """
 
 @Dao
@@ -53,6 +56,7 @@ abstract class TransactionDao {
                 OR s.name LIKE '%' || :query || '%'
                 OR d.name LIKE '%' || :query || '%'
                 OR c.name LIKE '%' || :query || '%'
+                OR g.title LIKE '%' || :query || '%'
                 OR EXISTS (SELECT 1 FROM transaction_tags tt JOIN tags g ON g.id = tt.tag_id
                            WHERE tt.transaction_id = t.id AND g.name LIKE '%' || :query || '%'))
             AND (:type IS NULL OR t.type = :type)
@@ -92,8 +96,62 @@ abstract class TransactionDao {
     )
     abstract suspend fun countSimilar(accountId: Long, epochDay: Long, amount: Long, description: String): Int
 
+    /** Parts of a split transaction, in the order they were entered. */
+    @Transaction
+    @Query("$POPULATED_SELECT WHERE t.group_id = :groupId ORDER BY t.id")
+    abstract fun observeGroup(groupId: Long): Flow<List<PopulatedTransaction>>
+
     @Upsert
     abstract suspend fun upsert(transaction: TransactionEntity): Long
+
+    @Upsert
+    protected abstract suspend fun upsertGroup(group: TransactionGroupEntity): Long
+
+    @Query("SELECT id FROM transactions WHERE group_id = :groupId")
+    protected abstract suspend fun splitIds(groupId: Long): List<Long>
+
+    @Query("DELETE FROM transactions WHERE id IN (:ids)")
+    protected abstract suspend fun deleteByIds(ids: List<Long>)
+
+    /** Deletes a split transaction with all its parts. */
+    @Query("DELETE FROM transaction_groups WHERE id = :groupId")
+    abstract suspend fun deleteGroup(groupId: Long)
+
+    /** Deletes a group left with fewer than two parts, turning a remaining part into an ordinary transaction. */
+    @Query("UPDATE transactions SET group_id = NULL WHERE group_id = :groupId")
+    protected abstract suspend fun ungroup(groupId: Long)
+
+    /**
+     * Saves a split transaction atomically: the group, then each part through [save] (see
+     * [SplitPart]); parts that were in the group but are no longer listed are deleted. With a
+     * single part the group is dissolved and the part becomes an ordinary transaction.
+     * Returns the group id, or 0 when it was dissolved.
+     */
+    @Transaction
+    open suspend fun saveGroup(groupId: Long, title: String, parts: List<SplitPart>): Long {
+        val savedGroupId = if (parts.size > 1) {
+            upsertGroup(TransactionGroupEntity(id = groupId, title = title)).let { if (groupId != 0L) groupId else it }
+        } else {
+            0L
+        }
+        val keptIds = parts.map { part ->
+            save(
+                transaction = part.transaction.copy(groupId = savedGroupId.takeIf { it != 0L }),
+                newSource = part.newSource,
+                newDestination = part.newDestination,
+                categoryName = part.categoryName,
+                tagNames = part.tagNames,
+            )
+        }
+        if (groupId != 0L) {
+            deleteByIds(splitIds(groupId).filter { it !in keptIds })
+            if (savedGroupId == 0L) {
+                ungroup(groupId)
+                deleteGroup(groupId)
+            }
+        }
+        return savedGroupId
+    }
 
     @Query("DELETE FROM transactions WHERE id = :id")
     abstract suspend fun deleteById(id: Long)
@@ -156,3 +214,12 @@ abstract class TransactionDao {
     private suspend fun resolveAccount(account: AccountEntity): Long =
         findAccountByName(account.name, account.type)?.id ?: insertAccount(account)
 }
+
+/** One part of a split transaction, with what [TransactionDao.save] resolves by name. */
+data class SplitPart(
+    val transaction: TransactionEntity,
+    val newSource: AccountEntity? = null,
+    val newDestination: AccountEntity? = null,
+    val categoryName: String? = null,
+    val tagNames: List<String> = emptyList(),
+)

@@ -15,6 +15,7 @@ import com.salco.dragonfly.core.database.model.RuleEntity
 import com.salco.dragonfly.core.database.model.RuleTriggerEntity
 import com.salco.dragonfly.core.database.model.TagEntity
 import com.salco.dragonfly.core.database.model.TransactionEntity
+import com.salco.dragonfly.core.database.model.TransactionGroupEntity
 import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
 import com.salco.dragonfly.core.model.TransactionFilter
 import com.salco.dragonfly.core.model.minorUnitsToInput
@@ -89,6 +90,7 @@ internal data class BackupFile(
     val tags: List<TagEntity> = emptyList(),
     val budgets: List<BudgetEntity> = emptyList(),
     val bills: List<BillEntity> = emptyList(),
+    @SerialName("transaction_groups") val transactionGroups: List<TransactionGroupEntity> = emptyList(),
     val transactions: List<TransactionEntity> = emptyList(),
     @SerialName("transaction_tags") val transactionTags: List<TransactionTagCrossRef> = emptyList(),
     @SerialName("recurring_transactions") val recurringTransactions: List<RecurringTransactionEntity> = emptyList(),
@@ -135,6 +137,7 @@ internal class OfflineBackupRepository(
                 tags = backupDao.tags(),
                 budgets = backupDao.budgets(),
                 bills = backupDao.bills(),
+                transactionGroups = backupDao.transactionGroups(),
                 transactions = backupDao.transactions(),
                 transactionTags = backupDao.transactionTags(),
                 recurringTransactions = backupDao.recurringTransactions(),
@@ -172,6 +175,7 @@ internal class OfflineBackupRepository(
                 clearPiggyBanks()
                 clearRecurringTransactions()
                 clearTransactions()
+                clearTransactionGroups()
                 clearRuleTriggers()
                 clearRuleActions()
                 clearRules()
@@ -186,6 +190,7 @@ internal class OfflineBackupRepository(
                 insertTags(f.tags)
                 insertBudgets(f.budgets)
                 insertBills(f.bills)
+                insertTransactionGroups(f.transactionGroups)
                 insertTransactions(f.transactions)
                 insertTransactionTags(f.transactionTags)
                 insertRecurringTransactions(f.recurringTransactions)
@@ -220,6 +225,7 @@ internal class OfflineBackupRepository(
                         t.budget?.name.orEmpty(),
                         t.bill?.name.orEmpty(),
                         t.notes.orEmpty(),
+                        t.groupTitle.orEmpty(),
                     )
                     writer.write(row.joinToString(",") { it.csvEscaped() } + "\r\n")
                 }
@@ -230,7 +236,7 @@ internal class OfflineBackupRepository(
     private companion object {
         val CSV_HEADER = listOf(
             "date", "type", "description", "amount", "currency", "foreign_amount", "source", "destination",
-            "category", "tags", "budget", "bill", "notes",
+            "category", "tags", "budget", "bill", "notes", "split_group",
         )
     }
 }

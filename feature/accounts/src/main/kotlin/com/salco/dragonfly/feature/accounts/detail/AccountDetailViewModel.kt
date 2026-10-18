@@ -9,6 +9,7 @@ import com.salco.dragonfly.core.data.repository.TransactionsRepository
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionFilter
+import com.salco.dragonfly.core.model.mergingSplits
 import com.salco.dragonfly.feature.accounts.navigation.AccountDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +48,7 @@ class AccountDetailViewModel @Inject constructor(
                     AccountDetailUiState.Success(
                         account = account,
                         query = query,
-                        days = transactions.groupBy { it.date }.toList(),
+                        days = transactions.mergingSplits().groupBy { it.date }.toList(),
                         totals = transactions.totalsFor(account),
                         savedInPiggyBanks = piggyBanks.sumOf { it.saved },
                     )

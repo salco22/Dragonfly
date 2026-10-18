@@ -51,6 +51,12 @@ import java.time.LocalDate
             childColumns = ["bill_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
+        ForeignKey(
+            entity = TransactionGroupEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["group_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
     indices = [
         Index("source_account_id"),
@@ -59,6 +65,7 @@ import java.time.LocalDate
         Index("category_id"),
         Index("budget_id"),
         Index("bill_id"),
+        Index("group_id"),
     ],
 )
 @Serializable
@@ -77,6 +84,16 @@ data class TransactionEntity(
     @ColumnInfo(name = "category_id", defaultValue = "NULL") val categoryId: Long? = null,
     @ColumnInfo(name = "budget_id", defaultValue = "NULL") val budgetId: Long? = null,
     @ColumnInfo(name = "bill_id", defaultValue = "NULL") val billId: Long? = null,
+    /** Split transaction this row is a part of; null for an ordinary transaction. */
+    @ColumnInfo(name = "group_id", defaultValue = "NULL") val groupId: Long? = null,
+)
+
+/** A split transaction: its parts are the transactions pointing at it with `group_id`. */
+@Entity(tableName = "transaction_groups")
+@Serializable
+data class TransactionGroupEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
 )
 
 /** A transaction joined with the summary of both its accounts. */
@@ -91,6 +108,7 @@ data class PopulatedTransaction(
     @ColumnInfo(name = "category_name") val categoryName: String?,
     @ColumnInfo(name = "budget_name") val budgetName: String?,
     @ColumnInfo(name = "bill_name") val billName: String?,
+    @ColumnInfo(name = "group_title") val groupTitle: String?,
     @Relation(
         parentColumn = "id",
         entityColumn = "id",
@@ -114,4 +132,6 @@ fun PopulatedTransaction.asExternalModel() = Transaction(
     tags = tags.map { it.asExternalModel() }.sortedBy { it.name.lowercase() },
     budget = transaction.budgetId?.let { id -> budgetName?.let { BudgetRef(id, it) } },
     bill = transaction.billId?.let { id -> billName?.let { BillRef(id, it) } },
+    groupId = transaction.groupId,
+    groupTitle = groupTitle,
 )

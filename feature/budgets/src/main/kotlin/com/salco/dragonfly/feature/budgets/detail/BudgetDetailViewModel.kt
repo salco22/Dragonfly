@@ -8,6 +8,7 @@ import com.salco.dragonfly.core.data.repository.TransactionsRepository
 import com.salco.dragonfly.core.model.BudgetSpending
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionFilter
+import com.salco.dragonfly.core.model.mergingSplits
 import com.salco.dragonfly.feature.budgets.navigation.BudgetDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +60,7 @@ class BudgetDetailViewModel internal constructor(
                     BudgetDetailUiState.Success(
                         month = month,
                         spending = budget,
-                        days = transactions.groupBy { it.date }.toList(),
+                        days = transactions.mergingSplits().groupBy { it.date }.toList(),
                         daysLeft = daysLeftIn(month),
                     )
                 }

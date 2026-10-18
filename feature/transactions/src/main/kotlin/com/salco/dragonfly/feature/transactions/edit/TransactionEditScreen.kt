@@ -1,6 +1,7 @@
 package com.salco.dragonfly.feature.transactions.edit
 
 import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfButtonStyle
 import com.salco.dragonfly.core.designsystem.component.DfChipFlow
 import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
 import com.salco.dragonfly.core.designsystem.component.DfEmptyState
@@ -28,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.Delete
@@ -89,6 +91,19 @@ internal fun TransactionEditScreen(
             onTagInputChange = viewModel::onTagInputChange,
             onAddTag = viewModel::addTag,
             onRemoveTag = viewModel::removeTag,
+            split = SplitActions(
+                onAdd = viewModel::addSplit,
+                onRemove = viewModel::removeSplit,
+                onTitleChange = viewModel::onGroupTitleChange,
+                onDescriptionChange = viewModel::onSplitDescriptionChange,
+                onAmountChange = viewModel::onSplitAmountChange,
+                onCounterpartyChange = viewModel::onSplitCounterpartyChange,
+                onCategoryChange = viewModel::onSplitCategoryChange,
+                onBudgetChange = viewModel::onSplitBudgetChange,
+                onTagInputChange = viewModel::onSplitTagInputChange,
+                onAddTag = viewModel::addSplitTag,
+                onRemoveTag = viewModel::removeSplitTag,
+            ),
         ),
     )
 }
@@ -112,6 +127,8 @@ internal data class TransactionEditActions(
     val onTagInputChange: (String) -> Unit = {},
     val onAddTag: (String) -> Unit = {},
     val onRemoveTag: (String) -> Unit = {},
+    /** Null where transactions cannot be split, as in recurring templates. */
+    val split: SplitActions? = null,
 )
 
 @Composable
@@ -138,7 +155,20 @@ internal fun TransactionEditContent(uiState: TransactionEditUiState, actions: Tr
             return@DfScaffold
         }
         DfFormColumn(Modifier.padding(padding)) {
-            TransactionFormFields(uiState, actions)
+            val split = actions.split
+            if (split != null && uiState.isSplit && uiState.canSplit) {
+                SplitFormFields(uiState, actions, split)
+            } else {
+                TransactionFormFields(uiState, actions)
+                if (split != null && uiState.canSplit) {
+                    DfButton(
+                        stringResource(R.string.feature_transactions_split),
+                        split.onAdd,
+                        style = DfButtonStyle.Secondary,
+                        icon = Icons.AutoMirrored.Outlined.CallSplit,
+                    )
+                }
+            }
             DfButton(stringResource(R.string.feature_transactions_save), actions.onSave, fillWidth = true)
         }
     }
@@ -146,7 +176,9 @@ internal fun TransactionEditContent(uiState: TransactionEditUiState, actions: Tr
     if (confirmDelete) {
         DfConfirmDialog(
             title = stringResource(R.string.feature_transactions_delete_title),
-            message = stringResource(R.string.feature_transactions_delete_message),
+            message = stringResource(
+                if (uiState.groupId != 0L) R.string.feature_transactions_delete_split_message else R.string.feature_transactions_delete_message,
+            ),
             confirmText = stringResource(R.string.feature_transactions_delete),
             dismissText = stringResource(R.string.feature_transactions_cancel),
             onConfirm = {
@@ -254,15 +286,7 @@ internal fun TransactionFormFields(
     )
 
     if (uiState.type == TransactionType.WITHDRAWAL && uiState.budgets.isNotEmpty()) {
-        val noBudget = stringResource(R.string.feature_transactions_no_budget)
-        DropdownField(
-            label = stringResource(R.string.feature_transactions_budget),
-            options = listOf<Budget?>(null) + uiState.budgets,
-            selected = uiState.budgets.firstOrNull { it.id == uiState.budgetId },
-            optionLabel = { it?.name ?: noBudget },
-            onSelected = { actions.onBudgetChange(it?.id) },
-            placeholder = noBudget,
-        )
+        BudgetDropdown(uiState.budgets, uiState.budgetId, actions.onBudgetChange)
     }
 
     if (uiState.type == TransactionType.WITHDRAWAL && uiState.bills.isNotEmpty()) {
@@ -296,7 +320,20 @@ internal fun TransactionFormFields(
 }
 
 @Composable
-private fun TagsField(
+internal fun BudgetDropdown(budgets: List<Budget>, selectedId: Long?, onSelected: (Long?) -> Unit) {
+    val noBudget = stringResource(R.string.feature_transactions_no_budget)
+    DropdownField(
+        label = stringResource(R.string.feature_transactions_budget),
+        options = listOf<Budget?>(null) + budgets,
+        selected = budgets.firstOrNull { it.id == selectedId },
+        optionLabel = { it?.name ?: noBudget },
+        onSelected = { onSelected(it?.id) },
+        placeholder = noBudget,
+    )
+}
+
+@Composable
+internal fun TagsField(
     tags: List<String>,
     input: String,
     suggestions: List<String>,
@@ -324,7 +361,7 @@ private fun TagsField(
 }
 
 @Composable
-private fun AccountDropdown(
+internal fun AccountDropdown(
     label: String,
     accounts: List<Account>,
     selected: Account?,
