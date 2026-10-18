@@ -26,6 +26,9 @@ import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBankDeta
 import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBankEdit
 import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBanks
 import com.salco.dragonfly.feature.piggybanks.navigation.piggyBanksScreens
+import com.salco.dragonfly.feature.rules.navigation.navigateToRuleEdit
+import com.salco.dragonfly.feature.rules.navigation.navigateToRules
+import com.salco.dragonfly.feature.rules.navigation.rulesScreens
 import com.salco.dragonfly.feature.settings.navigation.settingsScreen
 import com.salco.dragonfly.feature.transactions.navigation.navigateToBillPayment
 import com.salco.dragonfly.feature.transactions.navigation.navigateToNewTransaction
@@ -105,6 +108,12 @@ fun DragonflyNavHost(
             onBillsClick = navController::navigateToBills,
             onPiggyBanksClick = navController::navigateToPiggyBanks,
             onRecurringClick = navController::navigateToRecurringTransactions,
+            onRulesClick = navController::navigateToRules,
+        )
+        rulesScreens(
+            onBack = navController::popBackStack,
+            onRuleClick = navController::navigateToRuleEdit,
+            onAdd = { navController.navigateToRuleEdit() },
         )
         classificationScreens(onBack = navController::popBackStack)
     }

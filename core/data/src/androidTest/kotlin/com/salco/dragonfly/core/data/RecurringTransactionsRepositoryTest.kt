@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.salco.dragonfly.core.data.repository.OfflineRecurringTransactionsRepository
 import com.salco.dragonfly.core.data.repository.OfflineTransactionsRepository
+import com.salco.dragonfly.core.data.repository.RuleApplier
 import com.salco.dragonfly.core.database.DragonflyDatabase
 import com.salco.dragonfly.core.database.RoomTransactionRunner
 import com.salco.dragonfly.core.database.model.AccountEntity
@@ -37,7 +38,7 @@ class RecurringTransactionsRepositoryTest {
     @Before
     fun setUp() = runTest {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), DragonflyDatabase::class.java).build()
-        transactions = OfflineTransactionsRepository(db.transactionDao())
+        transactions = OfflineTransactionsRepository(db.transactionDao(), RuleApplier(db.ruleDao(), db.accountDao()))
         repository = OfflineRecurringTransactionsRepository(db.recurringTransactionDao(), transactions, RoomTransactionRunner(db))
         checking = db.accountDao().upsert(
             AccountEntity(

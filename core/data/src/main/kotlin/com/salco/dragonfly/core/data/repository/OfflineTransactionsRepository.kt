@@ -17,6 +17,7 @@ import javax.inject.Inject
 
 internal class OfflineTransactionsRepository @Inject constructor(
     private val transactionDao: TransactionDao,
+    private val ruleApplier: RuleApplier,
 ) : TransactionsRepository {
 
     override fun observeTransactions(from: LocalDate, to: LocalDate): Flow<List<Transaction>> =
@@ -41,7 +42,12 @@ internal class OfflineTransactionsRepository @Inject constructor(
             toEpochDay = filter.to?.toEpochDay(),
         ).map(List<PopulatedTransaction>::asModels)
 
-    override suspend fun saveTransaction(draft: TransactionDraft): Long =
+    // Rules run on new transactions only, so manual edits are never overridden.
+    override suspend fun saveTransaction(draft: TransactionDraft): Long = saveResolved(
+        if (draft.id == 0L) ruleApplier.apply(draft) else draft,
+    )
+
+    private suspend fun saveResolved(draft: TransactionDraft): Long =
         transactionDao.save(
             transaction = TransactionEntity(
                 id = draft.id,

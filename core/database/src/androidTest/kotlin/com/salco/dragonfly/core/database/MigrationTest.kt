@@ -98,6 +98,17 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate7To8_addsRules() {
+        helper.createDatabase(DB_NAME, 7).close()
+        helper.runMigrationsAndValidate(DB_NAME, 8, true).use { db ->
+            db.query("SELECT COUNT(*) FROM rules").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

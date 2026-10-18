@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:lock"))
     implementation(project(":feature:piggybanks"))
+    implementation(project(":feature:rules"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:transactions"))
 

@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.salco.dragonfly.core.data.repository.OfflineInsightsRepository
 import com.salco.dragonfly.core.data.repository.OfflineTransactionsRepository
+import com.salco.dragonfly.core.data.repository.RuleApplier
 import com.salco.dragonfly.core.database.DragonflyDatabase
 import com.salco.dragonfly.core.database.model.AccountEntity
 import com.salco.dragonfly.core.model.AccountRef
@@ -39,7 +40,7 @@ class InsightsRepositoryTest {
     @Before
     fun setUp() = runTest {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), DragonflyDatabase::class.java).build()
-        transactions = OfflineTransactionsRepository(db.transactionDao())
+        transactions = OfflineTransactionsRepository(db.transactionDao(), RuleApplier(db.ruleDao(), db.accountDao()))
         insights = OfflineInsightsRepository(db.insightsDao())
         checking = db.accountDao().upsert(account("Conto", AccountType.ASSET, opening = 100_000))
         savings = db.accountDao().upsert(account("Risparmi", AccountType.ASSET, opening = 50_000))

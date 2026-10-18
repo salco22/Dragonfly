@@ -8,6 +8,7 @@ import com.salco.dragonfly.core.data.repository.InsightsRepository
 import com.salco.dragonfly.core.data.repository.InsufficientFundsException
 import com.salco.dragonfly.core.data.repository.PiggyBanksRepository
 import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
+import com.salco.dragonfly.core.data.repository.RulesRepository
 import com.salco.dragonfly.core.data.repository.DuplicateNameException
 import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
@@ -26,6 +27,9 @@ import com.salco.dragonfly.core.model.PiggyBank
 import com.salco.dragonfly.core.model.PiggyBankEvent
 import com.salco.dragonfly.core.model.PiggyBankSummary
 import com.salco.dragonfly.core.model.RecurringTransaction
+import com.salco.dragonfly.core.model.Rule
+import com.salco.dragonfly.core.model.RuleSubject
+import com.salco.dragonfly.core.model.applyRules
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.CategorySummary
 import com.salco.dragonfly.core.model.Tag
@@ -433,4 +437,58 @@ class FakeInsightsRepository(
                 }.toList()
             }
         }
+}
+
+/** Rules kept in memory and applied to [transactions] with the real rule engine. */
+class FakeRulesRepository(
+    private val transactions: FakeTransactionsRepository,
+    private val categories: FakeCategoriesRepository,
+    private val tags: FakeTagsRepository,
+) : RulesRepository {
+    val rules = MutableStateFlow<List<Rule>>(emptyList())
+    private var nextId = 1L
+
+    override fun observeRules(): Flow<List<Rule>> = rules.map { list -> list.sortedWith(compareBy({ it.position }, { it.id })) }
+    override fun observeRule(id: Long): Flow<Rule?> = rules.map { list -> list.find { it.id == id } }
+
+    override suspend fun saveRule(rule: Rule): Long {
+        val saved = if (rule.id == 0L) rule.copy(id = nextId++, position = rules.value.size) else rule
+        rules.update { list -> list.filterNot { it.id == saved.id } + saved }
+        return saved.id
+    }
+
+    override suspend fun setRuleActive(id: Long, active: Boolean) =
+        rules.update { list -> list.map { if (it.id == id) it.copy(active = active) else it } }
+
+    override suspend fun deleteRule(id: Long) = rules.update { list -> list.filterNot { it.id == id } }
+
+    override suspend fun countAffected(rule: Rule): Int = changes(listOf(rule.copy(active = true))).size
+
+    override suspend fun applyToExisting(rule: Rule?): Int {
+        val changed = changes(rule?.let { listOf(it.copy(active = true)) } ?: rules.value)
+        changed.forEach { (transaction, subject) ->
+            transactions.transactions.update { list ->
+                list.map { t ->
+                    if (t.id != transaction.id) t else t.copy(
+                        description = subject.description,
+                        notes = subject.notes,
+                        category = subject.categoryName?.let { categories.resolve(it) },
+                        tags = subject.tagNames.map { tags.resolve(it) },
+                    )
+                }
+            }
+        }
+        return changed.size
+    }
+
+    private fun changes(rules: List<Rule>) = transactions.transactions.value.mapNotNull { t ->
+        val subject = RuleSubject(
+            type = t.type, description = t.description, amount = t.amount, notes = t.notes,
+            accountName = if (t.type == TransactionType.DEPOSIT) t.destination.name else t.source.name,
+            counterpartyName = if (t.type == TransactionType.DEPOSIT) t.source.name else t.destination.name,
+            categoryName = t.category?.name, tagNames = t.tags.map { it.name }, budgetId = t.budget?.id, billId = t.bill?.id,
+        )
+        val result = applyRules(rules, subject)
+        if (result == subject) null else t to result
+    }
 }

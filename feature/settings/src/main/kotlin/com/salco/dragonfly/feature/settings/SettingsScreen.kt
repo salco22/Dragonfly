@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Savings
@@ -50,6 +51,7 @@ internal fun SettingsScreen(
     onBillsClick: () -> Unit,
     onPiggyBanksClick: () -> Unit,
     onRecurringClick: () -> Unit,
+    onRulesClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,6 +76,7 @@ internal fun SettingsScreen(
         onBillsClick = onBillsClick,
         onPiggyBanksClick = onPiggyBanksClick,
         onRecurringClick = onRecurringClick,
+        onRulesClick = onRulesClick,
     )
 }
 
@@ -89,6 +92,7 @@ internal fun SettingsContent(
     onBillsClick: () -> Unit = {},
     onPiggyBanksClick: () -> Unit = {},
     onRecurringClick: () -> Unit = {},
+    onRulesClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_settings_title)) }) },
@@ -128,6 +132,7 @@ internal fun SettingsContent(
             SectionTitle(stringResource(R.string.feature_settings_organization))
             NavigationItem(Icons.Filled.Category, stringResource(R.string.feature_settings_categories), onCategoriesClick)
             NavigationItem(Icons.Filled.Sell, stringResource(R.string.feature_settings_tags), onTagsClick)
+            NavigationItem(Icons.Filled.AutoFixHigh, stringResource(R.string.feature_settings_rules), onRulesClick)
 
             SectionTitle(stringResource(R.string.feature_settings_general))
             DropdownField(

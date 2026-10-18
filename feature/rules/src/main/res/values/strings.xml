@@ -1,0 +1,74 @@
+<resources>
+    <string name="feature_rules_title">Regole automatiche</string>
+    <string name="feature_rules_add">Nuova regola</string>
+    <string name="feature_rules_back">Indietro</string>
+    <string name="feature_rules_apply_all">Applica a tutte le transazioni</string>
+    <string name="feature_rules_apply_all_title">Applicare le regole?</string>
+    <string name="feature_rules_apply_all_message">Le regole attive verranno applicate a tutte le transazioni già registrate. Le nuove transazioni le ricevono già in automatico.</string>
+    <plurals name="feature_rules_applied">
+        <item quantity="one">%d transazione aggiornata</item>
+        <item quantity="other">%d transazioni aggiornate</item>
+    </plurals>
+    <string name="feature_rules_empty_title">Nessuna regola</string>
+    <string name="feature_rules_empty_message">Le regole compilano da sole categoria, tag, budget e bolletta. Per esempio: se il beneficiario è Esselunga, categoria Spesa.</string>
+    <string name="feature_rules_if">Se</string>
+    <string name="feature_rules_then">allora</string>
+    <string name="feature_rules_and">e</string>
+    <string name="feature_rules_or">oppure</string>
+    <string name="feature_rules_new">Nuova regola</string>
+    <string name="feature_rules_edit">Modifica regola</string>
+    <string name="feature_rules_name">Nome</string>
+    <string name="feature_rules_conditions">Condizioni</string>
+    <string name="feature_rules_match_all">Tutte</string>
+    <string name="feature_rules_match_any">Almeno una</string>
+    <string name="feature_rules_add_condition">Aggiungi condizione</string>
+    <string name="feature_rules_actions">Azioni</string>
+    <string name="feature_rules_add_action">Aggiungi azione</string>
+    <string name="feature_rules_remove">Rimuovi</string>
+    <string name="feature_rules_field">Campo</string>
+    <string name="feature_rules_operator">Condizione</string>
+    <string name="feature_rules_value">Valore</string>
+    <string name="feature_rules_action">Azione</string>
+    <string name="feature_rules_stop">Ferma le regole successive quando questa si applica</string>
+    <string name="feature_rules_active">Attiva</string>
+    <string name="feature_rules_apply_existing">Applica anche alle transazioni esistenti</string>
+    <string name="feature_rules_preview">Prova</string>
+    <plurals name="feature_rules_preview_result">
+        <item quantity="one">Cambierebbe %d transazione esistente</item>
+        <item quantity="other">Cambierebbe %d transazioni esistenti</item>
+    </plurals>
+    <string name="feature_rules_save">Salva</string>
+    <string name="feature_rules_delete">Elimina</string>
+    <string name="feature_rules_cancel">Annulla</string>
+    <string name="feature_rules_confirm">Applica</string>
+    <string name="feature_rules_error_name">Inserisci un nome</string>
+    <string name="feature_rules_error_conditions">Aggiungi almeno una condizione completa</string>
+    <string name="feature_rules_error_actions">Aggiungi almeno un\'azione completa</string>
+    <string name="feature_rules_delete_title">Eliminare la regola?</string>
+    <string name="feature_rules_delete_message">Le transazioni già modificate restano come sono.</string>
+
+    <string name="feature_rules_field_description">Descrizione</string>
+    <string name="feature_rules_field_counterparty">Beneficiario o pagante</string>
+    <string name="feature_rules_field_account">Conto</string>
+    <string name="feature_rules_field_amount">Importo</string>
+    <string name="feature_rules_field_type">Tipo</string>
+    <string name="feature_rules_field_notes">Note</string>
+
+    <string name="feature_rules_operator_contains">contiene</string>
+    <string name="feature_rules_operator_starts_with">inizia con</string>
+    <string name="feature_rules_operator_ends_with">finisce con</string>
+    <string name="feature_rules_operator_is">è</string>
+    <string name="feature_rules_operator_less_than">minore di</string>
+    <string name="feature_rules_operator_more_than">maggiore di</string>
+
+    <string name="feature_rules_type_withdrawal">Uscita</string>
+    <string name="feature_rules_type_deposit">Entrata</string>
+    <string name="feature_rules_type_transfer">Trasferimento</string>
+
+    <string name="feature_rules_action_set_category">Imposta categoria</string>
+    <string name="feature_rules_action_add_tag">Aggiungi tag</string>
+    <string name="feature_rules_action_set_budget">Imposta budget</string>
+    <string name="feature_rules_action_link_bill">Collega bolletta</string>
+    <string name="feature_rules_action_set_description">Cambia descrizione</string>
+    <string name="feature_rules_action_append_notes">Aggiungi alle note</string>
+</resources>

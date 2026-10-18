@@ -10,6 +10,7 @@ import com.salco.dragonfly.core.database.dao.CategoryDao
 import com.salco.dragonfly.core.database.dao.InsightsDao
 import com.salco.dragonfly.core.database.dao.PiggyBankDao
 import com.salco.dragonfly.core.database.dao.RecurringTransactionDao
+import com.salco.dragonfly.core.database.dao.RuleDao
 import com.salco.dragonfly.core.database.dao.TagDao
 import com.salco.dragonfly.core.database.dao.TransactionDao
 import com.salco.dragonfly.core.database.model.AccountEntity
@@ -19,6 +20,9 @@ import com.salco.dragonfly.core.database.model.CategoryEntity
 import com.salco.dragonfly.core.database.model.PiggyBankEntity
 import com.salco.dragonfly.core.database.model.PiggyBankEventEntity
 import com.salco.dragonfly.core.database.model.RecurringTransactionEntity
+import com.salco.dragonfly.core.database.model.RuleActionEntity
+import com.salco.dragonfly.core.database.model.RuleEntity
+import com.salco.dragonfly.core.database.model.RuleTriggerEntity
 import com.salco.dragonfly.core.database.model.TagEntity
 import com.salco.dragonfly.core.database.model.TransactionEntity
 import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
@@ -35,8 +39,11 @@ import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
         BillEntity::class,
         PiggyBankEntity::class,
         PiggyBankEventEntity::class,
+        RuleEntity::class,
+        RuleTriggerEntity::class,
+        RuleActionEntity::class,
     ],
-    version = 7,
+    version = 8,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -44,6 +51,7 @@ import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
         AutoMigration(from = 4, to = 5),
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
+        AutoMigration(from = 7, to = 8),
     ],
     exportSchema = true,
 )
@@ -55,6 +63,7 @@ abstract class DragonflyDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun billDao(): BillDao
     abstract fun insightsDao(): InsightsDao
+    abstract fun ruleDao(): RuleDao
     abstract fun piggyBankDao(): PiggyBankDao
     abstract fun recurringTransactionDao(): RecurringTransactionDao
 }

@@ -25,6 +25,9 @@ interface AccountDao {
     @Query("$WITH_BALANCE_SELECT WHERE a.id = :id")
     fun observeById(id: Long): Flow<AccountWithBalance?>
 
+    @Query("SELECT * FROM accounts WHERE id = :id")
+    suspend fun getById(id: Long): AccountEntity?
+
     @Upsert
     suspend fun upsert(account: AccountEntity): Long
 
