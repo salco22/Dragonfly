@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":feature:bills"))
     implementation(project(":feature:budgets"))
     implementation(project(":feature:classification"))
+    implementation(project(":feature:home"))
     implementation(project(":feature:lock"))
     implementation(project(":feature:piggybanks"))
     implementation(project(":feature:settings"))

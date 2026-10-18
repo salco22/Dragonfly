@@ -1,9 +1,14 @@
 <resources>
-    <string name="feature_settings_title">Impostazioni</string>
+    <string name="feature_settings_title">Altro</string>
     <string name="feature_settings_security">Sicurezza</string>
     <string name="feature_settings_app_lock">Blocco biometrico</string>
     <string name="feature_settings_app_lock_description">Chiedi impronta, volto o PIN del dispositivo all\'apertura dell\'app.</string>
     <string name="feature_settings_app_lock_unavailable">Imposta un blocco schermo sul dispositivo per usare questa opzione.</string>
+    <string name="feature_settings_planning">Pianificazione</string>
+    <string name="feature_settings_bills">Bollette e abbonamenti</string>
+    <string name="feature_settings_piggy_banks">Salvadanai</string>
+    <string name="feature_settings_recurring">Transazioni ricorrenti</string>
+    <string name="feature_settings_settings">Impostazioni</string>
     <string name="feature_settings_organization">Organizzazione</string>
     <string name="feature_settings_categories">Categorie</string>
     <string name="feature_settings_tags">Tag</string>

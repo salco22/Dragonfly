@@ -5,18 +5,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.automirrored.filled.EventNote
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.PieChart
-import androidx.compose.material.icons.automirrored.outlined.EventNote
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.salco.dragonfly.R
 import com.salco.dragonfly.feature.accounts.navigation.AccountsRoute
-import com.salco.dragonfly.feature.bills.navigation.BillsRoute
 import com.salco.dragonfly.feature.budgets.navigation.BudgetsRoute
+import com.salco.dragonfly.feature.home.navigation.HomeRoute
 import com.salco.dragonfly.feature.settings.navigation.SettingsRoute
 import com.salco.dragonfly.feature.transactions.navigation.TransactionsRoute
 import kotlin.reflect.KClass
@@ -27,34 +27,11 @@ enum class TopLevelDestination(
     @StringRes val labelRes: Int,
     val route: KClass<*>,
 ) {
-    ACCOUNTS(
-        selectedIcon = Icons.Filled.AccountBalanceWallet,
-        unselectedIcon = Icons.Outlined.AccountBalanceWallet,
-        labelRes = R.string.nav_accounts,
-        route = AccountsRoute::class,
-    ),
-    TRANSACTIONS(
-        selectedIcon = Icons.AutoMirrored.Filled.ReceiptLong,
-        unselectedIcon = Icons.AutoMirrored.Outlined.ReceiptLong,
-        labelRes = R.string.nav_transactions,
-        route = TransactionsRoute::class,
-    ),
-    BUDGETS(
-        selectedIcon = Icons.Filled.PieChart,
-        unselectedIcon = Icons.Outlined.PieChart,
-        labelRes = R.string.nav_budgets,
-        route = BudgetsRoute::class,
-    ),
-    BILLS(
-        selectedIcon = Icons.AutoMirrored.Filled.EventNote,
-        unselectedIcon = Icons.AutoMirrored.Outlined.EventNote,
-        labelRes = R.string.nav_bills,
-        route = BillsRoute::class,
-    ),
-    SETTINGS(
-        selectedIcon = Icons.Filled.Settings,
-        unselectedIcon = Icons.Outlined.Settings,
-        labelRes = R.string.nav_settings,
-        route = SettingsRoute::class,
-    ),
+    HOME(Icons.Filled.Home, Icons.Outlined.Home, R.string.nav_home, HomeRoute::class),
+    ACCOUNTS(Icons.Filled.AccountBalanceWallet, Icons.Outlined.AccountBalanceWallet, R.string.nav_accounts, AccountsRoute::class),
+    TRANSACTIONS(Icons.AutoMirrored.Filled.ReceiptLong, Icons.AutoMirrored.Outlined.ReceiptLong, R.string.nav_transactions, TransactionsRoute::class),
+    BUDGETS(Icons.Filled.PieChart, Icons.Outlined.PieChart, R.string.nav_budgets, BudgetsRoute::class),
+
+    /** Settings plus the less frequent sections: bills, piggy banks, recurring, categories, tags. */
+    MORE(Icons.Filled.Menu, Icons.Outlined.Menu, R.string.nav_more, SettingsRoute::class),
 }

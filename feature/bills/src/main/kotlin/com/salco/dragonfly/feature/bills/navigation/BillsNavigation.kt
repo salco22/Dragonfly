@@ -2,7 +2,6 @@ package com.salco.dragonfly.feature.bills.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.salco.dragonfly.feature.bills.detail.BillDetailScreen
 import com.salco.dragonfly.feature.bills.edit.BillEditScreen
@@ -19,7 +18,7 @@ data class BillDetailRoute(val billId: Long)
 @Serializable
 data class BillEditRoute(val billId: Long = 0L)
 
-fun NavController.navigateToBills(navOptions: NavOptions? = null) = navigate(BillsRoute, navOptions)
+fun NavController.navigateToBills() = navigate(BillsRoute)
 
 fun NavController.navigateToBillDetail(billId: Long) = navigate(BillDetailRoute(billId))
 
@@ -33,7 +32,7 @@ fun NavGraphBuilder.billsScreens(
     onPayBill: (Long) -> Unit,
     onTransactionClick: (Long) -> Unit,
 ) {
-    composable<BillsRoute> { BillsScreen(onBillClick = onBillClick, onAddBill = onAddBill, onPayBill = onPayBill) }
+    composable<BillsRoute> { BillsScreen(onBack = onBack, onBillClick = onBillClick, onAddBill = onAddBill, onPayBill = onPayBill) }
     composable<BillDetailRoute> {
         BillDetailScreen(onBack = onBack, onEdit = onEditBill, onPay = onPayBill, onTransactionClick = onTransactionClick)
     }

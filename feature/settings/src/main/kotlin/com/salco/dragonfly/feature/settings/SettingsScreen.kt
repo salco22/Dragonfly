@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.EventRepeat
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,6 +47,9 @@ import com.salco.dragonfly.feature.lock.showAppLockPrompt
 internal fun SettingsScreen(
     onCategoriesClick: () -> Unit,
     onTagsClick: () -> Unit,
+    onBillsClick: () -> Unit,
+    onPiggyBanksClick: () -> Unit,
+    onRecurringClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,6 +71,9 @@ internal fun SettingsScreen(
         onDefaultCurrencyChange = viewModel::setDefaultCurrency,
         onCategoriesClick = onCategoriesClick,
         onTagsClick = onTagsClick,
+        onBillsClick = onBillsClick,
+        onPiggyBanksClick = onPiggyBanksClick,
+        onRecurringClick = onRecurringClick,
     )
 }
 
@@ -76,6 +86,9 @@ internal fun SettingsContent(
     onDefaultCurrencyChange: (String) -> Unit,
     onCategoriesClick: () -> Unit = {},
     onTagsClick: () -> Unit = {},
+    onBillsClick: () -> Unit = {},
+    onPiggyBanksClick: () -> Unit = {},
+    onRecurringClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_settings_title)) }) },
@@ -87,6 +100,11 @@ internal fun SettingsContent(
                 .padding(padding)
                 .verticalScroll(rememberScrollState()),
         ) {
+            SectionTitle(stringResource(R.string.feature_settings_planning))
+            NavigationItem(Icons.AutoMirrored.Filled.EventNote, stringResource(R.string.feature_settings_bills), onBillsClick)
+            NavigationItem(Icons.Filled.Savings, stringResource(R.string.feature_settings_piggy_banks), onPiggyBanksClick)
+            NavigationItem(Icons.Filled.EventRepeat, stringResource(R.string.feature_settings_recurring), onRecurringClick)
+
             SectionTitle(stringResource(R.string.feature_settings_security))
             ListItem(
                 headlineContent = { Text(stringResource(R.string.feature_settings_app_lock)) },
@@ -108,16 +126,8 @@ internal fun SettingsContent(
             )
 
             SectionTitle(stringResource(R.string.feature_settings_organization))
-            ListItem(
-                modifier = Modifier.clickable(onClick = onCategoriesClick),
-                leadingContent = { Icon(Icons.Filled.Category, contentDescription = null) },
-                headlineContent = { Text(stringResource(R.string.feature_settings_categories)) },
-            )
-            ListItem(
-                modifier = Modifier.clickable(onClick = onTagsClick),
-                leadingContent = { Icon(Icons.Filled.Sell, contentDescription = null) },
-                headlineContent = { Text(stringResource(R.string.feature_settings_tags)) },
-            )
+            NavigationItem(Icons.Filled.Category, stringResource(R.string.feature_settings_categories), onCategoriesClick)
+            NavigationItem(Icons.Filled.Sell, stringResource(R.string.feature_settings_tags), onTagsClick)
 
             SectionTitle(stringResource(R.string.feature_settings_general))
             DropdownField(
@@ -130,6 +140,16 @@ internal fun SettingsContent(
             )
         }
     }
+}
+
+@Composable
+private fun NavigationItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+    ListItem(
+        modifier = Modifier.clickable(onClick = onClick),
+        leadingContent = { Icon(icon, contentDescription = null) },
+        headlineContent = { Text(label) },
+        trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+    )
 }
 
 @Composable

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Card
@@ -21,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
@@ -53,13 +55,14 @@ import java.time.LocalDate
 
 @Composable
 internal fun BillsScreen(
+    onBack: () -> Unit,
     onBillClick: (Long) -> Unit,
     onAddBill: () -> Unit,
     onPayBill: (Long) -> Unit,
     viewModel: BillsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    BillsContent(uiState, onBillClick, onAddBill, onPayBill)
+    BillsContent(uiState, onBillClick, onAddBill, onPayBill, onBack)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,9 +72,19 @@ internal fun BillsContent(
     onBillClick: (Long) -> Unit,
     onAddBill: () -> Unit,
     onPayBill: (Long) -> Unit,
+    onBack: () -> Unit = {},
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_bills_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.feature_bills_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_bills_back))
+                    }
+                },
+            )
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddBill,

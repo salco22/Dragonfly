@@ -25,8 +25,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.salco.dragonfly.MainActivityUiState
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccounts
-import com.salco.dragonfly.feature.bills.navigation.navigateToBills
 import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgets
+import com.salco.dragonfly.feature.home.navigation.navigateToHome
 import com.salco.dragonfly.feature.lock.LockScreen
 import com.salco.dragonfly.feature.settings.navigation.navigateToSettings
 import com.salco.dragonfly.feature.transactions.navigation.navigateToTransactions
@@ -88,17 +88,17 @@ fun DragonflyApp(navController: NavHostController) {
 private fun NavDestination?.isRoute(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route) } == true
 
-private fun NavHostController.navigateToTopLevel(destination: TopLevelDestination) {
+internal fun NavHostController.navigateToTopLevel(destination: TopLevelDestination) {
     val options = navOptions {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }
     when (destination) {
+        TopLevelDestination.HOME -> navigateToHome(options)
         TopLevelDestination.ACCOUNTS -> navigateToAccounts(options)
         TopLevelDestination.TRANSACTIONS -> navigateToTransactions(options)
         TopLevelDestination.BUDGETS -> navigateToBudgets(options)
-        TopLevelDestination.BILLS -> navigateToBills(options)
-        TopLevelDestination.SETTINGS -> navigateToSettings(options)
+        TopLevelDestination.MORE -> navigateToSettings(options)
     }
 }

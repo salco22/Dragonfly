@@ -7,6 +7,7 @@ import com.salco.dragonfly.core.database.dao.AccountDao
 import com.salco.dragonfly.core.database.dao.BillDao
 import com.salco.dragonfly.core.database.dao.BudgetDao
 import com.salco.dragonfly.core.database.dao.CategoryDao
+import com.salco.dragonfly.core.database.dao.InsightsDao
 import com.salco.dragonfly.core.database.dao.PiggyBankDao
 import com.salco.dragonfly.core.database.dao.RecurringTransactionDao
 import com.salco.dragonfly.core.database.dao.TagDao
@@ -53,6 +54,7 @@ abstract class DragonflyDatabase : RoomDatabase() {
     abstract fun tagDao(): TagDao
     abstract fun budgetDao(): BudgetDao
     abstract fun billDao(): BillDao
+    abstract fun insightsDao(): InsightsDao
     abstract fun piggyBankDao(): PiggyBankDao
     abstract fun recurringTransactionDao(): RecurringTransactionDao
 }

@@ -4,18 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.salco.dragonfly.feature.accounts.navigation.AccountsRoute
 import com.salco.dragonfly.feature.accounts.navigation.accountDetailScreen
 import com.salco.dragonfly.feature.accounts.navigation.accountEditScreen
 import com.salco.dragonfly.feature.accounts.navigation.accountsScreen
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountDetail
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountEdit
 import com.salco.dragonfly.feature.bills.navigation.billsScreens
+import com.salco.dragonfly.feature.bills.navigation.navigateToBills
 import com.salco.dragonfly.feature.bills.navigation.navigateToBillDetail
 import com.salco.dragonfly.feature.bills.navigation.navigateToBillEdit
 import com.salco.dragonfly.feature.budgets.navigation.budgetsScreens
 import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetDetail
 import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetEdit
+import com.salco.dragonfly.feature.home.navigation.HomeRoute
+import com.salco.dragonfly.feature.home.navigation.homeScreen
+import com.salco.dragonfly.ui.navigateToTopLevel
 import com.salco.dragonfly.feature.classification.navigation.classificationScreens
 import com.salco.dragonfly.feature.classification.navigation.navigateToCategories
 import com.salco.dragonfly.feature.classification.navigation.navigateToTags
@@ -40,9 +43,18 @@ fun DragonflyNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = AccountsRoute,
+        startDestination = HomeRoute,
         modifier = modifier,
     ) {
+        homeScreen(
+            onAddAccount = { navController.navigateToAccountEdit() },
+            onAccounts = { navController.navigateToTopLevel(TopLevelDestination.ACCOUNTS) },
+            onTransactions = { navController.navigateToTopLevel(TopLevelDestination.TRANSACTIONS) },
+            onBudgets = { navController.navigateToTopLevel(TopLevelDestination.BUDGETS) },
+            onBills = navController::navigateToBills,
+            onPayBill = navController::navigateToBillPayment,
+            onPiggyBanks = navController::navigateToPiggyBanks,
+        )
         accountsScreen(
             onAccountClick = navController::navigateToAccountDetail,
             onAddAccountClick = { navController.navigateToAccountEdit() },
@@ -90,6 +102,9 @@ fun DragonflyNavHost(
         settingsScreen(
             onCategoriesClick = navController::navigateToCategories,
             onTagsClick = navController::navigateToTags,
+            onBillsClick = navController::navigateToBills,
+            onPiggyBanksClick = navController::navigateToPiggyBanks,
+            onRecurringClick = navController::navigateToRecurringTransactions,
         )
         classificationScreens(onBack = navController::popBackStack)
     }

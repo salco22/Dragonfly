@@ -4,6 +4,7 @@ import com.salco.dragonfly.core.data.repository.AccountsRepository
 import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
+import com.salco.dragonfly.core.data.repository.InsightsRepository
 import com.salco.dragonfly.core.data.repository.InsufficientFundsException
 import com.salco.dragonfly.core.data.repository.PiggyBanksRepository
 import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
@@ -16,7 +17,11 @@ import com.salco.dragonfly.core.model.BillRef
 import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.BudgetRef
 import com.salco.dragonfly.core.model.BudgetSpending
+import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.Category
+import com.salco.dragonfly.core.model.CategorySpending
+import com.salco.dragonfly.core.model.MonthlySummary
+import com.salco.dragonfly.core.model.NetWorthPoint
 import com.salco.dragonfly.core.model.PiggyBank
 import com.salco.dragonfly.core.model.PiggyBankEvent
 import com.salco.dragonfly.core.model.PiggyBankSummary
@@ -32,6 +37,7 @@ import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionFilter
 import java.time.LocalDate
+import java.time.YearMonth
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.UserPreferences
 import kotlinx.coroutines.Dispatchers
@@ -381,4 +387,50 @@ class FakePiggyBanksRepository(private val accounts: FakeAccountsRepository) : P
         }
         events.update { it + PiggyBankEvent(id = nextId++, piggyBankId = piggyBankId, date = date, amount = amount) }
     }
+}
+
+/** Insights computed in memory from [transactions] and [accounts], mirroring the SQL queries. */
+class FakeInsightsRepository(
+    private val accounts: FakeAccountsRepository,
+    private val transactions: FakeTransactionsRepository,
+) : InsightsRepository {
+
+    override fun observeMonthlySummaries(from: YearMonth, to: YearMonth): Flow<List<MonthlySummary>> =
+        transactions.transactions.map { list ->
+            list.filter { it.type != TransactionType.TRANSFER && YearMonth.from(it.date) in from..to }
+                .groupBy { YearMonth.from(it.date) to it.currencyCode }
+                .map { (key, l) ->
+                    MonthlySummary(
+                        key.first, key.second,
+                        income = l.filter { it.type == TransactionType.DEPOSIT }.sumOf { it.amount },
+                        expenses = l.filter { it.type == TransactionType.WITHDRAWAL }.sumOf { it.amount },
+                    )
+                }.sortedBy { it.month }
+        }
+
+    override fun observeCategorySpending(month: YearMonth): Flow<List<CategorySpending>> =
+        transactions.transactions.map { list ->
+            list.filter { it.type == TransactionType.WITHDRAWAL && YearMonth.from(it.date) == month }
+                .groupBy { it.category?.id to it.currencyCode }
+                .map { (key, l) -> CategorySpending(key.first, l.first().category?.name, key.second, l.sumOf { it.amount }) }
+                .sortedByDescending { it.amount }
+        }
+
+    override fun observeNetWorthHistory(from: YearMonth, to: YearMonth): Flow<List<NetWorthPoint>> =
+        combine(accounts.accounts, transactions.transactions) { accounts, transactions ->
+            val included = accounts.filter {
+                (it.type == AccountType.ASSET || it.type == AccountType.LIABILITY) && it.active && it.includeInNetWorth
+            }
+            included.map { it.currencyCode }.distinct().flatMap { currency ->
+                val ids = included.filter { it.currencyCode == currency }.map { it.id }.toSet()
+                val opening = included.filter { it.currencyCode == currency }.sumOf { it.openingBalance }
+                generateSequence(from) { it.plusMonths(1) }.takeWhile { it <= to }.map { month ->
+                    val upTo = transactions.filter { !YearMonth.from(it.date).isAfter(month) }
+                    val delta = upTo.sumOf { t ->
+                        (if (t.destination.id in ids) t.foreignAmount ?: t.amount else 0) - (if (t.source.id in ids) t.amount else 0)
+                    }
+                    NetWorthPoint(month, currency, opening + delta)
+                }.toList()
+            }
+        }
 }

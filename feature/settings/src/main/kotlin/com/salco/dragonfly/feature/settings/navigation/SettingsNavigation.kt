@@ -13,8 +13,20 @@ data object SettingsRoute
 fun NavController.navigateToSettings(navOptions: NavOptions? = null) =
     navigate(route = SettingsRoute, navOptions = navOptions)
 
-fun NavGraphBuilder.settingsScreen(onCategoriesClick: () -> Unit, onTagsClick: () -> Unit) {
+fun NavGraphBuilder.settingsScreen(
+    onCategoriesClick: () -> Unit,
+    onTagsClick: () -> Unit,
+    onBillsClick: () -> Unit,
+    onPiggyBanksClick: () -> Unit,
+    onRecurringClick: () -> Unit,
+) {
     composable<SettingsRoute> {
-        SettingsScreen(onCategoriesClick = onCategoriesClick, onTagsClick = onTagsClick)
+        SettingsScreen(
+            onCategoriesClick = onCategoriesClick,
+            onTagsClick = onTagsClick,
+            onBillsClick = onBillsClick,
+            onPiggyBanksClick = onPiggyBanksClick,
+            onRecurringClick = onRecurringClick,
+        )
     }
 }
