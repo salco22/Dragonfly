@@ -1,0 +1,38 @@
+<resources>
+    <string name="feature_reports_title">Report</string>
+    <string name="feature_reports_back">Indietro</string>
+    <string name="feature_reports_previous">Periodo precedente</string>
+    <string name="feature_reports_next">Periodo successivo</string>
+    <string name="feature_reports_month">Mese</string>
+    <string name="feature_reports_quarter">Trimestre</string>
+    <string name="feature_reports_year">Anno</string>
+    <string name="feature_reports_quarter_label">%1$d° trimestre %2$d</string>
+    <string name="feature_reports_tab_overview">Panoramica</string>
+    <string name="feature_reports_tab_categories">Categorie</string>
+    <string name="feature_reports_tab_counterparties">Beneficiari</string>
+    <string name="feature_reports_tab_budgets">Budget</string>
+    <string name="feature_reports_tab_tags">Tag</string>
+    <string name="feature_reports_income">Entrate</string>
+    <string name="feature_reports_expenses">Uscite</string>
+    <string name="feature_reports_net">Risparmio</string>
+    <string name="feature_reports_savings_rate">Tasso di risparmio: %1$d%%</string>
+    <string name="feature_reports_average">Spesa media mensile: %1$s</string>
+    <string name="feature_reports_vs_previous">%1$s rispetto al periodo precedente</string>
+    <string name="feature_reports_by_month">Entrate e uscite per mese</string>
+    <string name="feature_reports_net_worth">Patrimonio netto</string>
+    <string name="feature_reports_chart_description">%1$s: %2$s</string>
+    <string name="feature_reports_uncategorized">Senza categoria</string>
+    <string name="feature_reports_other">Altre</string>
+    <string name="feature_reports_payees">Dove spendi</string>
+    <string name="feature_reports_payers">Da dove arrivano</string>
+    <plurals name="feature_reports_transactions">
+        <item quantity="one">%d transazione</item>
+        <item quantity="other">%d transazioni</item>
+    </plurals>
+    <string name="feature_reports_share">%1$d%% del totale</string>
+    <string name="feature_reports_budget_progress">%1$s di %2$s</string>
+    <string name="feature_reports_empty">Nessun movimento in questo periodo.</string>
+    <string name="feature_reports_no_budgets">Nessun budget attivo.</string>
+    <string name="feature_reports_no_tags">Nessuna uscita con tag in questo periodo.</string>
+    <string name="feature_reports_currency_note">Gli importi sono in %1$s, la valuta predefinita.</string>
+</resources>

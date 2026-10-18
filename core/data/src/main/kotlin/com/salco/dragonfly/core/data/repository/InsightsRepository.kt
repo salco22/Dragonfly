@@ -1,12 +1,16 @@
 package com.salco.dragonfly.core.data.repository
 
 import com.salco.dragonfly.core.database.dao.InsightsDao
+import com.salco.dragonfly.core.database.dao.NamedTotalRow
 import com.salco.dragonfly.core.model.CategorySpending
 import com.salco.dragonfly.core.model.MonthlySummary
+import com.salco.dragonfly.core.model.NamedTotal
 import com.salco.dragonfly.core.model.NetWorthPoint
+import com.salco.dragonfly.core.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
 
@@ -20,6 +24,15 @@ interface InsightsRepository {
 
     /** Net worth at the end of each month from [from] to [to] inclusive, per currency. */
     fun observeNetWorthHistory(from: YearMonth, to: YearMonth): Flow<List<NetWorthPoint>>
+
+    /** Totals of withdrawals or deposits ([type]) per category between [from] and [to] inclusive. */
+    fun observeCategoryTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>>
+
+    /** Totals per payee (withdrawals) or payer (deposits) between [from] and [to] inclusive. */
+    fun observeCounterpartyTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>>
+
+    /** Totals per tag between [from] and [to] inclusive. */
+    fun observeTagTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>>
 }
 
 internal class OfflineInsightsRepository @Inject constructor(
@@ -35,6 +48,17 @@ internal class OfflineInsightsRepository @Inject constructor(
         insightsDao.observeCategorySpending(month.atDay(1).toEpochDay(), month.atEndOfMonth().toEpochDay()).map { rows ->
             rows.map { CategorySpending(it.categoryId, it.categoryName, it.currencyCode, it.amount) }
         }
+
+    override fun observeCategoryTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>> =
+        insightsDao.observeCategoryTotals(type.name, from.toEpochDay(), to.toEpochDay()).map(::totals)
+
+    override fun observeCounterpartyTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>> =
+        insightsDao.observeCounterpartyTotals(type.name, from.toEpochDay(), to.toEpochDay()).map(::totals)
+
+    override fun observeTagTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>> =
+        insightsDao.observeTagTotals(type.name, from.toEpochDay(), to.toEpochDay()).map(::totals)
+
+    private fun totals(rows: List<NamedTotalRow>) = rows.map { NamedTotal(it.id, it.name, it.currencyCode, it.amount, it.count) }
 
     override fun observeNetWorthHistory(from: YearMonth, to: YearMonth): Flow<List<NetWorthPoint>> =
         combine(insightsDao.observeOpeningBalances(), insightsDao.observeNetWorthFlows()) { openings, flows ->

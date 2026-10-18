@@ -25,6 +25,7 @@ import com.salco.dragonfly.core.model.Category
 import com.salco.dragonfly.core.model.ImportRow
 import com.salco.dragonfly.core.model.CategorySpending
 import com.salco.dragonfly.core.model.MonthlySummary
+import com.salco.dragonfly.core.model.NamedTotal
 import com.salco.dragonfly.core.model.NetWorthPoint
 import com.salco.dragonfly.core.model.PiggyBank
 import com.salco.dragonfly.core.model.PiggyBankEvent
@@ -424,6 +425,27 @@ class FakeInsightsRepository(
                 .map { (key, l) -> CategorySpending(key.first, l.first().category?.name, key.second, l.sumOf { it.amount }) }
                 .sortedByDescending { it.amount }
         }
+
+    private fun totals(type: TransactionType, from: LocalDate, to: LocalDate, key: (Transaction) -> List<Pair<Long?, String?>>) =
+        transactions.transactions.map { list ->
+            list.filter { it.type == type && it.date in from..to }
+                .flatMap { t -> key(t).map { k -> k to t } }
+                .groupBy { (k, t) -> k.first to t.currencyCode }
+                .map { (k, entries) -> NamedTotal(k.first, entries.first().first.second, k.second, entries.sumOf { it.second.amount }, entries.size) }
+                .sortedByDescending { it.amount }
+        }
+
+    override fun observeCategoryTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>> =
+        totals(type, from, to) { listOf(it.category?.id to it.category?.name) }
+
+    override fun observeCounterpartyTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>> =
+        totals(type, from, to) { t ->
+            val other = if (type == TransactionType.WITHDRAWAL) t.destination else t.source
+            listOf(other.id to other.name)
+        }
+
+    override fun observeTagTotals(type: TransactionType, from: LocalDate, to: LocalDate): Flow<List<NamedTotal>> =
+        totals(type, from, to) { t -> t.tags.map { it.id to it.name } }
 
     override fun observeNetWorthHistory(from: YearMonth, to: YearMonth): Flow<List<NetWorthPoint>> =
         combine(accounts.accounts, transactions.transactions) { accounts, transactions ->

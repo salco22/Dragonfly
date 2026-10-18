@@ -16,6 +16,7 @@
     <string name="feature_home_bills">Bollette in scadenza</string>
     <string name="feature_home_no_bills">Nessuna bolletta in scadenza nei prossimi 14 giorni.</string>
     <string name="feature_home_piggy_banks">Salvadanai</string>
+    <string name="feature_home_reports">Report</string>
     <string name="feature_home_see_all">Vedi tutto</string>
     <string name="feature_home_pay">Paga</string>
     <string name="feature_home_due">Scade il %1$s</string>

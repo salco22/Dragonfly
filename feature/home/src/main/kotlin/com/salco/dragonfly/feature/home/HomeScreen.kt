@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,6 +21,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -59,6 +62,7 @@ internal data class HomeActions(
     val onBills: () -> Unit = {},
     val onPayBill: (Long) -> Unit = {},
     val onPiggyBanks: () -> Unit = {},
+    val onReports: () -> Unit = {},
 )
 
 @Composable
@@ -70,7 +74,18 @@ internal fun HomeScreen(actions: HomeActions, viewModel: HomeViewModel = hiltVie
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeContent(uiState: HomeUiState, actions: HomeActions) {
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_home_title)) }) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.feature_home_title)) },
+                actions = {
+                    IconButton(onClick = actions.onReports) {
+                        Icon(Icons.Filled.BarChart, stringResource(R.string.feature_home_reports))
+                    }
+                },
+            )
+        },
+    ) { padding ->
         val state = uiState as? HomeUiState.Success
         when {
             state == null -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) { CircularProgressIndicator() }

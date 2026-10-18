@@ -30,6 +30,8 @@ import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBankDeta
 import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBankEdit
 import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBanks
 import com.salco.dragonfly.feature.piggybanks.navigation.piggyBanksScreens
+import com.salco.dragonfly.feature.reports.navigation.navigateToReports
+import com.salco.dragonfly.feature.reports.navigation.reportsScreen
 import com.salco.dragonfly.feature.rules.navigation.navigateToRuleEdit
 import com.salco.dragonfly.feature.rules.navigation.navigateToRules
 import com.salco.dragonfly.feature.rules.navigation.rulesScreens
@@ -61,7 +63,9 @@ fun DragonflyNavHost(
             onBills = navController::navigateToBills,
             onPayBill = navController::navigateToBillPayment,
             onPiggyBanks = navController::navigateToPiggyBanks,
+            onReports = navController::navigateToReports,
         )
+        reportsScreen(onBack = navController::popBackStack)
         accountsScreen(
             onAccountClick = navController::navigateToAccountDetail,
             onAddAccountClick = { navController.navigateToAccountEdit() },
@@ -114,6 +118,7 @@ fun DragonflyNavHost(
             onRecurringClick = navController::navigateToRecurringTransactions,
             onRulesClick = navController::navigateToRules,
             onBackupClick = navController::navigateToBackup,
+            onReportsClick = navController::navigateToReports,
         )
         backupScreen(onBack = navController::popBackStack, onImportCsv = navController::navigateToCsvImport)
         csvImportScreen(onBack = navController::popBackStack)

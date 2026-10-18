@@ -81,4 +81,36 @@ class InsightsRepositoryTest {
             insights.observeNetWorthHistory(YearMonth.of(2026, 8), YearMonth.of(2026, 10)).first().map { it.amount },
         )
     }
+
+    @Test
+    fun totalsPerCategoryPayeeAndTag() = runTest {
+        val own = AccountRef.Existing(checking)
+        val shop = AccountRef.New("Supermercato", AccountType.EXPENSE, "EUR")
+        transactions.saveTransaction(
+            TransactionDraft(type = TransactionType.WITHDRAWAL, description = "a", date = LocalDate.of(2026, 10, 3), amount = 3_000,
+                currencyCode = "EUR", source = own, destination = shop, categoryName = "Spesa", tagNames = listOf("Casa", "Cibo")),
+        )
+        transactions.saveTransaction(
+            TransactionDraft(type = TransactionType.WITHDRAWAL, description = "b", date = LocalDate.of(2026, 10, 4), amount = 1_000,
+                currencyCode = "EUR", source = own, destination = shop, tagNames = listOf("Casa")),
+        )
+        transactions.saveTransaction(
+            TransactionDraft(type = TransactionType.DEPOSIT, description = "c", date = LocalDate.of(2026, 10, 5), amount = 9_000,
+                currencyCode = "EUR", source = AccountRef.New("Azienda", AccountType.REVENUE, "EUR"), destination = own, categoryName = "Stipendio"),
+        )
+        val from = LocalDate.of(2026, 10, 1)
+        val to = LocalDate.of(2026, 10, 31)
+
+        assertEquals(
+            listOf(Triple("Spesa", 3_000L, 1), Triple(null, 1_000L, 1)),
+            insights.observeCategoryTotals(TransactionType.WITHDRAWAL, from, to).first().map { Triple(it.name, it.amount, it.count) },
+        )
+        assertEquals(listOf("Stipendio" to 9_000L), insights.observeCategoryTotals(TransactionType.DEPOSIT, from, to).first().map { it.name to it.amount })
+        assertEquals(listOf("Supermercato" to 4_000L), insights.observeCounterpartyTotals(TransactionType.WITHDRAWAL, from, to).first().map { it.name to it.amount })
+        assertEquals(listOf("Azienda" to 9_000L), insights.observeCounterpartyTotals(TransactionType.DEPOSIT, from, to).first().map { it.name to it.amount })
+        assertEquals(
+            listOf("Casa" to 4_000L, "Cibo" to 3_000L),
+            insights.observeTagTotals(TransactionType.WITHDRAWAL, from, to).first().map { it.name to it.amount },
+        )
+    }
 }

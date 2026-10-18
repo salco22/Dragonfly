@@ -21,8 +21,9 @@ fun NavGraphBuilder.homeScreen(
     onBills: () -> Unit,
     onPayBill: (Long) -> Unit,
     onPiggyBanks: () -> Unit,
+    onReports: () -> Unit,
 ) {
     composable<HomeRoute> {
-        HomeScreen(HomeActions(onAddAccount, onAccounts, onTransactions, onBudgets, onBills, onPayBill, onPiggyBanks))
+        HomeScreen(HomeActions(onAddAccount, onAccounts, onTransactions, onBudgets, onBills, onPayBill, onPiggyBanks, onReports))
     }
 }
