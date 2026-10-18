@@ -127,7 +127,6 @@ internal data class TransactionEditActions(
 @Composable
 internal fun TransactionEditContent(uiState: TransactionEditUiState, actions: TransactionEditActions) {
     var confirmDelete by remember { mutableStateOf(false) }
-    var pickDate by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -169,161 +168,12 @@ internal fun TransactionEditContent(uiState: TransactionEditUiState, actions: Tr
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            val types = TransactionType.entries
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                types.forEachIndexed { index, type ->
-                    SegmentedButton(
-                        selected = uiState.type == type,
-                        onClick = { actions.onTypeChange(type) },
-                        shape = SegmentedButtonDefaults.itemShape(index, types.size),
-                    ) { Text(stringResource(type.labelRes())) }
-                }
-            }
-
-            AmountField(
-                label = stringResource(R.string.feature_transactions_amount),
-                value = uiState.amount,
-                currencyCode = uiState.currencyCode.orEmpty(),
-                onValueChange = actions.onAmountChange,
-                error = stringResource(R.string.feature_transactions_error_amount).takeIf { uiState.amountError },
-                large = true,
-            )
-
-            OutlinedTextField(
-                value = uiState.description,
-                onValueChange = actions.onDescriptionChange,
-                label = { Text(stringResource(R.string.feature_transactions_description)) },
-                isError = uiState.descriptionError,
-                supportingText = if (uiState.descriptionError) {
-                    { Text(stringResource(R.string.feature_transactions_error_description)) }
-                } else {
-                    null
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            DateField(date = uiState.date, onClick = { pickDate = true })
-
-            val accountLabel = stringResource(
-                if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_to_account
-                else R.string.feature_transactions_from_account,
-            )
-            val counterpartyField = @Composable {
-                AutocompleteField(
-                    label = stringResource(
-                        if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer
-                        else R.string.feature_transactions_payee,
-                    ),
-                    value = uiState.counterparty,
-                    onValueChange = actions.onCounterpartyChange,
-                    suggestions = uiState.counterpartySuggestions,
-                    isError = uiState.counterpartyError,
-                    supportingText = stringResource(R.string.feature_transactions_error_counterparty)
-                        .takeIf { uiState.counterpartyError },
-                )
-            }
-            val accountField = @Composable {
-                AccountDropdown(accountLabel, uiState.ownAccounts, uiState.account, actions.onAccountChange)
-            }
-
-            when (uiState.type) {
-                TransactionType.WITHDRAWAL -> {
-                    accountField()
-                    counterpartyField()
-                }
-                TransactionType.DEPOSIT -> {
-                    counterpartyField()
-                    accountField()
-                }
-                TransactionType.TRANSFER -> {
-                    accountField()
-                    AccountDropdown(
-                        label = stringResource(R.string.feature_transactions_to_account),
-                        accounts = uiState.ownAccounts,
-                        selected = uiState.toAccount,
-                        onSelected = actions.onToAccountChange,
-                        error = when {
-                            uiState.sameAccountError -> stringResource(R.string.feature_transactions_error_same_account)
-                            uiState.accountError -> stringResource(R.string.feature_transactions_error_account)
-                            else -> null
-                        },
-                    )
-                    val toAccount = uiState.toAccount
-                    if (uiState.needsForeignAmount && toAccount != null) {
-                        AmountField(
-                            label = stringResource(R.string.feature_transactions_foreign_amount, toAccount.currencyCode),
-                            value = uiState.foreignAmount,
-                            currencyCode = toAccount.currencyCode,
-                            onValueChange = actions.onForeignAmountChange,
-                            error = stringResource(R.string.feature_transactions_error_amount)
-                                .takeIf { uiState.foreignAmountError },
-                        )
-                    }
-                }
-            }
-
-            AutocompleteField(
-                label = stringResource(R.string.feature_transactions_category),
-                value = uiState.category,
-                onValueChange = actions.onCategoryChange,
-                suggestions = uiState.categoryNames,
-            )
-
-            if (uiState.type == TransactionType.WITHDRAWAL && uiState.budgets.isNotEmpty()) {
-                val noBudget = stringResource(R.string.feature_transactions_no_budget)
-                DropdownField(
-                    label = stringResource(R.string.feature_transactions_budget),
-                    options = listOf<Budget?>(null) + uiState.budgets,
-                    selected = uiState.budgets.firstOrNull { it.id == uiState.budgetId },
-                    optionLabel = { it?.name ?: noBudget },
-                    onSelected = { actions.onBudgetChange(it?.id) },
-                )
-            }
-
-            TagsField(
-                tags = uiState.tags,
-                input = uiState.tagInput,
-                suggestions = uiState.tagSuggestions.filterNot { s -> uiState.tags.any { it.equals(s, true) } },
-                onInputChange = actions.onTagInputChange,
-                onAdd = actions.onAddTag,
-                onRemove = actions.onRemoveTag,
-            )
-
-            OutlinedTextField(
-                value = uiState.notes,
-                onValueChange = actions.onNotesChange,
-                label = { Text(stringResource(R.string.feature_transactions_notes)) },
-                minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            TransactionFormFields(uiState, actions)
 
             Button(onClick = actions.onSave, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.feature_transactions_save))
             }
         }
-    }
-
-    if (pickDate) {
-        // DatePicker works in UTC milliseconds.
-        val state = rememberDatePickerState(
-            initialSelectedDateMillis = uiState.date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
-        )
-        DatePickerDialog(
-            onDismissRequest = { pickDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    state.selectedDateMillis?.let {
-                        actions.onDateChange(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate())
-                    }
-                    pickDate = false
-                }) { Text(stringResource(R.string.feature_transactions_ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { pickDate = false }) { Text(stringResource(R.string.feature_transactions_cancel)) }
-            },
-        ) { DatePicker(state = state) }
     }
 
     if (confirmDelete) {
@@ -369,20 +219,193 @@ private fun AmountField(
     )
 }
 
+/** Read-only date field that opens a date picker; [onClear] adds a button to remove the date. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateField(date: LocalDate, onClick: () -> Unit) {
+internal fun DatePickerField(
+    label: String,
+    date: LocalDate?,
+    onDateChange: (LocalDate) -> Unit,
+    onClear: (() -> Unit)? = null,
+    placeholder: String? = null,
+) {
+    var pickDate by remember { mutableStateOf(false) }
     // A read-only text field swallows clicks, so listen to its press interactions instead.
     val interactionSource = remember { MutableInteractionSource() }
     LaunchedEffect(interactionSource) {
-        interactionSource.interactions.collect { if (it is PressInteraction.Release) onClick() }
+        interactionSource.interactions.collect { if (it is PressInteraction.Release) pickDate = true }
     }
     OutlinedTextField(
-        value = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
+        value = date?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)).orEmpty(),
         onValueChange = {},
         readOnly = true,
-        label = { Text(stringResource(R.string.feature_transactions_date)) },
-        trailingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) },
+        label = { Text(label) },
+        placeholder = placeholder?.let { { Text(it) } },
+        trailingIcon = {
+            if (onClear != null && date != null) {
+                IconButton(onClick = onClear) { Icon(Icons.Filled.Close, stringResource(R.string.feature_transactions_cancel)) }
+            } else {
+                Icon(Icons.Filled.CalendarMonth, contentDescription = null)
+            }
+        },
         interactionSource = interactionSource,
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    if (pickDate) {
+        // DatePicker works in UTC milliseconds.
+        val state = rememberDatePickerState(
+            initialSelectedDateMillis = (date ?: LocalDate.now()).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+        )
+        DatePickerDialog(
+            onDismissRequest = { pickDate = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.selectedDateMillis?.let { onDateChange(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) }
+                    pickDate = false
+                }) { Text(stringResource(R.string.feature_transactions_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pickDate = false }) { Text(stringResource(R.string.feature_transactions_cancel)) }
+            },
+        ) { DatePicker(state = state) }
+    }
+}
+
+/** Every field of a transaction; shared by single and recurring transactions. */
+@Composable
+internal fun TransactionFormFields(
+    uiState: TransactionEditUiState,
+    actions: TransactionEditActions,
+    dateLabel: String = stringResource(R.string.feature_transactions_date),
+) {
+    val types = TransactionType.entries
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+        types.forEachIndexed { index, type ->
+            SegmentedButton(
+                selected = uiState.type == type,
+                onClick = { actions.onTypeChange(type) },
+                shape = SegmentedButtonDefaults.itemShape(index, types.size),
+            ) { Text(stringResource(type.labelRes())) }
+        }
+    }
+
+    AmountField(
+        label = stringResource(R.string.feature_transactions_amount),
+        value = uiState.amount,
+        currencyCode = uiState.currencyCode.orEmpty(),
+        onValueChange = actions.onAmountChange,
+        error = stringResource(R.string.feature_transactions_error_amount).takeIf { uiState.amountError },
+        large = true,
+    )
+
+    OutlinedTextField(
+        value = uiState.description,
+        onValueChange = actions.onDescriptionChange,
+        label = { Text(stringResource(R.string.feature_transactions_description)) },
+        isError = uiState.descriptionError,
+        supportingText = if (uiState.descriptionError) {
+            { Text(stringResource(R.string.feature_transactions_error_description)) }
+        } else {
+            null
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    DatePickerField(label = dateLabel, date = uiState.date, onDateChange = actions.onDateChange)
+
+    val accountLabel = stringResource(
+        if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_to_account
+        else R.string.feature_transactions_from_account,
+    )
+    val counterpartyField = @Composable {
+        AutocompleteField(
+            label = stringResource(
+                if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer
+                else R.string.feature_transactions_payee,
+            ),
+            value = uiState.counterparty,
+            onValueChange = actions.onCounterpartyChange,
+            suggestions = uiState.counterpartySuggestions,
+            isError = uiState.counterpartyError,
+            supportingText = stringResource(R.string.feature_transactions_error_counterparty)
+                .takeIf { uiState.counterpartyError },
+        )
+    }
+    val accountField = @Composable {
+        AccountDropdown(accountLabel, uiState.ownAccounts, uiState.account, actions.onAccountChange)
+    }
+
+    when (uiState.type) {
+        TransactionType.WITHDRAWAL -> {
+            accountField()
+            counterpartyField()
+        }
+        TransactionType.DEPOSIT -> {
+            counterpartyField()
+            accountField()
+        }
+        TransactionType.TRANSFER -> {
+            accountField()
+            AccountDropdown(
+                label = stringResource(R.string.feature_transactions_to_account),
+                accounts = uiState.ownAccounts,
+                selected = uiState.toAccount,
+                onSelected = actions.onToAccountChange,
+                error = when {
+                    uiState.sameAccountError -> stringResource(R.string.feature_transactions_error_same_account)
+                    uiState.accountError -> stringResource(R.string.feature_transactions_error_account)
+                    else -> null
+                },
+            )
+            val toAccount = uiState.toAccount
+            if (uiState.needsForeignAmount && toAccount != null) {
+                AmountField(
+                    label = stringResource(R.string.feature_transactions_foreign_amount, toAccount.currencyCode),
+                    value = uiState.foreignAmount,
+                    currencyCode = toAccount.currencyCode,
+                    onValueChange = actions.onForeignAmountChange,
+                    error = stringResource(R.string.feature_transactions_error_amount)
+                        .takeIf { uiState.foreignAmountError },
+                )
+            }
+        }
+    }
+
+    AutocompleteField(
+        label = stringResource(R.string.feature_transactions_category),
+        value = uiState.category,
+        onValueChange = actions.onCategoryChange,
+        suggestions = uiState.categoryNames,
+    )
+
+    if (uiState.type == TransactionType.WITHDRAWAL && uiState.budgets.isNotEmpty()) {
+        val noBudget = stringResource(R.string.feature_transactions_no_budget)
+        DropdownField(
+            label = stringResource(R.string.feature_transactions_budget),
+            options = listOf<Budget?>(null) + uiState.budgets,
+            selected = uiState.budgets.firstOrNull { it.id == uiState.budgetId },
+            optionLabel = { it?.name ?: noBudget },
+            onSelected = { actions.onBudgetChange(it?.id) },
+        )
+    }
+
+    TagsField(
+        tags = uiState.tags,
+        input = uiState.tagInput,
+        suggestions = uiState.tagSuggestions.filterNot { s -> uiState.tags.any { it.equals(s, true) } },
+        onInputChange = actions.onTagInputChange,
+        onAdd = actions.onAddTag,
+        onRemove = actions.onRemoveTag,
+    )
+
+    OutlinedTextField(
+        value = uiState.notes,
+        onValueChange = actions.onNotesChange,
+        label = { Text(stringResource(R.string.feature_transactions_notes)) },
+        minLines = 2,
         modifier = Modifier.fillMaxWidth(),
     )
 }

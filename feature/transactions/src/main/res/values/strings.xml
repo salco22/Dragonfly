@@ -60,4 +60,62 @@
     <string name="feature_transactions_no_accounts_message">Crea prima un conto di tipo attività o passività dalla sezione Conti.</string>
     <string name="feature_transactions_delete_title">Eliminare la transazione?</string>
     <string name="feature_transactions_delete_message">La transazione verrà eliminata definitivamente e i saldi dei conti verranno aggiornati.</string>
+    <string name="feature_transactions_recurring">Ricorrenti</string>
+    <string name="feature_transactions_recurring_title">Transazioni ricorrenti</string>
+    <string name="feature_transactions_recurring_empty_title">Nessuna transazione ricorrente</string>
+    <string name="feature_transactions_recurring_empty_message">Stipendio, affitto, abbonamenti: impostali una volta e Dragonfly li registrerà da solo alla data giusta.</string>
+    <string name="feature_transactions_recurring_new">Nuova ricorrente</string>
+    <string name="feature_transactions_recurring_edit">Modifica ricorrente</string>
+    <string name="feature_transactions_recurring_start">Prima data</string>
+    <string name="feature_transactions_recurring_repeat">Ripetizione</string>
+    <string name="feature_transactions_recurring_every">Ogni</string>
+    <string name="feature_transactions_recurring_unit">Unità</string>
+    <string name="feature_transactions_recurring_end_never">Sempre</string>
+    <string name="feature_transactions_recurring_end_until">Fino al</string>
+    <string name="feature_transactions_recurring_end_times">N volte</string>
+    <string name="feature_transactions_recurring_end_date">Ultima data</string>
+    <string name="feature_transactions_recurring_occurrences">Numero di volte</string>
+    <string name="feature_transactions_recurring_end_error">Indica una data successiva alla prima o un numero di volte maggiore di zero</string>
+    <string name="feature_transactions_recurring_active">Attiva</string>
+    <string name="feature_transactions_recurring_next">prossima il %1$s</string>
+    <string name="feature_transactions_recurring_paused">in pausa</string>
+    <string name="feature_transactions_recurring_ended">terminata</string>
+    <string name="feature_transactions_recurring_delete_title">Eliminare la ricorrente?</string>
+    <string name="feature_transactions_recurring_delete_message">Non verranno create altre transazioni. Quelle già registrate restano.</string>
+    <plurals name="feature_transactions_recurring_created">
+        <item quantity="one">Finora è stata creata %d transazione.</item>
+        <item quantity="other">Finora sono state create %d transazioni.</item>
+    </plurals>
+    <plurals name="feature_transactions_every_day">
+        <item quantity="one">Ogni giorno</item>
+        <item quantity="other">Ogni %d giorni</item>
+    </plurals>
+    <plurals name="feature_transactions_every_week">
+        <item quantity="one">Ogni settimana</item>
+        <item quantity="other">Ogni %d settimane</item>
+    </plurals>
+    <plurals name="feature_transactions_every_month">
+        <item quantity="one">Ogni mese</item>
+        <item quantity="other">Ogni %d mesi</item>
+    </plurals>
+    <plurals name="feature_transactions_every_year">
+        <item quantity="one">Ogni anno</item>
+        <item quantity="other">Ogni %d anni</item>
+    </plurals>
+    <plurals name="feature_transactions_unit_day">
+        <item quantity="one">giorno</item>
+        <item quantity="other">giorni</item>
+    </plurals>
+    <plurals name="feature_transactions_unit_week">
+        <item quantity="one">settimana</item>
+        <item quantity="other">settimane</item>
+    </plurals>
+    <plurals name="feature_transactions_unit_month">
+        <item quantity="one">mese</item>
+        <item quantity="other">mesi</item>
+    </plurals>
+    <plurals name="feature_transactions_unit_year">
+        <item quantity="one">anno</item>
+        <item quantity="other">anni</item>
+    </plurals>
 </resources>

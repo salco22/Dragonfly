@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Card
@@ -78,6 +79,7 @@ import java.time.format.DateTimeFormatter
 internal fun TransactionsScreen(
     onTransactionClick: (Long) -> Unit,
     onAddTransactionClick: () -> Unit,
+    onRecurringClick: () -> Unit,
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -89,6 +91,7 @@ internal fun TransactionsScreen(
             onNextMonth = viewModel::nextMonth,
             onTransactionClick = onTransactionClick,
             onAddTransactionClick = onAddTransactionClick,
+            onRecurringClick = onRecurringClick,
             onQueryChange = viewModel::onQueryChange,
             onTypeFilter = viewModel::onTypeFilter,
             onCategoryFilter = viewModel::onCategoryFilter,
@@ -106,6 +109,7 @@ internal data class TransactionsActions(
     val onNextMonth: () -> Unit = {},
     val onTransactionClick: (Long) -> Unit = {},
     val onAddTransactionClick: () -> Unit = {},
+    val onRecurringClick: () -> Unit = {},
     val onQueryChange: (String) -> Unit = {},
     val onTypeFilter: (TransactionType?) -> Unit = {},
     val onCategoryFilter: (Long?) -> Unit = {},
@@ -138,6 +142,9 @@ internal fun TransactionsContent(uiState: TransactionsUiState, actions: Transact
                             actions.onQueryChange("")
                         }) { Icon(Icons.Filled.Close, stringResource(R.string.feature_transactions_close_search)) }
                     } else {
+                        IconButton(onClick = actions.onRecurringClick) {
+                            Icon(Icons.Filled.EventRepeat, stringResource(R.string.feature_transactions_recurring))
+                        }
                         IconButton(onClick = { searchOpen = true }) {
                             Icon(Icons.Filled.Search, stringResource(R.string.feature_transactions_search))
                         }

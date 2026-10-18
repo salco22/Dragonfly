@@ -12,4 +12,9 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
     implementation(libs.kotlinx.coroutines.android)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.room.runtime)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }

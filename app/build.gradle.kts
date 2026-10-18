@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:data"))
     implementation(project(":core:model"))
+    implementation(project(":core:work"))
 
     //Features
     implementation(project(":feature:accounts"))

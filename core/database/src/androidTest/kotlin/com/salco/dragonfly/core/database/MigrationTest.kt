@@ -65,6 +65,17 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate4To5_addsRecurringTransactions() {
+        helper.createDatabase(DB_NAME, 4).close()
+        helper.runMigrationsAndValidate(DB_NAME, 5, true).use { db ->
+            db.query("SELECT COUNT(*) FROM recurring_transactions").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

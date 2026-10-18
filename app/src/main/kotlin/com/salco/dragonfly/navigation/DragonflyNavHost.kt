@@ -18,6 +18,9 @@ import com.salco.dragonfly.feature.classification.navigation.navigateToCategorie
 import com.salco.dragonfly.feature.classification.navigation.navigateToTags
 import com.salco.dragonfly.feature.settings.navigation.settingsScreen
 import com.salco.dragonfly.feature.transactions.navigation.navigateToNewTransaction
+import com.salco.dragonfly.feature.transactions.navigation.navigateToRecurringEdit
+import com.salco.dragonfly.feature.transactions.navigation.navigateToRecurringTransactions
+import com.salco.dragonfly.feature.transactions.navigation.recurringTransactionsScreens
 import com.salco.dragonfly.feature.transactions.navigation.navigateToTransactionEdit
 import com.salco.dragonfly.feature.transactions.navigation.transactionEditScreen
 import com.salco.dragonfly.feature.transactions.navigation.transactionsScreen
@@ -46,6 +49,12 @@ fun DragonflyNavHost(
         transactionsScreen(
             onTransactionClick = navController::navigateToTransactionEdit,
             onAddTransactionClick = { navController.navigateToTransactionEdit() },
+            onRecurringClick = navController::navigateToRecurringTransactions,
+        )
+        recurringTransactionsScreens(
+            onBack = navController::popBackStack,
+            onItemClick = navController::navigateToRecurringEdit,
+            onAdd = { navController.navigateToRecurringEdit() },
         )
         transactionEditScreen(onBack = navController::popBackStack)
         budgetsScreens(

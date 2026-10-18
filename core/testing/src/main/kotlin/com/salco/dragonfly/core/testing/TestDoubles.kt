@@ -3,6 +3,7 @@ package com.salco.dragonfly.core.testing
 import com.salco.dragonfly.core.data.repository.AccountsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
+import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
 import com.salco.dragonfly.core.data.repository.DuplicateNameException
 import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
@@ -10,6 +11,7 @@ import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.BudgetRef
 import com.salco.dragonfly.core.model.BudgetSpending
 import com.salco.dragonfly.core.model.Category
+import com.salco.dragonfly.core.model.RecurringTransaction
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.CategorySummary
 import com.salco.dragonfly.core.model.Tag
@@ -234,5 +236,54 @@ class FakeBudgetsRepository : BudgetsRepository {
     override suspend fun deleteBudget(id: Long) {
         budgets.update { list -> list.filterNot { it.id == id } }
         transactions.update { list -> list.map { if (it.budget?.id == id) it.copy(budget = null) else it } }
+    }
+}
+
+/** Keeps schedules in memory and creates their transactions through [transactions]. */
+class FakeRecurringTransactionsRepository(
+    private val transactions: FakeTransactionsRepository,
+    private val accounts: FakeAccountsRepository,
+) : RecurringTransactionsRepository {
+    val recurring = MutableStateFlow<List<RecurringTransaction>>(emptyList())
+    private var nextId = 1L
+
+    override fun observeRecurringTransactions(): Flow<List<RecurringTransaction>> = recurring
+
+    override fun observeRecurringTransaction(id: Long): Flow<RecurringTransaction?> = recurring.map { list -> list.find { it.id == id } }
+
+    override suspend fun saveRecurringTransaction(recurring: RecurringTransaction): Long {
+        val previous = this.recurring.value.find { it.id == recurring.id }
+        val created = previous?.occurrencesCreated ?: 0
+        val saved = recurring.copy(
+            id = if (recurring.id == 0L) nextId++ else recurring.id,
+            occurrencesCreated = created,
+            nextDate = recurring.rule.nextAfter(created),
+            sourceName = recurring.template.source.displayName(),
+            destinationName = recurring.template.destination.displayName(),
+        )
+        this.recurring.update { list -> list.filterNot { it.id == saved.id } + saved }
+        return saved.id
+    }
+
+    override suspend fun deleteRecurringTransaction(id: Long) = recurring.update { list -> list.filterNot { it.id == id } }
+
+    override suspend fun generateDueTransactions(today: LocalDate): Int {
+        var created = 0
+        recurring.value = recurring.value.map { item ->
+            var current = item
+            while (current.active && current.nextDate != null && !current.nextDate!!.isAfter(today)) {
+                transactions.saveTransaction(current.template.copy(id = 0, date = current.nextDate!!))
+                val count = current.occurrencesCreated + 1
+                current = current.copy(occurrencesCreated = count, nextDate = current.rule.nextAfter(count))
+                created++
+            }
+            current
+        }
+        return created
+    }
+
+    private fun AccountRef.displayName(): String = when (this) {
+        is AccountRef.Existing -> accounts.accounts.value.firstOrNull { it.id == id }?.name.orEmpty()
+        is AccountRef.New -> name
     }
 }

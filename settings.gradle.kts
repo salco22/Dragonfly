@@ -24,6 +24,7 @@ include(":core:data")
 include(":core:designsystem")
 include(":core:testing")
 include(":core:ui")
+include(":core:work")
 
 include(":feature:accounts")
 include(":feature:budgets")
