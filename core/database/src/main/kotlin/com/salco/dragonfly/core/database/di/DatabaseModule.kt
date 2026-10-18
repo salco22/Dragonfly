@@ -7,6 +7,7 @@ import com.salco.dragonfly.core.database.dao.AccountDao
 import com.salco.dragonfly.core.database.dao.BillDao
 import com.salco.dragonfly.core.database.dao.BudgetDao
 import com.salco.dragonfly.core.database.dao.CategoryDao
+import com.salco.dragonfly.core.database.dao.PiggyBankDao
 import com.salco.dragonfly.core.database.dao.RecurringTransactionDao
 import com.salco.dragonfly.core.database.dao.TagDao
 import com.salco.dragonfly.core.database.dao.TransactionDao
@@ -52,6 +53,9 @@ internal object DatabaseModule {
 
     @Provides
     fun providesBillDao(database: DragonflyDatabase): BillDao = database.billDao()
+
+    @Provides
+    fun providesPiggyBankDao(database: DragonflyDatabase): PiggyBankDao = database.piggyBankDao()
 
     @Provides
     fun providesBudgetDao(database: DragonflyDatabase): BudgetDao = database.budgetDao()

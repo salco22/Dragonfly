@@ -7,7 +7,9 @@ import com.salco.dragonfly.core.data.repository.OfflineBillsRepository
 import com.salco.dragonfly.core.data.repository.OfflineBudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.OfflineCategoriesRepository
+import com.salco.dragonfly.core.data.repository.OfflinePiggyBanksRepository
 import com.salco.dragonfly.core.data.repository.OfflineRecurringTransactionsRepository
+import com.salco.dragonfly.core.data.repository.PiggyBanksRepository
 import com.salco.dragonfly.core.data.repository.OfflineTagsRepository
 import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
 import com.salco.dragonfly.core.data.repository.TagsRepository
@@ -39,6 +41,9 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun bindsCategoriesRepository(impl: OfflineCategoriesRepository): CategoriesRepository
+
+    @Binds
+    abstract fun bindsPiggyBanksRepository(impl: OfflinePiggyBanksRepository): PiggyBanksRepository
 
     @Binds
     abstract fun bindsRecurringTransactionsRepository(

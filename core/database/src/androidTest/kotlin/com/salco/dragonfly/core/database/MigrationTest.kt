@@ -87,6 +87,17 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate6To7_addsPiggyBanks() {
+        helper.createDatabase(DB_NAME, 6).close()
+        helper.runMigrationsAndValidate(DB_NAME, 7, true).use { db ->
+            db.query("SELECT COUNT(*) FROM piggy_banks").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

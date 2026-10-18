@@ -26,6 +26,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -57,10 +58,11 @@ import com.salco.dragonfly.feature.accounts.labelRes
 internal fun AccountsScreen(
     onAccountClick: (Long) -> Unit,
     onAddAccountClick: () -> Unit,
+    onPiggyBanksClick: () -> Unit,
     viewModel: AccountsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    AccountsContent(uiState, onAccountClick, onAddAccountClick)
+    AccountsContent(uiState, onAccountClick, onAddAccountClick, onPiggyBanksClick)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,9 +71,19 @@ internal fun AccountsContent(
     uiState: AccountsUiState,
     onAccountClick: (Long) -> Unit,
     onAddAccountClick: () -> Unit,
+    onPiggyBanksClick: () -> Unit = {},
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_accounts_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.feature_accounts_title)) },
+                actions = {
+                    IconButton(onClick = onPiggyBanksClick) {
+                        Icon(Icons.Filled.Savings, stringResource(R.string.feature_accounts_piggy_banks))
+                    }
+                },
+            )
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddAccountClick,

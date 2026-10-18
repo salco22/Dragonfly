@@ -19,6 +19,10 @@ import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetEdit
 import com.salco.dragonfly.feature.classification.navigation.classificationScreens
 import com.salco.dragonfly.feature.classification.navigation.navigateToCategories
 import com.salco.dragonfly.feature.classification.navigation.navigateToTags
+import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBankDetail
+import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBankEdit
+import com.salco.dragonfly.feature.piggybanks.navigation.navigateToPiggyBanks
+import com.salco.dragonfly.feature.piggybanks.navigation.piggyBanksScreens
 import com.salco.dragonfly.feature.settings.navigation.settingsScreen
 import com.salco.dragonfly.feature.transactions.navigation.navigateToBillPayment
 import com.salco.dragonfly.feature.transactions.navigation.navigateToNewTransaction
@@ -42,6 +46,13 @@ fun DragonflyNavHost(
         accountsScreen(
             onAccountClick = navController::navigateToAccountDetail,
             onAddAccountClick = { navController.navigateToAccountEdit() },
+            onPiggyBanksClick = navController::navigateToPiggyBanks,
+        )
+        piggyBanksScreens(
+            onBack = navController::popBackStack,
+            onPiggyBankClick = navController::navigateToPiggyBankDetail,
+            onAdd = { navController.navigateToPiggyBankEdit() },
+            onEdit = navController::navigateToPiggyBankEdit,
         )
         accountDetailScreen(
             onBack = navController::popBackStack,

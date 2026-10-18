@@ -4,6 +4,8 @@ import com.salco.dragonfly.core.data.repository.AccountsRepository
 import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
+import com.salco.dragonfly.core.data.repository.InsufficientFundsException
+import com.salco.dragonfly.core.data.repository.PiggyBanksRepository
 import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
 import com.salco.dragonfly.core.data.repository.DuplicateNameException
 import com.salco.dragonfly.core.data.repository.TagsRepository
@@ -15,6 +17,9 @@ import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.BudgetRef
 import com.salco.dragonfly.core.model.BudgetSpending
 import com.salco.dragonfly.core.model.Category
+import com.salco.dragonfly.core.model.PiggyBank
+import com.salco.dragonfly.core.model.PiggyBankEvent
+import com.salco.dragonfly.core.model.PiggyBankSummary
 import com.salco.dragonfly.core.model.RecurringTransaction
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.CategorySummary
@@ -326,5 +331,54 @@ class FakeBillsRepository : BillsRepository {
     override suspend fun deleteBill(id: Long) {
         bills.update { list -> list.filterNot { it.id == id } }
         transactions.update { list -> list.map { if (it.bill?.id == id) it.copy(bill = null) else it } }
+    }
+}
+
+/** Piggy banks kept in memory; available money comes from [accounts] balances. */
+class FakePiggyBanksRepository(private val accounts: FakeAccountsRepository) : PiggyBanksRepository {
+    val piggyBanks = MutableStateFlow<List<PiggyBank>>(emptyList())
+    val events = MutableStateFlow<List<PiggyBankEvent>>(emptyList())
+    private var nextId = 1L
+
+    private val summaries: Flow<List<PiggyBankSummary>> = combine(piggyBanks, events, accounts.accounts) { banks, events, accounts ->
+        banks.mapNotNull { bank ->
+            val account = accounts.firstOrNull { it.id == bank.accountId } ?: return@mapNotNull null
+            PiggyBankSummary(bank, account.name, account.currencyCode, events.filter { it.piggyBankId == bank.id }.sumOf { it.amount })
+        }.sortedBy { it.piggyBank.name.lowercase() }
+    }
+
+    override fun observePiggyBanks(): Flow<List<PiggyBankSummary>> = summaries
+    override fun observePiggyBank(id: Long): Flow<PiggyBankSummary?> = summaries.map { list -> list.find { it.piggyBank.id == id } }
+    override fun observeAccountPiggyBanks(accountId: Long): Flow<List<PiggyBankSummary>> =
+        summaries.map { list -> list.filter { it.piggyBank.accountId == accountId } }
+    override fun observeEvents(piggyBankId: Long): Flow<List<PiggyBankEvent>> =
+        events.map { list -> list.filter { it.piggyBankId == piggyBankId }.sortedByDescending { it.date } }
+
+    override suspend fun savePiggyBank(piggyBank: PiggyBank): Long {
+        val name = piggyBank.name.trim()
+        if (piggyBanks.value.any { it.name.equals(name, true) && it.id != piggyBank.id }) throw DuplicateNameException(name)
+        val saved = piggyBank.copy(id = if (piggyBank.id == 0L) nextId++ else piggyBank.id, name = name)
+        piggyBanks.update { list -> list.filterNot { it.id == saved.id } + saved }
+        return saved.id
+    }
+
+    override suspend fun deletePiggyBank(id: Long) {
+        piggyBanks.update { list -> list.filterNot { it.id == id } }
+        events.update { list -> list.filterNot { it.piggyBankId == id } }
+    }
+
+    override suspend fun moveMoney(piggyBankId: Long, amount: Long, date: LocalDate) {
+        val bank = piggyBanks.value.first { it.id == piggyBankId }
+        if (amount > 0) {
+            val balance = accounts.accounts.value.first { it.id == bank.accountId }.balance
+            val savedInAccount = events.value.filter { e -> piggyBanks.value.any { it.id == e.piggyBankId && it.accountId == bank.accountId } }
+                .sumOf { it.amount }
+            val available = (balance - savedInAccount).coerceAtLeast(0)
+            if (amount > available) throw InsufficientFundsException(available)
+        } else {
+            val saved = events.value.filter { it.piggyBankId == piggyBankId }.sumOf { it.amount }
+            if (-amount > saved) throw InsufficientFundsException(saved)
+        }
+        events.update { it + PiggyBankEvent(id = nextId++, piggyBankId = piggyBankId, date = date, amount = amount) }
     }
 }

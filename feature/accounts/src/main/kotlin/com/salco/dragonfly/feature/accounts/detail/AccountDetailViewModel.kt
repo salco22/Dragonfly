@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.PiggyBanksRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.Transaction
@@ -24,6 +25,7 @@ class AccountDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     accountsRepository: AccountsRepository,
     transactionsRepository: TransactionsRepository,
+    piggyBanksRepository: PiggyBanksRepository,
 ) : ViewModel() {
 
     // Read the argument by name so the ViewModel stays testable without Android's Bundle.
@@ -37,7 +39,8 @@ class AccountDetailViewModel @Inject constructor(
             combine(
                 accountsRepository.observeAccount(accountId),
                 transactionsRepository.searchTransactions(TransactionFilter(query = query, accountId = accountId)),
-            ) { account, transactions ->
+                piggyBanksRepository.observeAccountPiggyBanks(accountId),
+            ) { account, transactions, piggyBanks ->
                 if (account == null) {
                     AccountDetailUiState.NotFound
                 } else {
@@ -46,6 +49,7 @@ class AccountDetailViewModel @Inject constructor(
                         query = query,
                         days = transactions.groupBy { it.date }.toList(),
                         totals = transactions.totalsFor(account),
+                        savedInPiggyBanks = piggyBanks.sumOf { it.saved },
                     )
                 }
             }
@@ -81,5 +85,7 @@ sealed interface AccountDetailUiState {
         val query: String,
         val days: List<Pair<LocalDate, List<Transaction>>>,
         val totals: FlowTotals,
+        /** Money of this account put aside in piggy banks. */
+        val savedInPiggyBanks: Long = 0,
     ) : AccountDetailUiState
 }

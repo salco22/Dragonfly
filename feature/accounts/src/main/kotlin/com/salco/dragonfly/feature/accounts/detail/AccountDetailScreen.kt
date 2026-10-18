@@ -124,7 +124,7 @@ internal fun AccountDetailContent(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 96.dp),
         ) {
-            item { AccountHeader(account, success.totals) }
+            item { AccountHeader(account, success.totals, success.savedInPiggyBanks) }
             item {
                 OutlinedTextField(
                     value = query,
@@ -173,7 +173,7 @@ internal fun AccountDetailContent(
 }
 
 @Composable
-private fun AccountHeader(account: Account, totals: FlowTotals) {
+private fun AccountHeader(account: Account, totals: FlowTotals, savedInPiggyBanks: Long) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -190,6 +190,17 @@ private fun AccountHeader(account: Account, totals: FlowTotals) {
                     formatted = formatMoney(account.balance, account.currencyCode),
                     negative = account.balance < 0,
                     style = MaterialTheme.typography.headlineMedium,
+                )
+            }
+            if (savedInPiggyBanks > 0) {
+                Text(
+                    stringResource(
+                        R.string.feature_accounts_in_piggy_banks,
+                        formatMoney(savedInPiggyBanks, account.currencyCode),
+                        formatMoney(account.balance - savedInPiggyBanks, account.currencyCode),
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
             account.iban?.let {

@@ -31,9 +31,10 @@ fun NavController.navigateToAccountDetail(accountId: Long) =
 fun NavGraphBuilder.accountsScreen(
     onAccountClick: (Long) -> Unit,
     onAddAccountClick: () -> Unit,
+    onPiggyBanksClick: () -> Unit,
 ) {
     composable<AccountsRoute> {
-        AccountsScreen(onAccountClick = onAccountClick, onAddAccountClick = onAddAccountClick)
+        AccountsScreen(onAccountClick = onAccountClick, onAddAccountClick = onAddAccountClick, onPiggyBanksClick = onPiggyBanksClick)
     }
 }
 

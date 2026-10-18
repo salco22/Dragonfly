@@ -48,5 +48,7 @@
     <string name="feature_accounts_no_results">Nessun movimento corrisponde alla ricerca.</string>
     <string name="feature_accounts_incoming">Entrate</string>
     <string name="feature_accounts_outgoing">Uscite</string>
+    <string name="feature_accounts_piggy_banks">Salvadanai</string>
+    <string name="feature_accounts_in_piggy_banks">Nei salvadanai: %1$s · Disponibile: %2$s</string>
     <string name="feature_accounts_cancel">Annulla</string>
 </resources>

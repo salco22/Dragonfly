@@ -8,6 +8,7 @@ import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakePiggyBanksRepository
 import com.salco.dragonfly.core.testing.FakeTransactionsRepository
 import com.salco.dragonfly.core.testing.MainDispatcherRule
 import com.salco.dragonfly.feature.accounts.detail.AccountDetailUiState
@@ -45,7 +46,7 @@ class AccountDetailViewModelTest {
         transfer("Rimborso", savings, checking, 2_500)
         transfer("Non mio", checking, other, 999)
 
-        val vm = AccountDetailViewModel(SavedStateHandle(mapOf("accountId" to savings)), accounts, transactions)
+        val vm = AccountDetailViewModel(SavedStateHandle(mapOf("accountId" to savings)), accounts, transactions, FakePiggyBanksRepository(accounts))
         vm.uiState.test {
             with(awaitItem() as AccountDetailUiState.Success) {
                 assertEquals("Risparmi", account.name)
@@ -60,7 +61,7 @@ class AccountDetailViewModelTest {
     @Test
     fun deletedAccount_reportsNotFound() = runTest {
         val id = accounts.saveAccount(Account(name = "Conto", type = AccountType.ASSET, currencyCode = "EUR"))
-        val vm = AccountDetailViewModel(SavedStateHandle(mapOf("accountId" to id)), accounts, transactions)
+        val vm = AccountDetailViewModel(SavedStateHandle(mapOf("accountId" to id)), accounts, transactions, FakePiggyBanksRepository(accounts))
         vm.uiState.test {
             awaitItem()
             accounts.deleteAccount(id)
