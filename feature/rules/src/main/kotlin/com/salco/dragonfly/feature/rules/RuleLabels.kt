@@ -45,6 +45,7 @@ internal fun ActionType.labelRes(): Int = when (this) {
     ActionType.LINK_BILL -> R.string.feature_rules_action_link_bill
     ActionType.SET_DESCRIPTION -> R.string.feature_rules_action_set_description
     ActionType.APPEND_NOTES -> R.string.feature_rules_action_append_notes
+    ActionType.SET_COUNTERPARTY -> R.string.feature_rules_action_set_counterparty
 }
 
 /**

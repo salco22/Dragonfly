@@ -87,4 +87,11 @@ class RuleEngineTest {
         val result = RuleAction(ActionType.LINK_BILL, "5").applyTo(deposit)
         assertNull(result.billId)
     }
+
+    @Test
+    fun setCounterparty_renamesThePayeeExceptForTransfers() {
+        val action = RuleAction(ActionType.SET_COUNTERPARTY, "Esselunga")
+        assertEquals("Esselunga", action.applyTo(coffee.copy(counterpartyName = "POS 123")).counterpartyName)
+        assertEquals("Risparmi", action.applyTo(coffee.copy(type = TransactionType.TRANSFER, counterpartyName = "Risparmi")).counterpartyName)
+    }
 }

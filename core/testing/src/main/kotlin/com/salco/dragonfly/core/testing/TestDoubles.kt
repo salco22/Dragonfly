@@ -4,6 +4,8 @@ import com.salco.dragonfly.core.data.repository.AccountsRepository
 import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
+import com.salco.dragonfly.core.data.repository.ImportRepository
+import com.salco.dragonfly.core.data.repository.ImportResult
 import com.salco.dragonfly.core.data.repository.InsightsRepository
 import com.salco.dragonfly.core.data.repository.InsufficientFundsException
 import com.salco.dragonfly.core.data.repository.PiggyBanksRepository
@@ -20,6 +22,7 @@ import com.salco.dragonfly.core.model.BudgetRef
 import com.salco.dragonfly.core.model.BudgetSpending
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.Category
+import com.salco.dragonfly.core.model.ImportRow
 import com.salco.dragonfly.core.model.CategorySpending
 import com.salco.dragonfly.core.model.MonthlySummary
 import com.salco.dragonfly.core.model.NetWorthPoint
@@ -492,5 +495,44 @@ class FakeRulesRepository(
         )
         val result = applyRules(rules, subject)
         if (result == subject) null else t to result
+    }
+}
+
+/** Imports rows into [transactions], spotting duplicates like the Room implementation. */
+class FakeImportRepository(
+    private val transactions: FakeTransactionsRepository,
+    private val accounts: FakeAccountsRepository,
+) : ImportRepository {
+
+    private fun ImportRow.Valid.isDuplicateOn(accountId: Long) = transactions.transactions.value.any {
+        (it.source.id == accountId || it.destination.id == accountId) && it.date == date && it.amount == amount &&
+            it.description.equals(description, ignoreCase = true)
+    }
+
+    override suspend fun findDuplicates(accountId: Long, rows: List<ImportRow.Valid>): Set<Int> =
+        rows.filter { it.isDuplicateOn(accountId) }.map { it.line }.toSet()
+
+    override suspend fun importRows(accountId: Long, rows: List<ImportRow.Valid>, skipDuplicates: Boolean, unnamedCounterparty: String): ImportResult {
+        val currency = accounts.accounts.value.first { it.id == accountId }.currencyCode
+        var imported = 0
+        var duplicates = 0
+        rows.forEach { row ->
+            if (skipDuplicates && row.isDuplicateOn(accountId)) {
+                duplicates++
+                return@forEach
+            }
+            val own = AccountRef.Existing(accountId)
+            val withdrawal = row.type == TransactionType.WITHDRAWAL
+            val other = AccountRef.New(row.counterparty ?: unnamedCounterparty, if (withdrawal) AccountType.EXPENSE else AccountType.REVENUE, currency)
+            transactions.saveTransaction(
+                TransactionDraft(
+                    type = row.type, description = row.description, date = row.date, amount = row.amount, currencyCode = currency,
+                    source = if (withdrawal) own else other, destination = if (withdrawal) other else own,
+                    notes = row.notes, categoryName = row.category, tagNames = row.tags,
+                ),
+            )
+            imported++
+        }
+        return ImportResult(imported, duplicates)
     }
 }

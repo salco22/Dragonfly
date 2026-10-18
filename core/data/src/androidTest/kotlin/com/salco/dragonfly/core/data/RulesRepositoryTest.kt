@@ -95,4 +95,22 @@ class RulesRepositoryTest {
         rules.deleteRule(id)
         assertEquals(emptyList<Rule>(), rules.observeRules().first())
     }
+
+    @Test
+    fun setCounterparty_movesTheTransactionToTheNamedPayee() = runTest {
+        rules.saveRule(
+            Rule(
+                name = "Esselunga",
+                triggers = listOf(RuleTrigger(TriggerField.DESCRIPTION, TriggerOperator.CONTAINS, "esselunga")),
+                actions = listOf(RuleAction(ActionType.SET_COUNTERPARTY, "Esselunga")),
+            ),
+        )
+        val id = transactions.saveTransaction(
+            TransactionDraft(
+                type = TransactionType.WITHDRAWAL, description = "POS ESSELUNGA MILANO", date = LocalDate.of(2026, 10, 1), amount = 1_000,
+                currencyCode = "EUR", source = AccountRef.Existing(checking), destination = AccountRef.New("Senza nome", AccountType.EXPENSE, "EUR"),
+            ),
+        )
+        assertEquals("Esselunga", transactions.observeTransaction(id).first()!!.destination.name)
+    }
 }

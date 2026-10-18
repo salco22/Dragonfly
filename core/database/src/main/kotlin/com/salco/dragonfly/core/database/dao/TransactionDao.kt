@@ -82,6 +82,16 @@ abstract class TransactionDao {
     @Query("$POPULATED_SELECT WHERE t.id = :id")
     abstract fun observeById(id: Long): Flow<PopulatedTransaction?>
 
+    /** Transactions on [accountId] with the same day, amount and description, to spot duplicates. */
+    @Query(
+        """
+        SELECT COUNT(*) FROM transactions
+        WHERE (source_account_id = :accountId OR destination_account_id = :accountId)
+            AND date = :epochDay AND amount = :amount AND description = :description COLLATE NOCASE
+        """,
+    )
+    abstract suspend fun countSimilar(accountId: Long, epochDay: Long, amount: Long, description: String): Int
+
     @Upsert
     abstract suspend fun upsert(transaction: TransactionEntity): Long
 

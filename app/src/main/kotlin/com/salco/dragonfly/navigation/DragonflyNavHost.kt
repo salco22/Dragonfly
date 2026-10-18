@@ -21,6 +21,8 @@ import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetEdit
 import com.salco.dragonfly.feature.home.navigation.HomeRoute
 import com.salco.dragonfly.feature.home.navigation.homeScreen
 import com.salco.dragonfly.ui.navigateToTopLevel
+import com.salco.dragonfly.feature.csvimport.navigation.csvImportScreen
+import com.salco.dragonfly.feature.csvimport.navigation.navigateToCsvImport
 import com.salco.dragonfly.feature.classification.navigation.classificationScreens
 import com.salco.dragonfly.feature.classification.navigation.navigateToCategories
 import com.salco.dragonfly.feature.classification.navigation.navigateToTags
@@ -113,7 +115,8 @@ fun DragonflyNavHost(
             onRulesClick = navController::navigateToRules,
             onBackupClick = navController::navigateToBackup,
         )
-        backupScreen(onBack = navController::popBackStack)
+        backupScreen(onBack = navController::popBackStack, onImportCsv = navController::navigateToCsvImport)
+        csvImportScreen(onBack = navController::popBackStack)
         rulesScreens(
             onBack = navController::popBackStack,
             onRuleClick = navController::navigateToRuleEdit,

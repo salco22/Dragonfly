@@ -252,6 +252,7 @@ private fun ActionCard(index: Int, action: ActionDraft, state: RuleEditUiState, 
                 optionLabel = { it.name },
                 onSelected = { onValue(it.id.toString()) },
             )
+            ActionType.SET_COUNTERPARTY -> AutocompleteField(label, action.value, onValue, state.counterpartyNames)
             ActionType.SET_DESCRIPTION, ActionType.APPEND_NOTES -> OutlinedTextField(
                 value = action.value,
                 onValueChange = onValue,

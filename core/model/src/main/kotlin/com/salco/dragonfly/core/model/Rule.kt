@@ -30,7 +30,7 @@ data class RuleTrigger(
     val value: String,
 )
 
-enum class ActionType { SET_CATEGORY, ADD_TAG, SET_BUDGET, LINK_BILL, SET_DESCRIPTION, APPEND_NOTES }
+enum class ActionType { SET_CATEGORY, ADD_TAG, SET_BUDGET, LINK_BILL, SET_DESCRIPTION, APPEND_NOTES, SET_COUNTERPARTY }
 
 /** [value] is a name or text, or the id of the budget or bill to set. */
 data class RuleAction(
@@ -103,6 +103,9 @@ fun RuleAction.applyTo(subject: RuleSubject): RuleSubject = when (type) {
     ActionType.SET_BUDGET -> if (subject.type == TransactionType.WITHDRAWAL) subject.copy(budgetId = value.toLongOrNull()) else subject
     ActionType.LINK_BILL -> if (subject.type == TransactionType.WITHDRAWAL) subject.copy(billId = value.toLongOrNull()) else subject
     ActionType.SET_DESCRIPTION -> value.trim().takeIf { it.isNotEmpty() }?.let { subject.copy(description = it) } ?: subject
+    // Transfers move money between own accounts, so they have no payee to change.
+    ActionType.SET_COUNTERPARTY -> value.trim().takeIf { it.isNotEmpty() && subject.type != TransactionType.TRANSFER }
+        ?.let { subject.copy(counterpartyName = it) } ?: subject
     ActionType.APPEND_NOTES -> value.trim().takeIf { it.isNotEmpty() }?.let { extra ->
         subject.copy(notes = listOfNotNull(subject.notes?.takeIf { it.isNotBlank() }, extra).joinToString("\n"))
     } ?: subject

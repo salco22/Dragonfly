@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.AlertDialog
@@ -48,7 +49,7 @@ import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun BackupScreen(onBack: () -> Unit, viewModel: BackupViewModel = hiltViewModel()) {
+internal fun BackupScreen(onBack: () -> Unit, onImportCsv: () -> Unit, viewModel: BackupViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -146,6 +147,13 @@ internal fun BackupScreen(onBack: () -> Unit, viewModel: BackupViewModel = hiltV
             }
 
             SectionTitle(stringResource(R.string.feature_backup_section_export))
+            ActionItem(
+                icon = Icons.Filled.FileUpload,
+                title = stringResource(R.string.feature_backup_import_csv),
+                description = stringResource(R.string.feature_backup_import_csv_description),
+                enabled = !state.busy,
+                onClick = onImportCsv,
+            )
             ActionItem(
                 icon = Icons.Filled.TableChart,
                 title = stringResource(R.string.feature_backup_csv),

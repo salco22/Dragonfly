@@ -11,6 +11,6 @@ data object BackupRoute
 
 fun NavController.navigateToBackup() = navigate(BackupRoute)
 
-fun NavGraphBuilder.backupScreen(onBack: () -> Unit) {
-    composable<BackupRoute> { BackupScreen(onBack = onBack) }
+fun NavGraphBuilder.backupScreen(onBack: () -> Unit, onImportCsv: () -> Unit) {
+    composable<BackupRoute> { BackupScreen(onBack = onBack, onImportCsv = onImportCsv) }
 }

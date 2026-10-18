@@ -4,6 +4,7 @@ import com.salco.dragonfly.core.database.dao.AccountDao
 import com.salco.dragonfly.core.database.dao.RuleDao
 import com.salco.dragonfly.core.database.model.asExternalModel
 import com.salco.dragonfly.core.model.AccountRef
+import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.Rule
 import com.salco.dragonfly.core.model.RuleSubject
 import com.salco.dragonfly.core.model.TransactionDraft
@@ -21,7 +22,9 @@ internal class RuleApplier @Inject constructor(
         if (active.isEmpty()) return draft
         val subject = draft.toSubject()
         val result = applyRules(active, subject)
-        return if (result == subject) draft else draft.with(result)
+        if (result == subject) return draft
+        val renamed = result.counterpartyName != subject.counterpartyName
+        return draft.with(result).let { if (renamed) it.withCounterparty(result.counterpartyName) else it }
     }
 
     private suspend fun AccountRef.name(): String = when (this) {
@@ -41,6 +44,13 @@ internal class RuleApplier @Inject constructor(
         budgetId = budgetId,
         billId = billId,
     )
+}
+
+/** Points the payee (withdrawal) or payer (deposit) to the account with [name], created if new. */
+private fun TransactionDraft.withCounterparty(name: String): TransactionDraft = when (type) {
+    TransactionType.WITHDRAWAL -> copy(destination = AccountRef.New(name, AccountType.EXPENSE, currencyCode))
+    TransactionType.DEPOSIT -> copy(source = AccountRef.New(name, AccountType.REVENUE, currencyCode))
+    TransactionType.TRANSFER -> this
 }
 
 internal fun TransactionDraft.with(subject: RuleSubject) = copy(

@@ -1,0 +1,43 @@
+<resources>
+    <string name="feature_csvimport_title">Importa da CSV</string>
+    <string name="feature_csvimport_back">Indietro</string>
+    <string name="feature_csvimport_intro">Importa i movimenti esportati dal sito o dall\'app della tua banca, o un CSV esportato da Dragonfly. Le colonne vengono riconosciute in automatico e puoi correggerle prima di importare.</string>
+    <string name="feature_csvimport_pick">Scegli file CSV</string>
+    <string name="feature_csvimport_file">File: %1$s</string>
+    <string name="feature_csvimport_account">Conto su cui importare</string>
+    <string name="feature_csvimport_no_accounts">Crea prima un conto di tipo attività o passività.</string>
+    <string name="feature_csvimport_has_header">La prima riga contiene i nomi delle colonne</string>
+    <string name="feature_csvimport_columns">Colonne</string>
+    <string name="feature_csvimport_column">Colonna %1$d: %2$s</string>
+    <string name="feature_csvimport_example">es. %1$s</string>
+    <string name="feature_csvimport_date_format">Formato data</string>
+    <string name="feature_csvimport_unnamed">Beneficiario quando manca</string>
+    <string name="feature_csvimport_unnamed_default">Senza nome</string>
+    <string name="feature_csvimport_skip_duplicates">Salta i movimenti già presenti (stessa data, importo e descrizione)</string>
+    <string name="feature_csvimport_preview">Anteprima</string>
+    <string name="feature_csvimport_preview_summary">%1$d da importare · %2$d già presenti · %3$d non validi</string>
+    <string name="feature_csvimport_invalid_row">Riga %1$d: %2$s</string>
+    <string name="feature_csvimport_reason_date">data non riconosciuta</string>
+    <string name="feature_csvimport_reason_amount">importo non riconosciuto</string>
+    <string name="feature_csvimport_reason_zero">importo zero</string>
+    <string name="feature_csvimport_reason_transfer">i trasferimenti non si importano</string>
+    <string name="feature_csvimport_missing_roles">Indica almeno la colonna della data e quella dell\'importo (oppure entrate/uscite)</string>
+    <string name="feature_csvimport_import">Importa %1$d movimenti</string>
+    <string name="feature_csvimport_done_title">Importazione completata</string>
+    <string name="feature_csvimport_done_message">%1$d movimenti importati, %2$d già presenti saltati. Le tue regole sono state applicate ai nuovi movimenti.</string>
+    <string name="feature_csvimport_done">Fine</string>
+    <string name="feature_csvimport_error_read">Non è stato possibile leggere il file</string>
+    <string name="feature_csvimport_error_empty">Il file non contiene righe</string>
+
+    <string name="feature_csvimport_role_ignore">Ignora</string>
+    <string name="feature_csvimport_role_date">Data</string>
+    <string name="feature_csvimport_role_description">Descrizione</string>
+    <string name="feature_csvimport_role_amount">Importo (con segno)</string>
+    <string name="feature_csvimport_role_income">Entrate (avere)</string>
+    <string name="feature_csvimport_role_expense">Uscite (dare)</string>
+    <string name="feature_csvimport_role_type">Tipo (Dragonfly)</string>
+    <string name="feature_csvimport_role_counterparty">Beneficiario o pagante</string>
+    <string name="feature_csvimport_role_category">Categoria</string>
+    <string name="feature_csvimport_role_tags">Tag</string>
+    <string name="feature_csvimport_role_notes">Note</string>
+</resources>

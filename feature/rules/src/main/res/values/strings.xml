@@ -71,4 +71,5 @@
     <string name="feature_rules_action_link_bill">Collega bolletta</string>
     <string name="feature_rules_action_set_description">Cambia descrizione</string>
     <string name="feature_rules_action_append_notes">Aggiungi alle note</string>
+    <string name="feature_rules_action_set_counterparty">Imposta beneficiario o pagante</string>
 </resources>
