@@ -114,6 +114,7 @@ private fun RecurringTransactionEntity.draftFor(date: LocalDate) = TransactionDr
     categoryName = categoryName,
     tagNames = tagNames.split('\n').filter { it.isNotBlank() },
     budgetId = budgetId,
+    billId = billId,
 )
 
 private fun PopulatedRecurringTransaction.asExternalModel(): RecurringTransaction {
@@ -148,6 +149,7 @@ private fun RecurringTransaction.asEntity(occurrencesCreated: Int): RecurringTra
         categoryName = template.categoryName,
         tagNames = template.tagNames.joinToString("\n"),
         budgetId = template.budgetId.takeIf { template.type == TransactionType.WITHDRAWAL },
+        billId = template.billId.takeIf { template.type == TransactionType.WITHDRAWAL },
         frequency = rule.frequency,
         interval = rule.interval,
         startDate = rule.startDate.toEpochDay(),

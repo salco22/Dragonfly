@@ -5,6 +5,7 @@ import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeBillsRepository
 import com.salco.dragonfly.core.testing.FakeBudgetsRepository
 import com.salco.dragonfly.core.testing.FakeCategoriesRepository
 import com.salco.dragonfly.core.testing.FakeTagsRepository
@@ -32,7 +33,8 @@ class TransactionEditViewModelTest {
     private val categories = FakeCategoriesRepository()
     private val tags = FakeTagsRepository()
     private val budgets = FakeBudgetsRepository()
-    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets)
+    private val bills = FakeBillsRepository()
+    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets, bills)
     private val clock = Clock.fixed(LocalDate.of(2026, 10, 17).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
     private var checkingId = 0L
     private var savingsUsdId = 0L
@@ -45,8 +47,8 @@ class TransactionEditViewModelTest {
         shopId = accounts.saveAccount(Account(name = "Supermercato", type = AccountType.EXPENSE, currencyCode = "EUR"))
     }
 
-    private fun viewModel(id: Long = 0L, accountId: Long = 0L) = TransactionEditViewModel(
-        SavedStateHandle(mapOf("transactionId" to id, "accountId" to accountId)), transactions, accounts, categories, tags, budgets, clock,
+    private fun viewModel(id: Long = 0L, accountId: Long = 0L, billId: Long = 0L) = TransactionEditViewModel(
+        SavedStateHandle(mapOf("transactionId" to id, "accountId" to accountId, "billId" to billId)), transactions, accounts, categories, tags, budgets, bills, clock,
     )
 
     @Test
@@ -214,5 +216,26 @@ class TransactionEditViewModelTest {
         deposit.onBudgetChange(groceries)
         deposit.save()
         assertNull(transactions.transactions.value.single { it.description == "Rimborso" }.budget)
+    }
+
+    @Test
+    fun billPayment_isPrefilledAndLinked() = runTest {
+        val bill = bills.saveBill(
+            com.salco.dragonfly.core.model.Bill(
+                name = "Affitto", amountMin = 80_000, amountMax = 80_000, currencyCode = "EUR",
+                rule = com.salco.dragonfly.core.model.RecurrenceRule(
+                    com.salco.dragonfly.core.model.RecurrenceFrequency.MONTHLY, startDate = LocalDate.of(2026, 1, 5),
+                ),
+            ),
+        )
+        val vm = viewModel(billId = bill)
+        with(vm.uiState.value) {
+            assertEquals(TransactionType.WITHDRAWAL, type)
+            assertEquals("800.00", amount)
+            assertEquals("Affitto", counterparty)
+            assertEquals(bill, billId)
+        }
+        vm.save()
+        assertEquals(bill, transactions.transactions.value.single().bill?.id)
     }
 }

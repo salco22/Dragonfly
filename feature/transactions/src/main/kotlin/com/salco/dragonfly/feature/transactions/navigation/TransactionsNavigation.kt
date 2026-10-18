@@ -15,10 +15,10 @@ data object TransactionsRoute
 
 /**
  * [transactionId] is 0 when creating a new transaction; a new one can be prefilled with
- * [accountId], either an own account or a payee/payer.
+ * [accountId], either an own account or a payee/payer, or as the payment of bill [billId].
  */
 @Serializable
-data class TransactionEditRoute(val transactionId: Long = 0L, val accountId: Long = 0L)
+data class TransactionEditRoute(val transactionId: Long = 0L, val accountId: Long = 0L, val billId: Long = 0L)
 
 @Serializable
 data object RecurringTransactionsRoute
@@ -48,6 +48,9 @@ fun NavController.navigateToTransactionEdit(transactionId: Long = 0L) =
 
 fun NavController.navigateToNewTransaction(accountId: Long) =
     navigate(route = TransactionEditRoute(accountId = accountId))
+
+fun NavController.navigateToBillPayment(billId: Long) =
+    navigate(route = TransactionEditRoute(billId = billId))
 
 fun NavGraphBuilder.transactionsScreen(
     onTransactionClick: (Long) -> Unit,

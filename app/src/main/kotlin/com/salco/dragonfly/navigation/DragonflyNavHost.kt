@@ -10,6 +10,9 @@ import com.salco.dragonfly.feature.accounts.navigation.accountEditScreen
 import com.salco.dragonfly.feature.accounts.navigation.accountsScreen
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountDetail
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccountEdit
+import com.salco.dragonfly.feature.bills.navigation.billsScreens
+import com.salco.dragonfly.feature.bills.navigation.navigateToBillDetail
+import com.salco.dragonfly.feature.bills.navigation.navigateToBillEdit
 import com.salco.dragonfly.feature.budgets.navigation.budgetsScreens
 import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetDetail
 import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgetEdit
@@ -17,6 +20,7 @@ import com.salco.dragonfly.feature.classification.navigation.classificationScree
 import com.salco.dragonfly.feature.classification.navigation.navigateToCategories
 import com.salco.dragonfly.feature.classification.navigation.navigateToTags
 import com.salco.dragonfly.feature.settings.navigation.settingsScreen
+import com.salco.dragonfly.feature.transactions.navigation.navigateToBillPayment
 import com.salco.dragonfly.feature.transactions.navigation.navigateToNewTransaction
 import com.salco.dragonfly.feature.transactions.navigation.navigateToRecurringEdit
 import com.salco.dragonfly.feature.transactions.navigation.navigateToRecurringTransactions
@@ -62,6 +66,14 @@ fun DragonflyNavHost(
             onBudgetClick = navController::navigateToBudgetDetail,
             onAddBudget = { navController.navigateToBudgetEdit() },
             onEditBudget = navController::navigateToBudgetEdit,
+            onTransactionClick = navController::navigateToTransactionEdit,
+        )
+        billsScreens(
+            onBack = navController::popBackStack,
+            onBillClick = navController::navigateToBillDetail,
+            onAddBill = { navController.navigateToBillEdit() },
+            onEditBill = navController::navigateToBillEdit,
+            onPayBill = navController::navigateToBillPayment,
             onTransactionClick = navController::navigateToTransactionEdit,
         )
         settingsScreen(

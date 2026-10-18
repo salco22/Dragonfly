@@ -6,13 +6,16 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.salco.dragonfly.R
 import com.salco.dragonfly.feature.accounts.navigation.AccountsRoute
+import com.salco.dragonfly.feature.bills.navigation.BillsRoute
 import com.salco.dragonfly.feature.budgets.navigation.BudgetsRoute
 import com.salco.dragonfly.feature.settings.navigation.SettingsRoute
 import com.salco.dragonfly.feature.transactions.navigation.TransactionsRoute
@@ -41,6 +44,12 @@ enum class TopLevelDestination(
         unselectedIcon = Icons.Outlined.PieChart,
         labelRes = R.string.nav_budgets,
         route = BudgetsRoute::class,
+    ),
+    BILLS(
+        selectedIcon = Icons.AutoMirrored.Filled.EventNote,
+        unselectedIcon = Icons.AutoMirrored.Outlined.EventNote,
+        labelRes = R.string.nav_bills,
+        route = BillsRoute::class,
     ),
     SETTINGS(
         selectedIcon = Icons.Filled.Settings,

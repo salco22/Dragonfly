@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.salco.dragonfly.core.database.DragonflyDatabase
 import com.salco.dragonfly.core.database.dao.AccountDao
+import com.salco.dragonfly.core.database.dao.BillDao
 import com.salco.dragonfly.core.database.dao.BudgetDao
 import com.salco.dragonfly.core.database.dao.CategoryDao
 import com.salco.dragonfly.core.database.dao.RecurringTransactionDao
@@ -48,6 +49,9 @@ internal object DatabaseModule {
 
     @Provides
     fun providesCategoryDao(database: DragonflyDatabase): CategoryDao = database.categoryDao()
+
+    @Provides
+    fun providesBillDao(database: DragonflyDatabase): BillDao = database.billDao()
 
     @Provides
     fun providesBudgetDao(database: DragonflyDatabase): BudgetDao = database.budgetDao()

@@ -6,6 +6,7 @@ import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.RecurrenceFrequency
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeBillsRepository
 import com.salco.dragonfly.core.testing.FakeBudgetsRepository
 import com.salco.dragonfly.core.testing.FakeCategoriesRepository
 import com.salco.dragonfly.core.testing.FakeRecurringTransactionsRepository
@@ -34,7 +35,8 @@ class RecurringEditViewModelTest {
     private val categories = FakeCategoriesRepository()
     private val tags = FakeTagsRepository()
     private val budgets = FakeBudgetsRepository()
-    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets)
+    private val bills = FakeBillsRepository()
+    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets, bills)
     private val recurring = FakeRecurringTransactionsRepository(transactions, accounts)
     private val clock = Clock.fixed(LocalDate.of(2026, 10, 18).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
@@ -44,7 +46,7 @@ class RecurringEditViewModelTest {
     }
 
     private fun viewModel(id: Long = 0L) = RecurringEditViewModel(
-        SavedStateHandle(mapOf("recurringId" to id)), recurring, accounts, categories, tags, budgets, clock,
+        SavedStateHandle(mapOf("recurringId" to id)), recurring, accounts, categories, tags, budgets, bills, clock,
     )
 
     @Test

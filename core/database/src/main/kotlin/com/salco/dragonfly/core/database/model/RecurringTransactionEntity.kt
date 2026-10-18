@@ -33,8 +33,20 @@ import com.salco.dragonfly.core.model.TransactionType
             childColumns = ["budget_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
+        ForeignKey(
+            entity = BillEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["bill_id"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
     ],
-    indices = [Index("source_account_id"), Index("destination_account_id"), Index("budget_id"), Index("next_date")],
+    indices = [
+        Index("source_account_id"),
+        Index("destination_account_id"),
+        Index("budget_id"),
+        Index("bill_id"),
+        Index("next_date"),
+    ],
 )
 data class RecurringTransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -52,6 +64,7 @@ data class RecurringTransactionEntity(
     /** Tag names separated by new lines. */
     @ColumnInfo(name = "tag_names") val tagNames: String,
     @ColumnInfo(name = "budget_id") val budgetId: Long?,
+    @ColumnInfo(name = "bill_id", defaultValue = "NULL") val billId: Long? = null,
     val frequency: RecurrenceFrequency,
     val interval: Int,
     /** Days since the epoch. */

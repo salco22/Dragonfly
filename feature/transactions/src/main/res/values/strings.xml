@@ -48,6 +48,8 @@
     <string name="feature_transactions_tags">Tag</string>
     <string name="feature_transactions_budget">Budget</string>
     <string name="feature_transactions_no_budget">Nessun budget</string>
+    <string name="feature_transactions_bill">Bolletta o abbonamento</string>
+    <string name="feature_transactions_no_bill">Nessuna</string>
     <string name="feature_transactions_filter_budget">Budget</string>
     <string name="feature_transactions_add_tag">Aggiungi tag</string>
     <string name="feature_transactions_remove_tag">Rimuovi %1$s</string>
@@ -85,37 +87,5 @@
     <plurals name="feature_transactions_recurring_created">
         <item quantity="one">Finora è stata creata %d transazione.</item>
         <item quantity="other">Finora sono state create %d transazioni.</item>
-    </plurals>
-    <plurals name="feature_transactions_every_day">
-        <item quantity="one">Ogni giorno</item>
-        <item quantity="other">Ogni %d giorni</item>
-    </plurals>
-    <plurals name="feature_transactions_every_week">
-        <item quantity="one">Ogni settimana</item>
-        <item quantity="other">Ogni %d settimane</item>
-    </plurals>
-    <plurals name="feature_transactions_every_month">
-        <item quantity="one">Ogni mese</item>
-        <item quantity="other">Ogni %d mesi</item>
-    </plurals>
-    <plurals name="feature_transactions_every_year">
-        <item quantity="one">Ogni anno</item>
-        <item quantity="other">Ogni %d anni</item>
-    </plurals>
-    <plurals name="feature_transactions_unit_day">
-        <item quantity="one">giorno</item>
-        <item quantity="other">giorni</item>
-    </plurals>
-    <plurals name="feature_transactions_unit_week">
-        <item quantity="one">settimana</item>
-        <item quantity="other">settimane</item>
-    </plurals>
-    <plurals name="feature_transactions_unit_month">
-        <item quantity="one">mese</item>
-        <item quantity="other">mesi</item>
-    </plurals>
-    <plurals name="feature_transactions_unit_year">
-        <item quantity="one">anno</item>
-        <item quantity="other">anni</item>
     </plurals>
 </resources>

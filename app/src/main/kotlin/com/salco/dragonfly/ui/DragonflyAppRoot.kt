@@ -25,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.salco.dragonfly.MainActivityUiState
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccounts
+import com.salco.dragonfly.feature.bills.navigation.navigateToBills
 import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgets
 import com.salco.dragonfly.feature.lock.LockScreen
 import com.salco.dragonfly.feature.settings.navigation.navigateToSettings
@@ -97,6 +98,7 @@ private fun NavHostController.navigateToTopLevel(destination: TopLevelDestinatio
         TopLevelDestination.ACCOUNTS -> navigateToAccounts(options)
         TopLevelDestination.TRANSACTIONS -> navigateToTransactions(options)
         TopLevelDestination.BUDGETS -> navigateToBudgets(options)
+        TopLevelDestination.BILLS -> navigateToBills(options)
         TopLevelDestination.SETTINGS -> navigateToSettings(options)
     }
 }

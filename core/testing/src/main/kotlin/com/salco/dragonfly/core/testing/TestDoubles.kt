@@ -1,12 +1,16 @@
 package com.salco.dragonfly.core.testing
 
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
 import com.salco.dragonfly.core.data.repository.DuplicateNameException
 import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
+import com.salco.dragonfly.core.model.Bill
+import com.salco.dragonfly.core.model.BillPayment
+import com.salco.dragonfly.core.model.BillRef
 import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.BudgetRef
 import com.salco.dragonfly.core.model.BudgetSpending
@@ -75,6 +79,7 @@ class FakeTransactionsRepository(
     private val categories: FakeCategoriesRepository = FakeCategoriesRepository(),
     private val tags: FakeTagsRepository = FakeTagsRepository(),
     private val budgets: FakeBudgetsRepository = FakeBudgetsRepository(),
+    private val bills: FakeBillsRepository = FakeBillsRepository(),
 ) : TransactionsRepository {
     val transactions = MutableStateFlow<List<Transaction>>(emptyList())
     private var nextId = 1L
@@ -100,6 +105,7 @@ class FakeTransactionsRepository(
             (filter.categoryId == null || category?.id == filter.categoryId) &&
             (filter.tagId == null || tags.any { it.id == filter.tagId }) &&
             (filter.budgetId == null || budget?.id == filter.budgetId) &&
+            (filter.billId == null || bill?.id == filter.billId) &&
             (filter.accountId == null || source.id == filter.accountId || destination.id == filter.accountId) &&
             (filter.from == null || date >= filter.from) &&
             (filter.to == null || date <= filter.to)
@@ -124,6 +130,9 @@ class FakeTransactionsRepository(
             budget = draft.budgetId.takeIf { draft.type == TransactionType.WITHDRAWAL }
                 ?.let { id -> budgets.budgets.value.firstOrNull { it.id == id } }
                 ?.let { BudgetRef(it.id, it.name) },
+            bill = draft.billId.takeIf { draft.type == TransactionType.WITHDRAWAL }
+                ?.let { id -> bills.bills.value.firstOrNull { it.id == id } }
+                ?.let { BillRef(it.id, it.name) },
         )
         transactions.update { list -> list.filterNot { it.id == id } + transaction }
         return id
@@ -285,5 +294,37 @@ class FakeRecurringTransactionsRepository(
     private fun AccountRef.displayName(): String = when (this) {
         is AccountRef.Existing -> accounts.accounts.value.firstOrNull { it.id == id }?.name.orEmpty()
         is AccountRef.New -> name
+    }
+}
+
+/** Bills whose payments come from [transactions] once [attach] is called. */
+class FakeBillsRepository : BillsRepository {
+    val bills = MutableStateFlow<List<Bill>>(emptyList())
+    private var transactions: MutableStateFlow<List<Transaction>> = MutableStateFlow(emptyList())
+    private var nextId = 1L
+
+    fun attach(repository: FakeTransactionsRepository) {
+        transactions = repository.transactions
+    }
+
+    override fun observeBills(): Flow<List<Bill>> = bills
+
+    override fun observeBill(id: Long): Flow<Bill?> = bills.map { list -> list.find { it.id == id } }
+
+    override fun observePayments(): Flow<List<BillPayment>> = transactions.map { list ->
+        list.mapNotNull { t -> t.bill?.let { BillPayment(it.id, t.id, t.date, t.amount) } }.sortedByDescending { it.date }
+    }
+
+    override suspend fun saveBill(bill: Bill): Long {
+        val name = bill.name.trim()
+        if (bills.value.any { it.name.equals(name, true) && it.id != bill.id }) throw DuplicateNameException(name)
+        val saved = bill.copy(id = if (bill.id == 0L) nextId++ else bill.id, name = name)
+        bills.update { list -> list.filterNot { it.id == saved.id } + saved }
+        return saved.id
+    }
+
+    override suspend fun deleteBill(id: Long) {
+        bills.update { list -> list.filterNot { it.id == id } }
+        transactions.update { list -> list.map { if (it.bill?.id == id) it.copy(bill = null) else it } }
     }
 }

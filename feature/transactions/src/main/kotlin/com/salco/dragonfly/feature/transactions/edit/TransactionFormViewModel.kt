@@ -2,6 +2,7 @@ package com.salco.dragonfly.feature.transactions.edit
 
 import androidx.lifecycle.ViewModel
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.TagsRepository
@@ -28,6 +29,7 @@ abstract class TransactionFormViewModel(
     private val categoriesRepository: CategoriesRepository,
     private val tagsRepository: TagsRepository,
     private val budgetsRepository: BudgetsRepository,
+    private val billsRepository: BillsRepository,
 ) : ViewModel() {
 
     protected val _uiState = MutableStateFlow(initial)
@@ -45,6 +47,7 @@ abstract class TransactionFormViewModel(
             categoryNames = categoriesRepository.observeCategories().first().map { it.name },
             tagSuggestions = tagsRepository.observeTags().first().map { it.name },
             budgets = budgetsRepository.observeBudgets().first(),
+            bills = billsRepository.observeBills().first(),
             ownAccounts = ownAccounts,
             expenseNames = allAccounts.namesOf(AccountType.EXPENSE),
             revenueNames = allAccounts.namesOf(AccountType.REVENUE),
@@ -55,6 +58,7 @@ abstract class TransactionFormViewModel(
     /** Keeps inactive budgets and archived accounts selectable when they are already in use. */
     protected fun TransactionEditUiState.keepingSelected(): TransactionEditUiState = copy(
         budgets = budgets.filter { it.active || it.id == budgetId },
+        bills = bills.filter { it.active || it.id == billId },
         ownAccounts = (ownAccounts + allAccounts.filter { (it.id == accountId || it.id == toAccountId) && it.type.isOwn })
             .distinctBy { it.id },
     )
@@ -70,6 +74,7 @@ abstract class TransactionFormViewModel(
     fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
     fun onCategoryChange(value: String) = _uiState.update { it.copy(category = value) }
     fun onBudgetChange(id: Long?) = _uiState.update { it.copy(budgetId = id) }
+    fun onBillChange(id: Long?) = _uiState.update { it.copy(billId = id) }
     fun onTagInputChange(value: String) = _uiState.update { it.copy(tagInput = value) }
 
     /** Adds [name] (or the text being typed) as a tag, ignoring blanks and duplicates. */
@@ -133,6 +138,7 @@ abstract class TransactionFormViewModel(
             // A tag still being typed when saving is kept too.
             tagNames = (state.tags + state.tagInput.trim()).filter { it.isNotEmpty() },
             budgetId = state.budgetId.takeIf { state.type == TransactionType.WITHDRAWAL },
+            billId = state.billId.takeIf { state.type == TransactionType.WITHDRAWAL },
         )
     }
 

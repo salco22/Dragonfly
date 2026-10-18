@@ -1,0 +1,5 @@
+<resources>
+    <string name="core_designsystem_ok">OK</string>
+    <string name="core_designsystem_cancel">Annulla</string>
+    <string name="core_designsystem_clear">Cancella</string>
+</resources>

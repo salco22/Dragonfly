@@ -3,6 +3,7 @@ package com.salco.dragonfly.feature.transactions.recurring
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
@@ -35,6 +36,7 @@ class RecurringEditViewModel internal constructor(
     categoriesRepository: CategoriesRepository,
     tagsRepository: TagsRepository,
     budgetsRepository: BudgetsRepository,
+    billsRepository: BillsRepository,
     private val clock: Clock,
 ) : TransactionFormViewModel(
     initial = TransactionEditUiState(
@@ -42,7 +44,7 @@ class RecurringEditViewModel internal constructor(
         isLoading = true,
         date = LocalDate.now(clock),
     ),
-    accountsRepository, categoriesRepository, tagsRepository, budgetsRepository,
+    accountsRepository, categoriesRepository, tagsRepository, budgetsRepository, billsRepository,
 ) {
 
     @Inject
@@ -53,9 +55,10 @@ class RecurringEditViewModel internal constructor(
         categoriesRepository: CategoriesRepository,
         tagsRepository: TagsRepository,
         budgetsRepository: BudgetsRepository,
+        billsRepository: BillsRepository,
     ) : this(
         savedStateHandle, recurringRepository, accountsRepository, categoriesRepository, tagsRepository,
-        budgetsRepository, Clock.systemDefaultZone(),
+        budgetsRepository, billsRepository, Clock.systemDefaultZone(),
     )
 
     // Read the argument by name so the ViewModel stays testable without Android's Bundle.
@@ -69,7 +72,7 @@ class RecurringEditViewModel internal constructor(
             val base = loadOptions(_uiState.value)
             val recurring = if (recurringId != 0L) recurringRepository.observeRecurringTransaction(recurringId).first() else null
             if (recurring == null) {
-                _uiState.value = base.copy(budgets = base.budgets.filter { it.active })
+                _uiState.value = base.copy(budgets = base.budgets.filter { it.active }, bills = base.bills.filter { it.active })
                 return@launch
             }
             val template = recurring.template
@@ -92,6 +95,7 @@ class RecurringEditViewModel internal constructor(
                 category = template.categoryName.orEmpty(),
                 tags = template.tagNames,
                 budgetId = template.budgetId,
+                billId = template.billId,
             ).keepingSelected()
             val rule = recurring.rule
             _schedule.value = ScheduleState(

@@ -42,6 +42,8 @@ data class Transaction(
     val tags: List<Tag> = emptyList(),
     /** Budget of a withdrawal; only id and name are filled. */
     val budget: BudgetRef? = null,
+    /** Bill or subscription paid by a withdrawal. */
+    val bill: BillRef? = null,
 )
 
 data class BudgetRef(val id: Long, val name: String)
@@ -72,6 +74,8 @@ data class TransactionDraft(
     val tagNames: List<String> = emptyList(),
     /** Budget of a withdrawal; ignored for other types. */
     val budgetId: Long? = null,
+    /** Bill paid by a withdrawal; ignored for other types. */
+    val billId: Long? = null,
 )
 
 /** Criteria for searching transactions; null fields do not filter. */
@@ -82,6 +86,7 @@ data class TransactionFilter(
     val categoryId: Long? = null,
     val tagId: Long? = null,
     val budgetId: Long? = null,
+    val billId: Long? = null,
     /** Matches transactions where the account is either source or destination. */
     val accountId: Long? = null,
     val from: LocalDate? = null,
@@ -89,5 +94,5 @@ data class TransactionFilter(
 ) {
     /** True when the user narrowed the results beyond a date range. */
     val hasCriteria: Boolean
-        get() = !query.isNullOrBlank() || type != null || categoryId != null || tagId != null || budgetId != null || accountId != null
+        get() = !query.isNullOrBlank() || type != null || categoryId != null || tagId != null || budgetId != null || billId != null || accountId != null
 }

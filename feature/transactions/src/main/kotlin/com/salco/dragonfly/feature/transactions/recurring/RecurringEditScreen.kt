@@ -44,11 +44,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.salco.dragonfly.core.designsystem.component.DatePickerField
 import com.salco.dragonfly.core.designsystem.component.DropdownField
 import com.salco.dragonfly.core.designsystem.component.EmptyState
 import com.salco.dragonfly.core.model.RecurrenceFrequency
+import com.salco.dragonfly.core.ui.unitLabel
 import com.salco.dragonfly.feature.transactions.R
-import com.salco.dragonfly.feature.transactions.edit.DatePickerField
 import com.salco.dragonfly.feature.transactions.edit.TransactionEditActions
 import com.salco.dragonfly.feature.transactions.edit.TransactionFormFields
 
@@ -118,6 +119,7 @@ internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditVie
                     onNotesChange = viewModel::onNotesChange,
                     onCategoryChange = viewModel::onCategoryChange,
                     onBudgetChange = viewModel::onBudgetChange,
+                    onBillChange = viewModel::onBillChange,
                     onTagInputChange = viewModel::onTagInputChange,
                     onAddTag = viewModel::addTag,
                     onRemoveTag = viewModel::removeTag,
@@ -227,14 +229,3 @@ private fun ScheduleFields(schedule: ScheduleState, viewModel: RecurringEditView
         Switch(checked = schedule.active, onCheckedChange = viewModel::onActiveChange)
     }
 }
-
-@Composable
-private fun unitLabel(frequency: RecurrenceFrequency, interval: Int): String = pluralStringResource(
-    when (frequency) {
-        RecurrenceFrequency.DAILY -> R.plurals.feature_transactions_unit_day
-        RecurrenceFrequency.WEEKLY -> R.plurals.feature_transactions_unit_week
-        RecurrenceFrequency.MONTHLY -> R.plurals.feature_transactions_unit_month
-        RecurrenceFrequency.YEARLY -> R.plurals.feature_transactions_unit_year
-    },
-    interval,
-)

@@ -43,6 +43,7 @@ import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.formatMoney
 import com.salco.dragonfly.core.ui.IncomeColor
+import com.salco.dragonfly.core.ui.everyLabel
 import com.salco.dragonfly.feature.transactions.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

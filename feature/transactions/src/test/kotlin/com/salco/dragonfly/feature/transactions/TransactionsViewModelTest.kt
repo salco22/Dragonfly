@@ -7,6 +7,7 @@ import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.testing.FakeAccountsRepository
+import com.salco.dragonfly.core.testing.FakeBillsRepository
 import com.salco.dragonfly.core.testing.FakeBudgetsRepository
 import com.salco.dragonfly.core.testing.FakeCategoriesRepository
 import com.salco.dragonfly.core.testing.FakeTagsRepository
@@ -33,7 +34,8 @@ class TransactionsViewModelTest {
     private val categories = FakeCategoriesRepository()
     private val tags = FakeTagsRepository()
     private val budgets = FakeBudgetsRepository()
-    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets)
+    private val bills = FakeBillsRepository()
+    private val transactions = FakeTransactionsRepository(accounts, categories, tags, budgets, bills)
     private val clock = Clock.fixed(LocalDate.of(2026, 10, 17).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
     private suspend fun add(

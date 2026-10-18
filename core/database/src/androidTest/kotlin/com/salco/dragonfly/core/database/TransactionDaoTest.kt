@@ -150,7 +150,7 @@ class TransactionDaoTest {
         suspend fun search(
             query: String? = null, type: String? = null, tagId: Long? = null, accountId: Long? = null,
             from: Long? = null, to: Long? = null,
-        ) = transactionDao.search(query, type, null, tagId, null, accountId, from, to).first().map { it.transaction.description }
+        ) = transactionDao.search(query, type, null, tagId, null, null, accountId, from, to).first().map { it.transaction.description }
 
         assertEquals(listOf("Spesa"), search(query = "SUPERMERC"))
         assertEquals(listOf("Spesa"), search(query = "cibo"))
@@ -175,9 +175,31 @@ class TransactionDaoTest {
 
         assertEquals(3_000L, db.budgetDao().observeSpending(0, 200).first().single().spent)
         assertEquals(mapOf("EUR" to 2_000L), db.budgetDao().observeUnbudgeted(0, 200).first().associate { it.currencyCode to it.total })
-        assertEquals(listOf("Spesa", "Spesa"), transactionDao.search(null, null, null, null, budget, null, 0, 200).first().map { it.budgetName })
+        assertEquals(listOf("Spesa", "Spesa"), transactionDao.search(null, null, null, null, budget, null, null, 0, 200).first().map { it.budgetName })
 
         db.budgetDao().deleteById(budget)
         assertTrue(transactionDao.observeForAccount(checking).first().all { it.transaction.budgetId == null })
+    }
+
+    @Test
+    fun billPayments_areLinkedSearchableAndSurviveBillDeletion() = runTest {
+        val checking = accountDao.upsert(account("Conto", AccountType.ASSET))
+        val landlord = accountDao.upsert(account("Padrone", AccountType.EXPENSE))
+        val bill = db.billDao().upsert(
+            com.salco.dragonfly.core.database.model.BillEntity(
+                name = "Affitto", amountMin = 80_000, amountMax = 80_000, currencyCode = "EUR",
+                frequency = com.salco.dragonfly.core.model.RecurrenceFrequency.MONTHLY, interval = 1, startDate = 0,
+                endDate = null, active = true, notes = null,
+            ),
+        )
+        val paid = transactionDao.save(transaction(TransactionType.WITHDRAWAL, 80_000, checking, landlord).copy(billId = bill, date = 300))
+        transactionDao.save(transaction(TransactionType.WITHDRAWAL, 1_000, checking, landlord))
+
+        assertEquals(listOf(paid), db.billDao().observePayments().first().map { it.id })
+        assertEquals("Affitto", transactionDao.observeById(paid).first()!!.billName)
+        assertEquals(listOf(paid), transactionDao.search(null, null, null, null, null, bill, null, null, null).first().map { it.transaction.id })
+
+        db.billDao().deleteById(bill)
+        assertEquals(null, transactionDao.observeById(paid).first()!!.transaction.billId)
     }
 }

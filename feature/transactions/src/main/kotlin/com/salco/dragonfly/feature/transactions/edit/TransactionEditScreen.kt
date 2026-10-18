@@ -55,11 +55,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.salco.dragonfly.core.designsystem.component.AutocompleteField
+import com.salco.dragonfly.core.designsystem.component.DatePickerField
 import com.salco.dragonfly.core.designsystem.component.DropdownField
 import com.salco.dragonfly.core.designsystem.component.EmptyState
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
+import com.salco.dragonfly.core.model.Bill
 import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.formatMoney
@@ -96,6 +98,7 @@ internal fun TransactionEditScreen(
             onNotesChange = viewModel::onNotesChange,
             onCategoryChange = viewModel::onCategoryChange,
             onBudgetChange = viewModel::onBudgetChange,
+            onBillChange = viewModel::onBillChange,
             onTagInputChange = viewModel::onTagInputChange,
             onAddTag = viewModel::addTag,
             onRemoveTag = viewModel::removeTag,
@@ -118,6 +121,7 @@ internal data class TransactionEditActions(
     val onNotesChange: (String) -> Unit = {},
     val onCategoryChange: (String) -> Unit = {},
     val onBudgetChange: (Long?) -> Unit = {},
+    val onBillChange: (Long?) -> Unit = {},
     val onTagInputChange: (String) -> Unit = {},
     val onAddTag: (String) -> Unit = {},
     val onRemoveTag: (String) -> Unit = {},
@@ -217,59 +221,6 @@ private fun AmountField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         modifier = Modifier.fillMaxWidth(),
     )
-}
-
-/** Read-only date field that opens a date picker; [onClear] adds a button to remove the date. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun DatePickerField(
-    label: String,
-    date: LocalDate?,
-    onDateChange: (LocalDate) -> Unit,
-    onClear: (() -> Unit)? = null,
-    placeholder: String? = null,
-) {
-    var pickDate by remember { mutableStateOf(false) }
-    // A read-only text field swallows clicks, so listen to its press interactions instead.
-    val interactionSource = remember { MutableInteractionSource() }
-    LaunchedEffect(interactionSource) {
-        interactionSource.interactions.collect { if (it is PressInteraction.Release) pickDate = true }
-    }
-    OutlinedTextField(
-        value = date?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)).orEmpty(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text(label) },
-        placeholder = placeholder?.let { { Text(it) } },
-        trailingIcon = {
-            if (onClear != null && date != null) {
-                IconButton(onClick = onClear) { Icon(Icons.Filled.Close, stringResource(R.string.feature_transactions_cancel)) }
-            } else {
-                Icon(Icons.Filled.CalendarMonth, contentDescription = null)
-            }
-        },
-        interactionSource = interactionSource,
-        modifier = Modifier.fillMaxWidth(),
-    )
-
-    if (pickDate) {
-        // DatePicker works in UTC milliseconds.
-        val state = rememberDatePickerState(
-            initialSelectedDateMillis = (date ?: LocalDate.now()).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
-        )
-        DatePickerDialog(
-            onDismissRequest = { pickDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    state.selectedDateMillis?.let { onDateChange(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) }
-                    pickDate = false
-                }) { Text(stringResource(R.string.feature_transactions_ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { pickDate = false }) { Text(stringResource(R.string.feature_transactions_cancel)) }
-            },
-        ) { DatePicker(state = state) }
-    }
 }
 
 /** Every field of a transaction; shared by single and recurring transactions. */
@@ -389,6 +340,17 @@ internal fun TransactionFormFields(
             selected = uiState.budgets.firstOrNull { it.id == uiState.budgetId },
             optionLabel = { it?.name ?: noBudget },
             onSelected = { actions.onBudgetChange(it?.id) },
+        )
+    }
+
+    if (uiState.type == TransactionType.WITHDRAWAL && uiState.bills.isNotEmpty()) {
+        val noBill = stringResource(R.string.feature_transactions_no_bill)
+        DropdownField(
+            label = stringResource(R.string.feature_transactions_bill),
+            options = listOf<Bill?>(null) + uiState.bills,
+            selected = uiState.bills.firstOrNull { it.id == uiState.billId },
+            optionLabel = { it?.name ?: noBill },
+            onSelected = { actions.onBillChange(it?.id) },
         )
     }
 

@@ -76,6 +76,17 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate5To6_addsBills() {
+        helper.createDatabase(DB_NAME, 5).close()
+        helper.runMigrationsAndValidate(DB_NAME, 6, true).use { db ->
+            db.query("SELECT COUNT(*) FROM bills").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

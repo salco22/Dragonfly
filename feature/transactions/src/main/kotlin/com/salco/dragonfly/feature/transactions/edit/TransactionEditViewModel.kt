@@ -3,12 +3,14 @@ package com.salco.dragonfly.feature.transactions.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.salco.dragonfly.core.data.repository.AccountsRepository
+import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
 import com.salco.dragonfly.core.data.repository.CategoriesRepository
 import com.salco.dragonfly.core.data.repository.TagsRepository
 import com.salco.dragonfly.core.data.repository.TransactionsRepository
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
+import com.salco.dragonfly.core.model.Bill
 import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.minorUnitsToInput
@@ -29,6 +31,7 @@ class TransactionEditViewModel internal constructor(
     categoriesRepository: CategoriesRepository,
     tagsRepository: TagsRepository,
     budgetsRepository: BudgetsRepository,
+    billsRepository: BillsRepository,
     clock: Clock,
 ) : TransactionFormViewModel(
     initial = TransactionEditUiState(
@@ -36,7 +39,7 @@ class TransactionEditViewModel internal constructor(
         isLoading = true,
         date = LocalDate.now(clock),
     ),
-    accountsRepository, categoriesRepository, tagsRepository, budgetsRepository,
+    accountsRepository, categoriesRepository, tagsRepository, budgetsRepository, billsRepository,
 ) {
 
     @Inject
@@ -47,14 +50,16 @@ class TransactionEditViewModel internal constructor(
         categoriesRepository: CategoriesRepository,
         tagsRepository: TagsRepository,
         budgetsRepository: BudgetsRepository,
+        billsRepository: BillsRepository,
     ) : this(
         savedStateHandle, transactionsRepository, accountsRepository, categoriesRepository, tagsRepository,
-        budgetsRepository, Clock.systemDefaultZone(),
+        budgetsRepository, billsRepository, Clock.systemDefaultZone(),
     )
 
     // Read the argument by name so the ViewModel stays testable without Android's Bundle.
     private val transactionId: Long = savedStateHandle[TransactionEditRoute::transactionId.name] ?: 0L
     private val prefillAccountId: Long = savedStateHandle[TransactionEditRoute::accountId.name] ?: 0L
+    private val prefillBillId: Long = savedStateHandle[TransactionEditRoute::billId.name] ?: 0L
 
     init {
         viewModelScope.launch {
@@ -68,7 +73,22 @@ class TransactionEditViewModel internal constructor(
                     AccountType.EXPENSE -> base.copy(counterparty = prefill.name)
                     AccountType.REVENUE -> base.copy(type = TransactionType.DEPOSIT, counterparty = prefill.name)
                     null -> base
-                }.copy(budgets = base.budgets.filter { it.active })
+                }.copy(budgets = base.budgets.filter { it.active }).let { state ->
+                    // Paying a bill: a withdrawal to a payee named like the bill, for its usual amount.
+                    val bill = state.bills.firstOrNull { it.id == prefillBillId }
+                    if (bill == null) {
+                        state.copy(bills = state.bills.filter { it.active })
+                    } else {
+                        state.copy(
+                            type = TransactionType.WITHDRAWAL,
+                            billId = bill.id,
+                            description = bill.name,
+                            counterparty = bill.name,
+                            amount = minorUnitsToInput(bill.amountMax, bill.currencyCode),
+                            accountId = state.ownAccounts.firstOrNull { it.currencyCode == bill.currencyCode }?.id ?: state.accountId,
+                        ).keepingSelected()
+                    }
+                }
             } else {
                 base.copy(
                     type = transaction.type,
@@ -89,6 +109,7 @@ class TransactionEditViewModel internal constructor(
                     category = transaction.category?.name.orEmpty(),
                     tags = transaction.tags.map { it.name },
                     budgetId = transaction.budget?.id,
+                    billId = transaction.bill?.id,
                 ).keepingSelected()
             }
         }
@@ -132,6 +153,9 @@ data class TransactionEditUiState(
     val budgetId: Long? = null,
     /** Budgets a withdrawal can be assigned to. */
     val budgets: List<Budget> = emptyList(),
+    val billId: Long? = null,
+    /** Bills a withdrawal can pay. */
+    val bills: List<Bill> = emptyList(),
     val ownAccounts: List<Account> = emptyList(),
     val expenseNames: List<String> = emptyList(),
     val revenueNames: List<String> = emptyList(),
