@@ -1,5 +1,18 @@
 package com.salco.dragonfly.feature.transactions.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfChipFlow
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfEmptyState
+import com.salco.dragonfly.core.designsystem.component.DfFormColumn
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSegmentedControl
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DropdownField
+import com.salco.dragonfly.core.designsystem.component.AutocompleteField
+import com.salco.dragonfly.core.designsystem.component.DatePickerField
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -15,31 +28,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.InputChipDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,10 +45,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.AutocompleteField
-import com.salco.dragonfly.core.designsystem.component.DatePickerField
-import com.salco.dragonfly.core.designsystem.component.DropdownField
-import com.salco.dragonfly.core.designsystem.component.EmptyState
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
@@ -127,100 +114,48 @@ internal data class TransactionEditActions(
     val onRemoveTag: (String) -> Unit = {},
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TransactionEditContent(uiState: TransactionEditUiState, actions: TransactionEditActions) {
     var confirmDelete by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(if (uiState.isNew) R.string.feature_transactions_new else R.string.feature_transactions_edit))
-                },
-                navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_transactions_back))
-                    }
-                },
-                actions = {
-                    if (!uiState.isNew) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, stringResource(R.string.feature_transactions_delete))
-                        }
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(if (uiState.isNew) R.string.feature_transactions_new else R.string.feature_transactions_edit),
+        onBack = actions.onBack,
+        actions = {
+            if (!uiState.isNew) {
+                DfIconButton(Icons.Outlined.Delete, stringResource(R.string.feature_transactions_delete), { confirmDelete = true })
+            }
         },
     ) { padding ->
-        if (uiState.isLoading) return@Scaffold
+        if (uiState.isLoading) return@DfScaffold
         if (uiState.ownAccounts.isEmpty()) {
-            EmptyState(
-                icon = Icons.Filled.AccountBalance,
+            DfEmptyState(
+                icon = Icons.Outlined.AccountBalance,
                 title = stringResource(R.string.feature_transactions_no_accounts_title),
                 message = stringResource(R.string.feature_transactions_no_accounts_message),
                 modifier = Modifier.padding(padding),
             )
-            return@Scaffold
+            return@DfScaffold
         }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+        DfFormColumn(Modifier.padding(padding)) {
             TransactionFormFields(uiState, actions)
-
-            Button(onClick = actions.onSave, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.feature_transactions_save))
-            }
+            DfButton(stringResource(R.string.feature_transactions_save), actions.onSave, fillWidth = true)
         }
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.feature_transactions_delete_title)) },
-            text = { Text(stringResource(R.string.feature_transactions_delete_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    actions.onDelete()
-                }) { Text(stringResource(R.string.feature_transactions_delete)) }
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_transactions_delete_title),
+            message = stringResource(R.string.feature_transactions_delete_message),
+            confirmText = stringResource(R.string.feature_transactions_delete),
+            dismissText = stringResource(R.string.feature_transactions_cancel),
+            onConfirm = {
+                confirmDelete = false
+                actions.onDelete()
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) {
-                    Text(stringResource(R.string.feature_transactions_cancel))
-                }
-            },
+            onDismiss = { confirmDelete = false },
         )
     }
-}
-
-@Composable
-private fun AmountField(
-    label: String,
-    value: String,
-    currencyCode: String,
-    onValueChange: (String) -> Unit,
-    error: String?,
-    large: Boolean = false,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        suffix = { Text(currencyCode) },
-        textStyle = if (large) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.bodyLarge,
-        isError = error != null,
-        supportingText = error?.let { { Text(it) } },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        modifier = Modifier.fillMaxWidth(),
-    )
 }
 
 /** Every field of a transaction; shared by single and recurring transactions. */
@@ -230,39 +165,28 @@ internal fun TransactionFormFields(
     actions: TransactionEditActions,
     dateLabel: String = stringResource(R.string.feature_transactions_date),
 ) {
-    val types = TransactionType.entries
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-        types.forEachIndexed { index, type ->
-            SegmentedButton(
-                selected = uiState.type == type,
-                onClick = { actions.onTypeChange(type) },
-                shape = SegmentedButtonDefaults.itemShape(index, types.size),
-            ) { Text(stringResource(type.labelRes())) }
-        }
-    }
-
-    AmountField(
-        label = stringResource(R.string.feature_transactions_amount),
-        value = uiState.amount,
-        currencyCode = uiState.currencyCode.orEmpty(),
-        onValueChange = actions.onAmountChange,
-        error = stringResource(R.string.feature_transactions_error_amount).takeIf { uiState.amountError },
-        large = true,
+    DfSegmentedControl(
+        options = TransactionType.entries,
+        selected = uiState.type,
+        optionLabel = { stringResource(it.labelRes()) },
+        onSelect = actions.onTypeChange,
     )
 
-    OutlinedTextField(
+    DfTextField(
+        value = uiState.amount,
+        onValueChange = actions.onAmountChange,
+        label = stringResource(R.string.feature_transactions_amount),
+        suffix = uiState.currencyCode.orEmpty(),
+        keyboard = DfKeyboard.Decimal,
+        large = true,
+        error = stringResource(R.string.feature_transactions_error_amount).takeIf { uiState.amountError },
+    )
+
+    DfTextField(
         value = uiState.description,
         onValueChange = actions.onDescriptionChange,
-        label = { Text(stringResource(R.string.feature_transactions_description)) },
-        isError = uiState.descriptionError,
-        supportingText = if (uiState.descriptionError) {
-            { Text(stringResource(R.string.feature_transactions_error_description)) }
-        } else {
-            null
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-        modifier = Modifier.fillMaxWidth(),
+        label = stringResource(R.string.feature_transactions_description),
+        error = stringResource(R.string.feature_transactions_error_description).takeIf { uiState.descriptionError },
     )
 
     DatePickerField(label = dateLabel, date = uiState.date, onDateChange = actions.onDateChange)
@@ -281,13 +205,10 @@ internal fun TransactionFormFields(
             onValueChange = actions.onCounterpartyChange,
             suggestions = uiState.counterpartySuggestions,
             isError = uiState.counterpartyError,
-            supportingText = stringResource(R.string.feature_transactions_error_counterparty)
-                .takeIf { uiState.counterpartyError },
+            supportingText = stringResource(R.string.feature_transactions_error_counterparty).takeIf { uiState.counterpartyError },
         )
     }
-    val accountField = @Composable {
-        AccountDropdown(accountLabel, uiState.ownAccounts, uiState.account, actions.onAccountChange)
-    }
+    val accountField = @Composable { AccountDropdown(accountLabel, uiState.ownAccounts, uiState.account, actions.onAccountChange) }
 
     when (uiState.type) {
         TransactionType.WITHDRAWAL -> {
@@ -313,13 +234,13 @@ internal fun TransactionFormFields(
             )
             val toAccount = uiState.toAccount
             if (uiState.needsForeignAmount && toAccount != null) {
-                AmountField(
-                    label = stringResource(R.string.feature_transactions_foreign_amount, toAccount.currencyCode),
+                DfTextField(
                     value = uiState.foreignAmount,
-                    currencyCode = toAccount.currencyCode,
                     onValueChange = actions.onForeignAmountChange,
-                    error = stringResource(R.string.feature_transactions_error_amount)
-                        .takeIf { uiState.foreignAmountError },
+                    label = stringResource(R.string.feature_transactions_foreign_amount, toAccount.currencyCode),
+                    suffix = toAccount.currencyCode,
+                    keyboard = DfKeyboard.Decimal,
+                    error = stringResource(R.string.feature_transactions_error_amount).takeIf { uiState.foreignAmountError },
                 )
             }
         }
@@ -340,6 +261,7 @@ internal fun TransactionFormFields(
             selected = uiState.budgets.firstOrNull { it.id == uiState.budgetId },
             optionLabel = { it?.name ?: noBudget },
             onSelected = { actions.onBudgetChange(it?.id) },
+            placeholder = noBudget,
         )
     }
 
@@ -351,6 +273,7 @@ internal fun TransactionFormFields(
             selected = uiState.bills.firstOrNull { it.id == uiState.billId },
             optionLabel = { it?.name ?: noBill },
             onSelected = { actions.onBillChange(it?.id) },
+            placeholder = noBill,
         )
     }
 
@@ -363,16 +286,15 @@ internal fun TransactionFormFields(
         onRemove = actions.onRemoveTag,
     )
 
-    OutlinedTextField(
+    DfTextField(
         value = uiState.notes,
         onValueChange = actions.onNotesChange,
-        label = { Text(stringResource(R.string.feature_transactions_notes)) },
+        label = stringResource(R.string.feature_transactions_notes),
+        singleLine = false,
         minLines = 2,
-        modifier = Modifier.fillMaxWidth(),
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagsField(
     tags: List<String>,
@@ -391,28 +313,12 @@ private fun TagsField(
             onSuggestionClick = onAdd,
             onDone = { onAdd(input) },
             trailingIcon = {
-                IconButton(onClick = { onAdd(input) }, enabled = input.isNotBlank()) {
-                    Icon(Icons.Filled.Add, stringResource(R.string.feature_transactions_add_tag))
-                }
+                DfIconButton(Icons.Filled.Add, stringResource(R.string.feature_transactions_add_tag), { onAdd(input) }, enabled = input.isNotBlank())
             },
         )
         if (tags.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                tags.forEach { tag ->
-                    InputChip(
-                        selected = false,
-                        onClick = { onRemove(tag) },
-                        label = { Text(tag) },
-                        trailingIcon = {
-                            Icon(
-                                Icons.Filled.Close,
-                                stringResource(R.string.feature_transactions_remove_tag, tag),
-                                modifier = Modifier.size(InputChipDefaults.IconSize),
-                            )
-                        },
-                    )
-                }
-            }
+            val removeLabel = stringResource(R.string.feature_transactions_remove_tag, "%s")
+            DfChipFlow(tags, onRemove = onRemove, removeDescription = { removeLabel.replace("%s", it) })
         }
     }
 }

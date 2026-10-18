@@ -1,5 +1,18 @@
 package com.salco.dragonfly.feature.accounts.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfFormColumn
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSegmentedControl
+import com.salco.dragonfly.core.designsystem.component.DfSwitchRow
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.component.DropdownField
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,21 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.DropdownField
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.AssetRole
@@ -96,57 +94,27 @@ internal data class AccountEditActions(
     val onIncludeInNetWorthChange: (Boolean) -> Unit = {},
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AccountEditContent(uiState: AccountEditUiState, actions: AccountEditActions) {
     var confirmDelete by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(if (uiState.isNew) R.string.feature_accounts_new else R.string.feature_accounts_edit))
-                },
-                navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_accounts_back))
-                    }
-                },
-                actions = {
-                    if (!uiState.isNew) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, stringResource(R.string.feature_accounts_delete))
-                        }
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(if (uiState.isNew) R.string.feature_accounts_new else R.string.feature_accounts_edit),
+        onBack = actions.onBack,
+        actions = {
+            if (!uiState.isNew) {
+                DfIconButton(Icons.Outlined.Delete, stringResource(R.string.feature_accounts_delete), { confirmDelete = true })
+            }
         },
     ) { padding ->
-        if (uiState.isLoading) return@Scaffold
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            OutlinedTextField(
+        if (uiState.isLoading) return@DfScaffold
+        DfFormColumn(Modifier.padding(padding)) {
+            DfTextField(
                 value = uiState.name,
                 onValueChange = actions.onNameChange,
-                label = { Text(stringResource(R.string.feature_accounts_name)) },
-                isError = uiState.nameError,
-                supportingText = if (uiState.nameError) {
-                    { Text(stringResource(R.string.feature_accounts_error_name)) }
-                } else {
-                    null
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.feature_accounts_name),
+                error = stringResource(R.string.feature_accounts_error_name).takeIf { uiState.nameError },
             )
-
             DropdownField(
                 label = stringResource(R.string.feature_accounts_type),
                 options = AccountType.entries,
@@ -154,7 +122,6 @@ internal fun AccountEditContent(uiState: AccountEditUiState, actions: AccountEdi
                 optionLabel = { stringResource(it.labelRes()) },
                 onSelected = actions.onTypeChange,
             )
-
             when (uiState.type) {
                 AccountType.ASSET -> DropdownField(
                     label = stringResource(R.string.feature_accounts_role),
@@ -164,21 +131,16 @@ internal fun AccountEditContent(uiState: AccountEditUiState, actions: AccountEdi
                     onSelected = actions.onAssetRoleChange,
                 )
                 AccountType.LIABILITY -> {
-                    val kinds = LiabilityType.entries
-                    Text(stringResource(R.string.feature_accounts_liability_kind))
-                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                        kinds.forEachIndexed { index, kind ->
-                            SegmentedButton(
-                                selected = uiState.liabilityType == kind,
-                                onClick = { actions.onLiabilityTypeChange(kind) },
-                                shape = SegmentedButtonDefaults.itemShape(index, kinds.size),
-                            ) { Text(stringResource(kind.labelRes())) }
-                        }
-                    }
+                    DfText(stringResource(R.string.feature_accounts_liability_kind), style = DfTheme.typography.label, tone = DfTone.Secondary)
+                    DfSegmentedControl(
+                        options = LiabilityType.entries,
+                        selected = uiState.liabilityType,
+                        optionLabel = { stringResource(it.labelRes()) },
+                        onSelect = actions.onLiabilityTypeChange,
+                    )
                 }
                 else -> Unit
             }
-
             DropdownField(
                 label = stringResource(R.string.feature_accounts_currency),
                 options = SupportedCurrencyCodes,
@@ -186,91 +148,58 @@ internal fun AccountEditContent(uiState: AccountEditUiState, actions: AccountEdi
                 optionLabel = { it },
                 onSelected = actions.onCurrencyChange,
             )
-
             if (uiState.type.hasBalance) {
-                OutlinedTextField(
+                DfTextField(
                     value = uiState.openingBalance,
                     onValueChange = actions.onOpeningBalanceChange,
-                    label = {
-                        Text(
-                            stringResource(
-                                if (uiState.type == AccountType.LIABILITY) R.string.feature_accounts_debt_amount
-                                else R.string.feature_accounts_opening_balance,
-                            ),
-                        )
-                    },
-                    suffix = { Text(uiState.currencyCode) },
-                    isError = uiState.amountError,
-                    supportingText = if (uiState.amountError) {
-                        { Text(stringResource(R.string.feature_accounts_error_amount)) }
-                    } else {
-                        null
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(
+                        if (uiState.type == AccountType.LIABILITY) R.string.feature_accounts_debt_amount
+                        else R.string.feature_accounts_opening_balance,
+                    ),
+                    suffix = uiState.currencyCode,
+                    keyboard = DfKeyboard.Decimal,
+                    error = stringResource(R.string.feature_accounts_error_amount).takeIf { uiState.amountError },
                 )
             }
-
             if (uiState.type == AccountType.ASSET) {
-                OutlinedTextField(
+                DfTextField(
                     value = uiState.iban,
                     onValueChange = actions.onIbanChange,
-                    label = { Text(stringResource(R.string.feature_accounts_iban)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.feature_accounts_iban),
+                    keyboard = DfKeyboard.Characters,
                 )
             }
-
-            OutlinedTextField(
+            DfTextField(
                 value = uiState.notes,
                 onValueChange = actions.onNotesChange,
-                label = { Text(stringResource(R.string.feature_accounts_notes)) },
+                label = stringResource(R.string.feature_accounts_notes),
+                singleLine = false,
                 minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
             )
-
-            SwitchRow(stringResource(R.string.feature_accounts_active), uiState.active, actions.onActiveChange)
+            DfSwitchRow(stringResource(R.string.feature_accounts_active), uiState.active, actions.onActiveChange)
             if (uiState.type.hasBalance) {
-                SwitchRow(
+                DfSwitchRow(
                     stringResource(R.string.feature_accounts_include_net_worth),
                     uiState.includeInNetWorth,
                     actions.onIncludeInNetWorthChange,
                 )
             }
-
-            Button(onClick = actions.onSave, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.feature_accounts_save))
-            }
+            DfButton(stringResource(R.string.feature_accounts_save), actions.onSave, fillWidth = true)
         }
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.feature_accounts_delete_title)) },
-            text = { Text(stringResource(R.string.feature_accounts_delete_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    actions.onDelete()
-                }) { Text(stringResource(R.string.feature_accounts_delete)) }
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_accounts_delete_title),
+            message = stringResource(R.string.feature_accounts_delete_message),
+            confirmText = stringResource(R.string.feature_accounts_delete),
+            dismissText = stringResource(R.string.feature_accounts_cancel),
+            onConfirm = {
+                confirmDelete = false
+                actions.onDelete()
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) {
-                    Text(stringResource(R.string.feature_accounts_cancel))
-                }
-            },
+            onDismiss = { confirmDelete = false },
         )
-    }
-}
-
-@Composable
-private fun SwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

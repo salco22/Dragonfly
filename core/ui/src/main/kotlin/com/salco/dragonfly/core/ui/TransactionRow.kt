@@ -1,23 +1,21 @@
 package com.salco.dragonfly.core.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.salco.dragonfly.core.designsystem.component.DfAmount
+import com.salco.dragonfly.core.designsystem.component.DfListItem
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.component.color
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.formatMoney
@@ -25,8 +23,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** Green used for money coming in; matches the primary green of the Dragonfly palette. */
-val IncomeColor = Color(0xFF2E9B48)
+/** Green used for money coming in. */
+val IncomeColor: Color
+    @Composable get() = DfTone.Positive.color()
 
 /**
  * A transaction in a list. With [perspectiveAccountId] the amount is signed from that account's
@@ -51,50 +50,49 @@ fun TransactionRow(
     } else {
         transaction.amount to transaction.currencyCode
     }
-    val (sign, color) = when (incoming) {
-        true -> "+" to IncomeColor
-        false -> "−" to MaterialTheme.colorScheme.error
-        null -> "" to MaterialTheme.colorScheme.onSurface
+    val (sign, tone) = when (incoming) {
+        true -> "+" to DfTone.Positive
+        false -> "−" to DfTone.Primary
+        null -> "" to DfTone.Secondary
     }
     val icon = when (transaction.type) {
-        TransactionType.WITHDRAWAL -> Icons.Filled.ArrowUpward
-        TransactionType.DEPOSIT -> Icons.Filled.ArrowDownward
-        TransactionType.TRANSFER -> Icons.Filled.SwapHoriz
+        TransactionType.WITHDRAWAL -> Icons.Outlined.ArrowUpward
+        TransactionType.DEPOSIT -> Icons.Outlined.ArrowDownward
+        TransactionType.TRANSFER -> Icons.Outlined.SwapHoriz
     }
 
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        leadingContent = { Icon(icon, contentDescription = null, tint = color) },
-        headlineContent = { Text(transaction.description) },
+    DfListItem(
+        headline = transaction.description,
+        icon = icon,
+        iconTone = if (incoming == true) DfTone.Positive else DfTone.Secondary,
+        onClick = onClick,
         supportingContent = {
             Column {
-                Text("${transaction.source.name} → ${transaction.destination.name}")
+                DfText(
+                    "${transaction.source.name} → ${transaction.destination.name}",
+                    style = DfTheme.typography.bodySmall,
+                    tone = DfTone.Secondary,
+                    maxLines = 1,
+                )
                 val labels = listOfNotNull(transaction.category?.name) + transaction.tags.map { "#${it.name}" }
                 if (labels.isNotEmpty()) {
-                    Text(
-                        text = labels.joinToString(" · "),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                    DfText(labels.joinToString(" · "), style = DfTheme.typography.caption, tone = DfTone.Accent, maxLines = 1)
                 }
             }
         },
-        trailingContent = {
-            Text(text = sign + formatMoney(amount, currency), color = color, fontWeight = FontWeight.SemiBold)
-        },
+        trailing = { DfAmount(sign + formatMoney(amount, currency), tone = tone, style = DfTheme.typography.subtitle) },
     )
 }
 
 @Composable
 fun DayHeader(date: LocalDate) {
-    Text(
+    DfText(
         text = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)).replaceFirstChar { it.uppercase() },
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
+        style = DfTheme.typography.label,
+        tone = DfTone.Tertiary,
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 16.dp, top = 16.dp, bottom = 4.dp),
+            .padding(start = DfTheme.spacing.screen, end = DfTheme.spacing.screen, top = DfTheme.spacing.l, bottom = DfTheme.spacing.xs),
     )
 }
 

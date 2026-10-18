@@ -1,5 +1,22 @@
 package com.salco.dragonfly.feature.rules.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfButtonStyle
+import com.salco.dragonfly.core.designsystem.component.DfCard
+import com.salco.dragonfly.core.designsystem.component.DfCheckboxRow
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfFormColumn
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSegmentedControl
+import com.salco.dragonfly.core.designsystem.component.DfSwitchRow
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.component.DropdownField
+import com.salco.dragonfly.core.designsystem.component.AutocompleteField
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,28 +28,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,8 +46,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.AutocompleteField
-import com.salco.dragonfly.core.designsystem.component.DropdownField
 import com.salco.dragonfly.core.model.ActionType
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.TriggerField
@@ -57,117 +53,79 @@ import com.salco.dragonfly.core.model.operators
 import com.salco.dragonfly.feature.rules.R
 import com.salco.dragonfly.feature.rules.labelRes
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RuleEditScreen(onBack: () -> Unit, viewModel: RuleEditViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var confirmDelete by remember { mutableStateOf(false) }
     LaunchedEffect(state.isFinished) { if (state.isFinished) onBack() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (state.isNew) R.string.feature_rules_new else R.string.feature_rules_edit)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_rules_back)) }
-                },
-                actions = {
-                    if (!state.isNew) {
-                        IconButton(onClick = { confirmDelete = true }) { Icon(Icons.Filled.Delete, stringResource(R.string.feature_rules_delete)) }
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(if (state.isNew) R.string.feature_rules_new else R.string.feature_rules_edit),
+        onBack = onBack,
+        actions = {
+            if (!state.isNew) DfIconButton(Icons.Outlined.Delete, stringResource(R.string.feature_rules_delete), { confirmDelete = true })
         },
     ) { padding ->
-        if (state.isLoading) return@Scaffold
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            OutlinedTextField(
+        if (state.isLoading) return@DfScaffold
+        DfFormColumn(Modifier.padding(padding)) {
+            DfTextField(
                 value = state.name,
                 onValueChange = viewModel::onNameChange,
-                label = { Text(stringResource(R.string.feature_rules_name)) },
-                isError = state.nameError,
-                supportingText = if (state.nameError) {
-                    { Text(stringResource(R.string.feature_rules_error_name)) }
-                } else {
-                    null
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.feature_rules_name),
+                keyboard = DfKeyboard.Sentences,
+                error = stringResource(R.string.feature_rules_error_name).takeIf { state.nameError },
             )
 
-            Text(stringResource(R.string.feature_rules_conditions), style = MaterialTheme.typography.titleSmall)
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                listOf(true to R.string.feature_rules_match_all, false to R.string.feature_rules_match_any).forEachIndexed { index, (all, label) ->
-                    SegmentedButton(
-                        selected = state.matchAll == all,
-                        onClick = { viewModel.onMatchAllChange(all) },
-                        shape = SegmentedButtonDefaults.itemShape(index, 2),
-                    ) { Text(stringResource(label)) }
-                }
-            }
+            DfText(stringResource(R.string.feature_rules_conditions).uppercase(), style = DfTheme.typography.overline, tone = DfTone.Tertiary)
+            DfSegmentedControl(
+                options = listOf(true, false),
+                selected = state.matchAll,
+                optionLabel = { stringResource(if (it) R.string.feature_rules_match_all else R.string.feature_rules_match_any) },
+                onSelect = viewModel::onMatchAllChange,
+                modifier = Modifier.fillMaxWidth(),
+            )
             state.triggers.forEachIndexed { index, trigger ->
                 TriggerCard(index, trigger, state, viewModel)
             }
             if (state.triggersError) {
-                Text(stringResource(R.string.feature_rules_error_conditions), color = MaterialTheme.colorScheme.error)
+                DfText(stringResource(R.string.feature_rules_error_conditions), tone = DfTone.Negative, style = DfTheme.typography.bodySmall)
             }
-            OutlinedButton(onClick = viewModel::addTrigger) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Text(stringResource(R.string.feature_rules_add_condition))
-            }
+            DfButton(stringResource(R.string.feature_rules_add_condition), viewModel::addTrigger, style = DfButtonStyle.Secondary, icon = Icons.Filled.Add)
 
-            Text(stringResource(R.string.feature_rules_actions), style = MaterialTheme.typography.titleSmall)
+            DfText(stringResource(R.string.feature_rules_actions).uppercase(), style = DfTheme.typography.overline, tone = DfTone.Tertiary)
             state.actions.forEachIndexed { index, action ->
                 ActionCard(index, action, state, viewModel)
             }
             if (state.actionsError) {
-                Text(stringResource(R.string.feature_rules_error_actions), color = MaterialTheme.colorScheme.error)
+                DfText(stringResource(R.string.feature_rules_error_actions), tone = DfTone.Negative, style = DfTheme.typography.bodySmall)
             }
-            OutlinedButton(onClick = viewModel::addAction) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Text(stringResource(R.string.feature_rules_add_action))
-            }
+            DfButton(stringResource(R.string.feature_rules_add_action), viewModel::addAction, style = DfButtonStyle.Secondary, icon = Icons.Filled.Add)
 
-            SwitchRow(stringResource(R.string.feature_rules_stop), state.stopProcessing, viewModel::onStopProcessingChange)
-            SwitchRow(stringResource(R.string.feature_rules_active), state.active, viewModel::onActiveChange)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = state.applyToExisting, onCheckedChange = viewModel::onApplyToExistingChange)
-                Text(stringResource(R.string.feature_rules_apply_existing))
-            }
+            DfSwitchRow(stringResource(R.string.feature_rules_stop), state.stopProcessing, viewModel::onStopProcessingChange)
+            DfSwitchRow(stringResource(R.string.feature_rules_active), state.active, viewModel::onActiveChange)
+            DfCheckboxRow(stringResource(R.string.feature_rules_apply_existing), state.applyToExisting, viewModel::onApplyToExistingChange)
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = viewModel::preview) { Text(stringResource(R.string.feature_rules_preview)) }
+                DfButton(stringResource(R.string.feature_rules_preview), viewModel::preview, style = DfButtonStyle.Secondary)
                 state.previewCount?.let {
-                    Text(pluralStringResource(R.plurals.feature_rules_preview_result, it, it), style = MaterialTheme.typography.bodySmall)
+                    DfText(pluralStringResource(R.plurals.feature_rules_preview_result, it, it), style = DfTheme.typography.bodySmall, tone = DfTone.Secondary)
                 }
             }
-            Button(onClick = viewModel::save, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.feature_rules_save))
-            }
+            DfButton(stringResource(R.string.feature_rules_save), viewModel::save, fillWidth = true)
         }
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.feature_rules_delete_title)) },
-            text = { Text(stringResource(R.string.feature_rules_delete_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    viewModel.delete()
-                }) { Text(stringResource(R.string.feature_rules_delete)) }
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_rules_delete_title),
+            message = stringResource(R.string.feature_rules_delete_message),
+            confirmText = stringResource(R.string.feature_rules_delete),
+            dismissText = stringResource(R.string.feature_rules_cancel),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.delete()
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.feature_rules_cancel)) } },
+            onDismiss = { confirmDelete = false },
         )
     }
 }
@@ -203,22 +161,14 @@ private fun TriggerCard(index: Int, trigger: TriggerDraft, state: RuleEditUiStat
             )
             TriggerField.ACCOUNT -> AutocompleteField(label, trigger.value, onValue, state.accountNames)
             TriggerField.COUNTERPARTY -> AutocompleteField(label, trigger.value, onValue, state.counterpartyNames)
-            TriggerField.AMOUNT -> OutlinedTextField(
+            TriggerField.AMOUNT -> DfTextField(
                 value = trigger.value,
                 onValueChange = onValue,
-                label = { Text(label) },
-                suffix = { Text(state.currencyCode) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
+                label = label,
+                suffix = state.currencyCode,
+                keyboard = DfKeyboard.Decimal,
             )
-            else -> OutlinedTextField(
-                value = trigger.value,
-                onValueChange = onValue,
-                label = { Text(label) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            else -> DfTextField(value = trigger.value, onValueChange = onValue, label = label)
         }
     }
 }
@@ -253,12 +203,11 @@ private fun ActionCard(index: Int, action: ActionDraft, state: RuleEditUiState, 
                 onSelected = { onValue(it.id.toString()) },
             )
             ActionType.SET_COUNTERPARTY -> AutocompleteField(label, action.value, onValue, state.counterpartyNames)
-            ActionType.SET_DESCRIPTION, ActionType.APPEND_NOTES -> OutlinedTextField(
+            ActionType.SET_DESCRIPTION, ActionType.APPEND_NOTES -> DfTextField(
                 value = action.value,
                 onValueChange = onValue,
-                label = { Text(label) },
+                label = label,
                 singleLine = action.type == ActionType.SET_DESCRIPTION,
-                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -266,18 +215,10 @@ private fun ActionCard(index: Int, action: ActionDraft, state: RuleEditUiState, 
 
 @Composable
 private fun RowCard(onRemove: () -> Unit, content: @Composable () -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.Top) {
+    DfCard(padding = 12.dp) {
+        Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
-            IconButton(onClick = onRemove) { Icon(Icons.Filled.Close, stringResource(R.string.feature_rules_remove)) }
+            DfIconButton(Icons.Filled.Close, stringResource(R.string.feature_rules_remove), onRemove, tone = DfTone.Secondary)
         }
-    }
-}
-
-@Composable
-private fun SwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

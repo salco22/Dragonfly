@@ -1,21 +1,21 @@
 package com.salco.dragonfly.feature.piggybanks
 
+import com.salco.dragonfly.core.designsystem.component.DfCard
+import com.salco.dragonfly.core.designsystem.component.DfProgressBar
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.salco.dragonfly.core.model.PiggyBankSummary
 import com.salco.dragonfly.core.model.formatMoney
-import com.salco.dragonfly.core.ui.IncomeColor
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -49,32 +49,22 @@ internal fun PiggyBankSummary.planLabel(today: LocalDate): String? {
 @Composable
 internal fun PiggyBankProgress(summary: PiggyBankSummary, modifier: Modifier = Modifier) {
     val progress = summary.progress ?: return
-    LinearProgressIndicator(
-        progress = { progress },
-        color = if (summary.isComplete) IncomeColor else MaterialTheme.colorScheme.primary,
-        modifier = modifier.fillMaxWidth(),
-    )
+    DfProgressBar(progress, modifier, tone = if (summary.isComplete) DfTone.Positive else DfTone.Accent)
 }
 
 @Composable
 internal fun PiggyBankCard(summary: PiggyBankSummary, today: LocalDate, onClick: () -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(summary.piggyBank.name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.feature_piggybanks_in_account, summary.accountName),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(summary.savedLabel(), style = MaterialTheme.typography.bodyLarge)
-            PiggyBankProgress(summary)
-            summary.planLabel(today)?.let {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (summary.isComplete) IncomeColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    DfCard(onClick = onClick, spacing = 6.dp) {
+        DfText(summary.piggyBank.name, style = DfTheme.typography.subtitle)
+        DfText(
+            stringResource(R.string.feature_piggybanks_in_account, summary.accountName),
+            style = DfTheme.typography.caption,
+            tone = DfTone.Secondary,
+        )
+        DfText(summary.savedLabel())
+        PiggyBankProgress(summary)
+        summary.planLabel(today)?.let {
+            DfText(it, style = DfTheme.typography.caption, tone = if (summary.isComplete) DfTone.Positive else DfTone.Secondary)
         }
     }
 }

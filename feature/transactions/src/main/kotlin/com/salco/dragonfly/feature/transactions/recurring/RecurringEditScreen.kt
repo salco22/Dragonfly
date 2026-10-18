@@ -1,5 +1,21 @@
 package com.salco.dragonfly.feature.transactions.recurring
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfDivider
+import com.salco.dragonfly.core.designsystem.component.DfEmptyState
+import com.salco.dragonfly.core.designsystem.component.DfFormColumn
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSegmentedControl
+import com.salco.dragonfly.core.designsystem.component.DfSwitchRow
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.component.DropdownField
+import com.salco.dragonfly.core.designsystem.component.DatePickerField
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,25 +27,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,16 +43,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.DatePickerField
-import com.salco.dragonfly.core.designsystem.component.DropdownField
-import com.salco.dragonfly.core.designsystem.component.EmptyState
 import com.salco.dragonfly.core.model.RecurrenceFrequency
 import com.salco.dragonfly.core.ui.unitLabel
 import com.salco.dragonfly.feature.transactions.R
 import com.salco.dragonfly.feature.transactions.edit.TransactionEditActions
 import com.salco.dragonfly.feature.transactions.edit.TransactionFormFields
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,50 +56,26 @@ internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditVie
     var confirmDelete by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.isFinished) { if (uiState.isFinished) onBack() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if (uiState.isNew) R.string.feature_transactions_recurring_new else R.string.feature_transactions_recurring_edit,
-                        ),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_transactions_back))
-                    }
-                },
-                actions = {
-                    if (!uiState.isNew) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, stringResource(R.string.feature_transactions_delete))
-                        }
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(if (uiState.isNew) R.string.feature_transactions_recurring_new else R.string.feature_transactions_recurring_edit),
+        onBack = onBack,
+        actions = {
+            if (!uiState.isNew) {
+                DfIconButton(Icons.Outlined.Delete, stringResource(R.string.feature_transactions_delete), { confirmDelete = true })
+            }
         },
     ) { padding ->
-        if (uiState.isLoading) return@Scaffold
+        if (uiState.isLoading) return@DfScaffold
         if (uiState.ownAccounts.isEmpty()) {
-            EmptyState(
-                icon = Icons.Filled.AccountBalance,
+            DfEmptyState(
+                icon = Icons.Outlined.AccountBalance,
                 title = stringResource(R.string.feature_transactions_no_accounts_title),
                 message = stringResource(R.string.feature_transactions_no_accounts_message),
                 modifier = Modifier.padding(padding),
             )
-            return@Scaffold
+            return@DfScaffold
         }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+        DfFormColumn(Modifier.padding(padding)) {
             TransactionFormFields(
                 uiState = uiState,
                 actions = TransactionEditActions(
@@ -126,31 +97,24 @@ internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditVie
                 ),
                 dateLabel = stringResource(R.string.feature_transactions_recurring_start),
             )
-
-            HorizontalDivider()
-            Text(stringResource(R.string.feature_transactions_recurring_repeat), style = MaterialTheme.typography.titleSmall)
+            DfDivider()
+            DfText(stringResource(R.string.feature_transactions_recurring_repeat), style = DfTheme.typography.title)
             ScheduleFields(schedule, viewModel)
-
-            Button(onClick = viewModel::save, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.feature_transactions_save))
-            }
+            DfButton(stringResource(R.string.feature_transactions_save), viewModel::save, fillWidth = true)
         }
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.feature_transactions_recurring_delete_title)) },
-            text = { Text(stringResource(R.string.feature_transactions_recurring_delete_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    viewModel.delete()
-                }) { Text(stringResource(R.string.feature_transactions_delete)) }
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_transactions_recurring_delete_title),
+            message = stringResource(R.string.feature_transactions_recurring_delete_message),
+            confirmText = stringResource(R.string.feature_transactions_delete),
+            dismissText = stringResource(R.string.feature_transactions_cancel),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.delete()
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.feature_transactions_cancel)) }
-            },
+            onDismiss = { confirmDelete = false },
         )
     }
 }
@@ -159,13 +123,12 @@ internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditVie
 private fun ScheduleFields(schedule: ScheduleState, viewModel: RecurringEditViewModel) {
     val interval = schedule.interval.toIntOrNull() ?: 1
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        OutlinedTextField(
+        DfTextField(
             value = schedule.interval,
             onValueChange = viewModel::onIntervalChange,
-            label = { Text(stringResource(R.string.feature_transactions_recurring_every)) },
-            isError = schedule.intervalError,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            label = stringResource(R.string.feature_transactions_recurring_every),
+            error = if (schedule.intervalError) "" else null,
+            keyboard = DfKeyboard.Number,
             modifier = Modifier.weight(1f),
         )
         DropdownField(
@@ -177,27 +140,20 @@ private fun ScheduleFields(schedule: ScheduleState, viewModel: RecurringEditView
             modifier = Modifier.weight(2f),
         )
     }
-
-    val modes = EndMode.entries
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-        modes.forEachIndexed { index, mode ->
-            SegmentedButton(
-                selected = schedule.end == mode,
-                onClick = { viewModel.onEndModeChange(mode) },
-                shape = SegmentedButtonDefaults.itemShape(index, modes.size),
-            ) {
-                Text(
-                    stringResource(
-                        when (mode) {
-                            EndMode.NEVER -> R.string.feature_transactions_recurring_end_never
-                            EndMode.UNTIL -> R.string.feature_transactions_recurring_end_until
-                            EndMode.TIMES -> R.string.feature_transactions_recurring_end_times
-                        },
-                    ),
-                )
-            }
-        }
-    }
+    DfSegmentedControl(
+        options = EndMode.entries,
+        selected = schedule.end,
+        optionLabel = {
+            stringResource(
+                when (it) {
+                    EndMode.NEVER -> R.string.feature_transactions_recurring_end_never
+                    EndMode.UNTIL -> R.string.feature_transactions_recurring_end_until
+                    EndMode.TIMES -> R.string.feature_transactions_recurring_end_times
+                },
+            )
+        },
+        onSelect = viewModel::onEndModeChange,
+    )
     when (schedule.end) {
         EndMode.NEVER -> Unit
         EndMode.UNTIL -> DatePickerField(
@@ -205,27 +161,22 @@ private fun ScheduleFields(schedule: ScheduleState, viewModel: RecurringEditView
             date = schedule.endDate,
             onDateChange = viewModel::onEndDateChange,
         )
-        EndMode.TIMES -> OutlinedTextField(
+        EndMode.TIMES -> DfTextField(
             value = schedule.maxOccurrences,
             onValueChange = viewModel::onMaxOccurrencesChange,
-            label = { Text(stringResource(R.string.feature_transactions_recurring_occurrences)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.feature_transactions_recurring_occurrences),
+            keyboard = DfKeyboard.Number,
         )
     }
     if (schedule.endError) {
-        Text(stringResource(R.string.feature_transactions_recurring_end_error), color = MaterialTheme.colorScheme.error)
+        DfText(stringResource(R.string.feature_transactions_recurring_end_error), style = DfTheme.typography.bodySmall, tone = DfTone.Negative)
     }
     if (schedule.occurrencesCreated > 0) {
-        Text(
+        DfText(
             pluralStringResource(R.plurals.feature_transactions_recurring_created, schedule.occurrencesCreated, schedule.occurrencesCreated),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = DfTheme.typography.bodySmall,
+            tone = DfTone.Secondary,
         )
     }
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.feature_transactions_recurring_active), modifier = Modifier.weight(1f))
-        Switch(checked = schedule.active, onCheckedChange = viewModel::onActiveChange)
-    }
+    DfSwitchRow(stringResource(R.string.feature_transactions_recurring_active), schedule.active, viewModel::onActiveChange)
 }

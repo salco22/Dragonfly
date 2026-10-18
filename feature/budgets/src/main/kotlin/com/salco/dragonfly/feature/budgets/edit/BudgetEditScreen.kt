@@ -1,5 +1,14 @@
 package com.salco.dragonfly.feature.budgets.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfFormColumn
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSwitchRow
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DropdownField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,19 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.DropdownField
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.SupportedCurrencyCodes
 import com.salco.dragonfly.feature.budgets.R
@@ -60,7 +56,6 @@ internal fun BudgetEditScreen(onBack: () -> Unit, viewModel: BudgetEditViewModel
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BudgetEditContent(
     uiState: BudgetEditUiState,
@@ -73,65 +68,34 @@ internal fun BudgetEditContent(
     onDelete: () -> Unit,
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (uiState.isNew) R.string.feature_budgets_new else R.string.feature_budgets_edit)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_budgets_back))
-                    }
-                },
-                actions = {
-                    if (!uiState.isNew) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, stringResource(R.string.feature_budgets_delete))
-                        }
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(if (uiState.isNew) R.string.feature_budgets_new else R.string.feature_budgets_edit),
+        onBack = onBack,
+        actions = {
+            if (!uiState.isNew) DfIconButton(Icons.Outlined.Delete, stringResource(R.string.feature_budgets_delete), { confirmDelete = true })
         },
     ) { padding ->
-        if (uiState.isLoading) return@Scaffold
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            OutlinedTextField(
+        if (uiState.isLoading) return@DfScaffold
+        DfFormColumn(Modifier.padding(padding)) {
+            DfTextField(
                 value = uiState.name,
                 onValueChange = onNameChange,
-                label = { Text(stringResource(R.string.feature_budgets_name)) },
-                isError = uiState.nameError != null,
-                supportingText = when (uiState.nameError) {
-                    NameError.BLANK -> { { Text(stringResource(R.string.feature_budgets_error_name)) } }
-                    NameError.DUPLICATE -> { { Text(stringResource(R.string.feature_budgets_error_duplicate)) } }
+                label = stringResource(R.string.feature_budgets_name),
+                error = when (uiState.nameError) {
+                    NameError.BLANK -> stringResource(R.string.feature_budgets_error_name)
+                    NameError.DUPLICATE -> stringResource(R.string.feature_budgets_error_duplicate)
                     null -> null
                 },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            DfTextField(
                 value = uiState.amount,
                 onValueChange = onAmountChange,
-                label = { Text(stringResource(R.string.feature_budgets_amount)) },
-                suffix = { Text(uiState.currencyCode) },
-                isError = uiState.amountError,
-                supportingText = {
-                    Text(
-                        stringResource(
-                            if (uiState.amountError) R.string.feature_budgets_error_amount else R.string.feature_budgets_amount_hint,
-                        ),
-                    )
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.feature_budgets_amount),
+                suffix = uiState.currencyCode,
+                keyboard = DfKeyboard.Decimal,
+                large = true,
+                error = stringResource(R.string.feature_budgets_error_amount).takeIf { uiState.amountError },
+                helper = stringResource(R.string.feature_budgets_amount_hint),
             )
             DropdownField(
                 label = stringResource(R.string.feature_budgets_currency),
@@ -140,30 +104,22 @@ internal fun BudgetEditContent(
                 optionLabel = { it },
                 onSelected = onCurrencyChange,
             )
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.feature_budgets_active), modifier = Modifier.weight(1f))
-                Switch(checked = uiState.active, onCheckedChange = onActiveChange)
-            }
-            Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.feature_budgets_save))
-            }
+            DfSwitchRow(stringResource(R.string.feature_budgets_active), uiState.active, onActiveChange)
+            DfButton(stringResource(R.string.feature_budgets_save), onSave, fillWidth = true)
         }
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.feature_budgets_delete_title)) },
-            text = { Text(stringResource(R.string.feature_budgets_delete_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    onDelete()
-                }) { Text(stringResource(R.string.feature_budgets_delete)) }
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_budgets_delete_title),
+            message = stringResource(R.string.feature_budgets_delete_message),
+            confirmText = stringResource(R.string.feature_budgets_delete),
+            dismissText = stringResource(R.string.feature_budgets_cancel),
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.feature_budgets_cancel)) }
-            },
+            onDismiss = { confirmDelete = false },
         )
     }
 }

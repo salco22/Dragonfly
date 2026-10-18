@@ -1,16 +1,8 @@
 package com.salco.dragonfly.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -24,6 +16,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.salco.dragonfly.MainActivityUiState
+import com.salco.dragonfly.core.designsystem.component.DfAppFrame
+import com.salco.dragonfly.core.designsystem.component.DfNavItem
+import com.salco.dragonfly.core.designsystem.component.DfNavigationBar
+import com.salco.dragonfly.core.designsystem.component.DfSurface
 import com.salco.dragonfly.feature.accounts.navigation.navigateToAccounts
 import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgets
 import com.salco.dragonfly.feature.home.navigation.navigateToHome
@@ -38,7 +34,7 @@ fun DragonflyAppRoot(uiState: MainActivityUiState, onUnlocked: () -> Unit) {
     // The nav controller lives above the lock so the back stack survives locking.
     val navController = rememberNavController()
     when (uiState) {
-        MainActivityUiState.Loading -> Surface(Modifier.fillMaxSize()) {}
+        MainActivityUiState.Loading -> DfSurface {}
         is MainActivityUiState.Ready -> Box {
             DragonflyApp(navController)
             if (uiState.locked) LockScreen(onUnlocked = onUnlocked)
@@ -52,27 +48,20 @@ fun DragonflyApp(navController: NavHostController) {
     val currentDestination = backStackEntry?.destination
     val showBottomBar = TopLevelDestination.entries.any { currentDestination.isRoute(it) }
 
-    Scaffold(
-        // Insets are left to the feature screens' own Scaffolds.
-        contentWindowInsets = WindowInsets(0),
+    DfAppFrame(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
-                    TopLevelDestination.entries.forEach { destination ->
-                        val selected = currentDestination.isRoute(destination)
-                        NavigationBarItem(
-                            selected = selected,
+                DfNavigationBar(
+                    TopLevelDestination.entries.map { destination ->
+                        DfNavItem(
+                            label = stringResource(destination.labelRes),
+                            icon = destination.unselectedIcon,
+                            selectedIcon = destination.selectedIcon,
+                            selected = currentDestination.isRoute(destination),
                             onClick = { navController.navigateToTopLevel(destination) },
-                            icon = {
-                                Icon(
-                                    if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = { Text(stringResource(destination.labelRes)) },
                         )
-                    }
-                }
+                    },
+                )
             }
         },
     ) { padding ->

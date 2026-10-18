@@ -6,14 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfIcon
+import com.salco.dragonfly.core.designsystem.component.DfSurface
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 
 @Composable
@@ -52,34 +52,21 @@ fun LockScreen(onUnlocked: () -> Unit) {
 
 @Composable
 private fun LockContent(error: String?, onUnlockClick: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxSize()) {
+    DfSurface {
         Column(
-            modifier = Modifier.padding(32.dp),
+            modifier = Modifier.fillMaxSize().padding(40.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(
-                imageVector = Icons.Filled.Lock,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = stringResource(R.string.feature_lock_title),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Text(
-                text = stringResource(R.string.feature_lock_message),
-                style = MaterialTheme.typography.bodyMedium,
+            DfIcon(Icons.Outlined.Lock, contentDescription = null, tone = DfTone.Primary, modifier = Modifier.padding(bottom = 8.dp))
+            DfText(stringResource(R.string.feature_lock_title), style = DfTheme.typography.headline, textAlign = TextAlign.Center)
+            DfText(
+                stringResource(R.string.feature_lock_message),
+                tone = DfTone.Secondary,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (error != null) {
-                Text(text = error, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-            }
-            Button(onClick = onUnlockClick) {
-                Text(stringResource(R.string.feature_lock_unlock))
-            }
+            if (error != null) DfText(error, tone = DfTone.Negative, textAlign = TextAlign.Center, style = DfTheme.typography.bodySmall)
+            DfButton(stringResource(R.string.feature_lock_unlock), onUnlockClick, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }

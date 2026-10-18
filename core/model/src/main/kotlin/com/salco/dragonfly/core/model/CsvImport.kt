@@ -39,7 +39,7 @@ fun decodeCsvBytes(bytes: ByteArray): String {
     } catch (_: CharacterCodingException) {
         String(bytes, Charset.forName("windows-1252"))
     }
-    return text.removePrefix("﻿")
+    return text.removePrefix("\uFEFF")
 }
 
 /** The most frequent of `;`, `,` and tab in the first lines (outside quotes). */

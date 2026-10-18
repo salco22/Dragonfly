@@ -203,7 +203,7 @@ internal class OfflineBackupRepository(
         withContext(Dispatchers.IO) {
             output.bufferedWriter(Charsets.UTF_8).use { writer ->
                 // A byte order mark lets Excel recognise UTF-8 (accents, €).
-                writer.write("﻿")
+                writer.write("\uFEFF")
                 writer.write(CSV_HEADER.joinToString(",") + "\r\n")
                 transactions.forEach { t ->
                     val row = listOf(

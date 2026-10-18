@@ -1,5 +1,17 @@
 package com.salco.dragonfly.feature.accounts.detail
 
+import com.salco.dragonfly.core.designsystem.component.DfAmount
+import com.salco.dragonfly.core.designsystem.component.DfCard
+import com.salco.dragonfly.core.designsystem.component.DfFab
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfLoading
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfStat
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,20 +26,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,7 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.AmountText
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountSummary
@@ -81,7 +80,6 @@ internal fun AccountDetailScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AccountDetailContent(
     uiState: AccountDetailUiState,
@@ -93,31 +91,15 @@ internal fun AccountDetailContent(
     onAddTransaction: () -> Unit,
 ) {
     val success = uiState as? AccountDetailUiState.Success
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(success?.account?.name.orEmpty()) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_accounts_back))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onEdit) { Icon(Icons.Filled.Edit, stringResource(R.string.feature_accounts_edit)) }
-                },
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAddTransaction,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.feature_accounts_new_transaction)) },
-            )
-        },
+    DfScaffold(
+        title = success?.account?.name.orEmpty(),
+        onBack = onBack,
+        actions = { DfIconButton(Icons.Outlined.Edit, stringResource(R.string.feature_accounts_edit), onEdit) },
+        floatingAction = { DfFab(stringResource(R.string.feature_accounts_new_transaction), Icons.Filled.Add, onAddTransaction) },
     ) { padding ->
         if (success == null) {
-            Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) { CircularProgressIndicator() }
-            return@Scaffold
+            DfLoading(Modifier.padding(padding))
+            return@DfScaffold
         }
         val account = success.account
         LazyColumn(
@@ -126,33 +108,28 @@ internal fun AccountDetailContent(
         ) {
             item { AccountHeader(account, success.totals, success.savedInPiggyBanks) }
             item {
-                OutlinedTextField(
+                DfTextField(
                     value = query,
                     onValueChange = onQueryChange,
-                    placeholder = { Text(stringResource(R.string.feature_accounts_search_transactions)) },
-                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                    trailingIcon = if (query.isNotEmpty()) {
-                        {
-                            IconButton(onClick = { onQueryChange("") }) {
-                                Icon(Icons.Filled.Close, stringResource(R.string.feature_accounts_clear_search))
-                            }
-                        }
+                    label = stringResource(R.string.feature_accounts_search_transactions),
+                    leadingIcon = Icons.Outlined.Search,
+                    keyboard = DfKeyboard.Text,
+                    trailing = if (query.isNotEmpty()) {
+                        { DfIconButton(Icons.Filled.Close, stringResource(R.string.feature_accounts_clear_search), { onQueryChange("") }) }
                     } else {
                         null
                     },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                 )
             }
             if (success.days.isEmpty()) {
                 item {
-                    Text(
+                    DfText(
                         text = stringResource(
-                            if (success.query.isEmpty()) R.string.feature_accounts_no_transactions
+                            if (query.isEmpty()) R.string.feature_accounts_no_transactions
                             else R.string.feature_accounts_no_results,
                         ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tone = DfTone.Secondary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().padding(32.dp),
                     )
@@ -174,56 +151,28 @@ internal fun AccountDetailContent(
 
 @Composable
 private fun AccountHeader(account: Account, totals: FlowTotals, savedInPiggyBanks: Long) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            val subtitle = account.assetRole?.labelRes() ?: account.liabilityType?.labelRes() ?: account.type.labelRes()
-            Text(
-                text = stringResource(subtitle),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            if (account.type.hasBalance) {
-                AmountText(
-                    formatted = formatMoney(account.balance, account.currencyCode),
-                    negative = account.balance < 0,
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-            }
-            if (savedInPiggyBanks > 0) {
-                Text(
-                    stringResource(
-                        R.string.feature_accounts_in_piggy_banks,
-                        formatMoney(savedInPiggyBanks, account.currencyCode),
-                        formatMoney(account.balance - savedInPiggyBanks, account.currencyCode),
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-            account.iban?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
-            Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                FlowColumn(stringResource(R.string.feature_accounts_incoming), "+" + formatMoney(totals.incoming, account.currencyCode), true)
-                FlowColumn(stringResource(R.string.feature_accounts_outgoing), "−" + formatMoney(totals.outgoing, account.currencyCode), false)
-            }
+    DfCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), highlighted = true, padding = 20.dp) {
+        val subtitle = account.assetRole?.labelRes() ?: account.liabilityType?.labelRes() ?: account.type.labelRes()
+        DfText(stringResource(subtitle), style = DfTheme.typography.label, tone = DfTone.Secondary)
+        if (account.type.hasBalance) {
+            DfAmount(formatMoney(account.balance, account.currencyCode), negative = account.balance < 0, style = DfTheme.typography.display)
         }
-    }
-}
-
-@Composable
-private fun FlowColumn(label: String, value: String, incoming: Boolean) {
-    Column {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-        Text(
-            value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (incoming) IncomeColor else MaterialTheme.colorScheme.error,
-        )
+        if (savedInPiggyBanks > 0) {
+            DfText(
+                stringResource(
+                    R.string.feature_accounts_in_piggy_banks,
+                    formatMoney(savedInPiggyBanks, account.currencyCode),
+                    formatMoney(account.balance - savedInPiggyBanks, account.currencyCode),
+                ),
+                style = DfTheme.typography.bodySmall,
+                tone = DfTone.Secondary,
+            )
+        }
+        account.iban?.let { DfText(it, style = DfTheme.typography.bodySmall, tone = DfTone.Secondary) }
+        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
+            DfStat(stringResource(R.string.feature_accounts_incoming), "+" + formatMoney(totals.incoming, account.currencyCode), tone = DfTone.Positive)
+            DfStat(stringResource(R.string.feature_accounts_outgoing), "−" + formatMoney(totals.outgoing, account.currencyCode))
+        }
     }
 }
 

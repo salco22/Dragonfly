@@ -1,5 +1,17 @@
 package com.salco.dragonfly.feature.accounts.list
 
+import com.salco.dragonfly.core.designsystem.component.DfAmount
+import com.salco.dragonfly.core.designsystem.component.DfCard
+import com.salco.dragonfly.core.designsystem.component.DfEmptyState
+import com.salco.dragonfly.core.designsystem.component.DfFab
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfListItem
+import com.salco.dragonfly.core.designsystem.component.DfLoading
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSectionHeader
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,27 +24,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.RequestQuote
-import androidx.compose.material.icons.filled.Savings
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.RequestQuote
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,8 +42,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.AmountText
-import com.salco.dragonfly.core.designsystem.component.EmptyState
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
@@ -65,7 +62,6 @@ internal fun AccountsScreen(
     AccountsContent(uiState, onAccountClick, onAddAccountClick, onPiggyBanksClick)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AccountsContent(
     uiState: AccountsUiState,
@@ -73,31 +69,17 @@ internal fun AccountsContent(
     onAddAccountClick: () -> Unit,
     onPiggyBanksClick: () -> Unit = {},
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.feature_accounts_title)) },
-                actions = {
-                    IconButton(onClick = onPiggyBanksClick) {
-                        Icon(Icons.Filled.Savings, stringResource(R.string.feature_accounts_piggy_banks))
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(R.string.feature_accounts_title),
+        actions = {
+            DfIconButton(Icons.Outlined.Savings, stringResource(R.string.feature_accounts_piggy_banks), onPiggyBanksClick)
         },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAddAccountClick,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.feature_accounts_add)) },
-            )
-        },
+        floatingAction = { DfFab(stringResource(R.string.feature_accounts_add), Icons.Filled.Add, onAddAccountClick) },
     ) { padding ->
         when (uiState) {
-            AccountsUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            AccountsUiState.Empty -> EmptyState(
-                icon = Icons.Filled.AccountBalance,
+            AccountsUiState.Loading -> DfLoading(Modifier.padding(padding))
+            AccountsUiState.Empty -> DfEmptyState(
+                icon = Icons.Outlined.AccountBalance,
                 title = stringResource(R.string.feature_accounts_empty_title),
                 message = stringResource(R.string.feature_accounts_empty_message),
                 modifier = Modifier.padding(padding),
@@ -110,17 +92,9 @@ internal fun AccountsContent(
                     item { NetWorthCard(uiState.netWorthByCurrency) }
                 }
                 uiState.sections.forEach { (type, accounts) ->
-                    item(key = "header_$type") {
-                        Text(
-                            text = stringResource(type.labelRes()),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(start = 16.dp, top = 20.dp, bottom = 4.dp),
-                        )
-                    }
+                    item(key = "header_$type") { DfSectionHeader(stringResource(type.labelRes())) }
                     items(accounts, key = { it.id }) { account ->
                         AccountRow(account, onClick = { onAccountClick(account.id) })
-                        HorizontalDivider(modifier = Modifier.padding(start = 72.dp))
                     }
                 }
             }
@@ -130,23 +104,10 @@ internal fun AccountsContent(
 
 @Composable
 private fun NetWorthCard(netWorthByCurrency: Map<String, Long>) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = stringResource(R.string.feature_accounts_net_worth),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            netWorthByCurrency.forEach { (currency, amount) ->
-                AmountText(
-                    formatted = formatMoney(amount, currency),
-                    negative = amount < 0,
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-            }
+    DfCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), highlighted = true, padding = 20.dp) {
+        DfText(stringResource(R.string.feature_accounts_net_worth), style = DfTheme.typography.label, tone = DfTone.Secondary)
+        netWorthByCurrency.forEach { (currency, amount) ->
+            DfAmount(formatMoney(amount, currency), negative = amount < 0, style = DfTheme.typography.display)
         }
     }
 }
@@ -155,23 +116,18 @@ private fun NetWorthCard(netWorthByCurrency: Map<String, Long>) {
 private fun AccountRow(account: Account, onClick: () -> Unit) {
     val assetRole = account.assetRole
     val liabilityType = account.liabilityType
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        leadingContent = { Icon(account.icon(), contentDescription = null) },
-        headlineContent = { Text(account.name) },
-        supportingContent = when {
-            !account.active -> { { Text(stringResource(R.string.feature_accounts_inactive)) } }
-            assetRole != null -> { { Text(stringResource(assetRole.labelRes())) } }
-            liabilityType != null -> { { Text(stringResource(liabilityType.labelRes())) } }
+    DfListItem(
+        headline = account.name,
+        icon = account.icon(),
+        onClick = onClick,
+        supporting = when {
+            !account.active -> stringResource(R.string.feature_accounts_inactive)
+            assetRole != null -> stringResource(assetRole.labelRes())
+            liabilityType != null -> stringResource(liabilityType.labelRes())
             else -> null
         },
-        trailingContent = if (account.type.hasBalance) {
-            {
-                AmountText(
-                    formatted = formatMoney(account.balance, account.currencyCode),
-                    negative = account.balance < 0,
-                )
-            }
+        trailing = if (account.type.hasBalance) {
+            { DfAmount(formatMoney(account.balance, account.currencyCode), negative = account.balance < 0) }
         } else {
             null
         },
@@ -180,14 +136,14 @@ private fun AccountRow(account: Account, onClick: () -> Unit) {
 
 private fun Account.icon(): ImageVector = when (type) {
     AccountType.ASSET -> when (assetRole) {
-        AssetRole.SAVINGS -> Icons.Filled.Savings
-        AssetRole.CREDIT_CARD -> Icons.Filled.CreditCard
-        AssetRole.CASH_WALLET -> Icons.Filled.Payments
-        else -> Icons.Filled.AccountBalanceWallet
+        AssetRole.SAVINGS -> Icons.Outlined.Savings
+        AssetRole.CREDIT_CARD -> Icons.Outlined.CreditCard
+        AssetRole.CASH_WALLET -> Icons.Outlined.Payments
+        else -> Icons.Outlined.AccountBalanceWallet
     }
-    AccountType.EXPENSE -> Icons.Filled.ShoppingCart
-    AccountType.REVENUE -> Icons.Filled.Work
-    AccountType.LIABILITY -> Icons.Filled.RequestQuote
+    AccountType.EXPENSE -> Icons.Outlined.ShoppingCart
+    AccountType.REVENUE -> Icons.Outlined.Work
+    AccountType.LIABILITY -> Icons.Outlined.RequestQuote
 }
 
 @Preview

@@ -1,5 +1,14 @@
 package com.salco.dragonfly.feature.bills.detail
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfCard
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfLoading
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSectionHeader
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,19 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,11 +33,10 @@ import com.salco.dragonfly.core.ui.TransactionRow
 import com.salco.dragonfly.core.ui.everyLabel
 import com.salco.dragonfly.feature.bills.R
 import com.salco.dragonfly.feature.bills.amountLabel
-import com.salco.dragonfly.feature.bills.color
+import com.salco.dragonfly.feature.bills.tone
 import com.salco.dragonfly.feature.bills.label
 import com.salco.dragonfly.feature.bills.medium
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BillDetailScreen(
     onBack: () -> Unit,
@@ -54,69 +50,43 @@ internal fun BillDetailScreen(
     LaunchedEffect(uiState) { if (uiState is BillDetailUiState.NotFound) onBack() }
     val state = uiState as? BillDetailUiState.Success
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(state?.bill?.name.orEmpty()) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_bills_back)) }
-                },
-                actions = {
-                    IconButton(onClick = { onEdit(viewModel.billId) }) { Icon(Icons.Filled.Edit, stringResource(R.string.feature_bills_edit)) }
-                },
-            )
-        },
+    DfScaffold(
+        title = state?.bill?.name.orEmpty(),
+        onBack = onBack,
+        actions = { DfIconButton(Icons.Outlined.Edit, stringResource(R.string.feature_bills_edit), { onEdit(viewModel.billId) }) },
     ) { padding ->
         if (state == null) {
-            Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) { CircularProgressIndicator() }
-            return@Scaffold
+            DfLoading(Modifier.padding(padding))
+            return@DfScaffold
         }
         val bill = state.bill
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 32.dp)) {
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                ) {
-                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(bill.amountLabel(), style = MaterialTheme.typography.headlineSmall)
-                        Text(everyLabel(bill.rule.frequency, bill.rule.interval), color = MaterialTheme.colorScheme.onPrimaryContainer)
-                        Text(state.status.label(), style = MaterialTheme.typography.titleSmall, color = state.status.color())
-                        bill.notes?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                        Button(onClick = { onPay(bill.id) }, modifier = Modifier.padding(top = 8.dp)) {
-                            Text(stringResource(R.string.feature_bills_register_payment))
-                        }
-                    }
+                DfCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), highlighted = true, padding = 20.dp, spacing = 6.dp) {
+                    DfText(bill.amountLabel(), style = DfTheme.typography.headline)
+                    DfText(everyLabel(bill.rule.frequency, bill.rule.interval), tone = DfTone.Secondary)
+                    DfText(state.status.label(), style = DfTheme.typography.label, tone = state.status.tone())
+                    bill.notes?.let { DfText(it, style = DfTheme.typography.bodySmall, tone = DfTone.Secondary) }
+                    DfButton(
+                        stringResource(R.string.feature_bills_register_payment),
+                        { onPay(bill.id) },
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                 }
             }
             if (state.upcoming.isNotEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.feature_bills_upcoming),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    )
-                }
+                item { DfSectionHeader(stringResource(R.string.feature_bills_upcoming)) }
                 items(state.upcoming) { date ->
-                    Text(date.medium(), modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp))
+                    DfText(date.medium(), modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
                 }
             }
-            item {
-                Text(
-                    stringResource(R.string.feature_bills_payments),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp),
-                )
-            }
+            item { DfSectionHeader(stringResource(R.string.feature_bills_payments)) }
             if (state.payments.isEmpty()) {
                 item {
-                    Text(
+                    DfText(
                         stringResource(R.string.feature_bills_no_payments),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp),
+                        tone = DfTone.Secondary,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                     )
                 }
             }

@@ -1,6 +1,9 @@
 package com.salco.dragonfly.core.designsystem.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -14,10 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 
 /** Read-only field that opens a menu of [options]. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,25 +33,30 @@ fun <T> DropdownField(
     modifier: Modifier = Modifier.fillMaxWidth(),
     isError: Boolean = false,
     supportingText: String? = null,
+    /** Shown when nothing is selected. */
+    placeholder: String? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
         OutlinedTextField(
-            value = selected?.let { optionLabel(it) }.orEmpty(),
+            value = selected?.let { optionLabel(it) } ?: placeholder.orEmpty(),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             isError = isError,
             supportingText = supportingText?.let { { Text(it) } },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            textStyle = DfTheme.typography.body,
+            shape = RoundedCornerShape(DfTheme.spacing.radiusSmall),
+            colors = dfFieldColors(),
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, containerColor = DfTheme.colors.surface) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(optionLabel(option)) },
+                    text = { DfText(optionLabel(option)) },
                     onClick = {
                         onSelected(option)
                         expanded = false
@@ -97,6 +104,9 @@ fun AutocompleteField(
             isError = isError,
             supportingText = supportingText?.let { { Text(it) } },
             trailingIcon = trailingIcon,
+            textStyle = DfTheme.typography.body,
+            shape = RoundedCornerShape(DfTheme.spacing.radiusSmall),
+            colors = dfFieldColors(),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = if (onDone != null) ImeAction.Done else ImeAction.Default,
@@ -109,10 +119,11 @@ fun AutocompleteField(
         ExposedDropdownMenu(
             expanded = expanded && matches.isNotEmpty(),
             onDismissRequest = { expanded = false },
+            containerColor = DfTheme.colors.surface,
         ) {
             matches.forEach { suggestion ->
                 DropdownMenuItem(
-                    text = { Text(suggestion) },
+                    text = { DfText(suggestion) },
                     onClick = {
                         onSuggestionClick(suggestion)
                         expanded = false

@@ -1,15 +1,15 @@
 package com.salco.dragonfly.feature.classification.categories
 
+import com.salco.dragonfly.core.designsystem.component.DfListItem
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Label
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -59,17 +59,17 @@ internal fun CategoriesContent(
         title = stringResource(R.string.feature_classification_categories),
         isLoading = uiState is CategoriesUiState.Loading,
         isEmpty = categories.isEmpty(),
-        emptyIcon = Icons.Filled.Category,
+        emptyIcon = Icons.Outlined.Category,
         emptyTitle = stringResource(R.string.feature_classification_categories_empty_title),
         emptyMessage = stringResource(R.string.feature_classification_categories_empty_message),
         onBack = onBack,
         onAdd = onAdd,
     ) {
         items(categories, key = { it.category.id }) { summary ->
-            ListItem(
-                modifier = Modifier.clickable { onCategoryClick(summary.category) },
-                leadingContent = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
-                headlineContent = { Text(summary.category.name) },
+            DfListItem(
+                headline = summary.category.name,
+                icon = Icons.AutoMirrored.Outlined.Label,
+                onClick = { onCategoryClick(summary.category) },
                 supportingContent = { CategoryTotals(summary) },
             )
         }
@@ -79,18 +79,15 @@ internal fun CategoriesContent(
 @Composable
 private fun CategoryTotals(summary: CategorySummary) {
     if (summary.spent.isEmpty() && summary.earned.isEmpty()) {
-        Text(stringResource(R.string.feature_classification_unused))
+        DfText(stringResource(R.string.feature_classification_unused), style = DfTheme.typography.bodySmall, tone = DfTone.Tertiary)
         return
     }
     Column {
         summary.spent.forEach { (currency, amount) ->
-            Text(
-                stringResource(R.string.feature_classification_spent, formatMoney(amount, currency)),
-                color = MaterialTheme.colorScheme.error,
-            )
+            DfText(stringResource(R.string.feature_classification_spent, formatMoney(amount, currency)), style = DfTheme.typography.bodySmall, tone = DfTone.Secondary)
         }
         summary.earned.forEach { (currency, amount) ->
-            Text(stringResource(R.string.feature_classification_earned, formatMoney(amount, currency)))
+            DfText(stringResource(R.string.feature_classification_earned, formatMoney(amount, currency)), style = DfTheme.typography.bodySmall, tone = DfTone.Positive)
         }
     }
 }

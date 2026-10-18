@@ -1,5 +1,18 @@
 package com.salco.dragonfly.feature.bills.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfFormColumn
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSwitchRow
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.component.DropdownField
+import com.salco.dragonfly.core.designsystem.component.DatePickerField
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,19 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,98 +39,70 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.DatePickerField
-import com.salco.dragonfly.core.designsystem.component.DropdownField
 import com.salco.dragonfly.core.model.RecurrenceFrequency
 import com.salco.dragonfly.core.model.SupportedCurrencyCodes
 import com.salco.dragonfly.core.ui.unitLabel
 import com.salco.dragonfly.feature.bills.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BillEditScreen(onBack: () -> Unit, viewModel: BillEditViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var confirmDelete by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.isFinished) { if (uiState.isFinished) onBack() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (uiState.isNew) R.string.feature_bills_new else R.string.feature_bills_edit)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_bills_back)) }
-                },
-                actions = {
-                    if (!uiState.isNew) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, stringResource(R.string.feature_bills_delete))
-                        }
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(if (uiState.isNew) R.string.feature_bills_new else R.string.feature_bills_edit),
+        onBack = onBack,
+        actions = {
+            if (!uiState.isNew) DfIconButton(Icons.Outlined.Delete, stringResource(R.string.feature_bills_delete), { confirmDelete = true })
         },
     ) { padding ->
-        if (uiState.isLoading) return@Scaffold
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            OutlinedTextField(
+        if (uiState.isLoading) return@DfScaffold
+        DfFormColumn(Modifier.padding(padding)) {
+            DfTextField(
                 value = uiState.name,
                 onValueChange = viewModel::onNameChange,
-                label = { Text(stringResource(R.string.feature_bills_name)) },
-                isError = uiState.nameError != null,
-                supportingText = when (uiState.nameError) {
-                    NameError.BLANK -> { { Text(stringResource(R.string.feature_bills_error_name)) } }
-                    NameError.DUPLICATE -> { { Text(stringResource(R.string.feature_bills_error_duplicate)) } }
+                label = stringResource(R.string.feature_bills_name),
+                keyboard = DfKeyboard.Sentences,
+                error = when (uiState.nameError) {
+                    NameError.BLANK -> stringResource(R.string.feature_bills_error_name)
+                    NameError.DUPLICATE -> stringResource(R.string.feature_bills_error_duplicate)
                     null -> null
                 },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = uiState.amountMin,
-                    onValueChange = viewModel::onAmountMinChange,
-                    label = { Text(stringResource(R.string.feature_bills_amount_min)) },
-                    suffix = { Text(uiState.currencyCode) },
-                    isError = uiState.amountError == AmountError.INVALID,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.weight(1f),
-                )
-                OutlinedTextField(
-                    value = uiState.amountMax,
-                    onValueChange = viewModel::onAmountMaxChange,
-                    label = { Text(stringResource(R.string.feature_bills_amount_max)) },
-                    suffix = { Text(uiState.currencyCode) },
-                    isError = uiState.amountError == AmountError.RANGE,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.weight(1f),
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DfTextField(
+                        value = uiState.amountMin,
+                        onValueChange = viewModel::onAmountMinChange,
+                        label = stringResource(R.string.feature_bills_amount_min),
+                        suffix = uiState.currencyCode,
+                        keyboard = DfKeyboard.Decimal,
+                        error = "".takeIf { uiState.amountError == AmountError.INVALID },
+                        modifier = Modifier.weight(1f),
+                    )
+                    DfTextField(
+                        value = uiState.amountMax,
+                        onValueChange = viewModel::onAmountMaxChange,
+                        label = stringResource(R.string.feature_bills_amount_max),
+                        suffix = uiState.currencyCode,
+                        keyboard = DfKeyboard.Decimal,
+                        error = "".takeIf { uiState.amountError == AmountError.RANGE },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                DfText(
+                    stringResource(
+                        when (uiState.amountError) {
+                            AmountError.INVALID -> R.string.feature_bills_error_amount
+                            AmountError.RANGE -> R.string.feature_bills_error_range
+                            null -> R.string.feature_bills_amount_max_hint
+                        },
+                    ),
+                    style = DfTheme.typography.caption,
+                    tone = if (uiState.amountError != null) DfTone.Negative else DfTone.Secondary,
                 )
             }
-            Text(
-                stringResource(
-                    when (uiState.amountError) {
-                        AmountError.INVALID -> R.string.feature_bills_error_amount
-                        AmountError.RANGE -> R.string.feature_bills_error_range
-                        null -> R.string.feature_bills_amount_max_hint
-                    },
-                ),
-                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                color = if (uiState.amountError != null) {
-                    androidx.compose.material3.MaterialTheme.colorScheme.error
-                } else {
-                    androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
             DropdownField(
                 label = stringResource(R.string.feature_bills_currency),
                 options = SupportedCurrencyCodes,
@@ -144,13 +117,12 @@ internal fun BillEditScreen(onBack: () -> Unit, viewModel: BillEditViewModel = h
             )
             val interval = uiState.interval.toIntOrNull() ?: 1
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
+                DfTextField(
                     value = uiState.interval,
                     onValueChange = viewModel::onIntervalChange,
-                    label = { Text(stringResource(R.string.feature_bills_every)) },
-                    isError = uiState.intervalError,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = stringResource(R.string.feature_bills_every),
+                    keyboard = DfKeyboard.Number,
+                    error = "".takeIf { uiState.intervalError },
                     modifier = Modifier.weight(1f),
                 )
                 DropdownField(
@@ -168,35 +140,29 @@ internal fun BillEditScreen(onBack: () -> Unit, viewModel: BillEditViewModel = h
                 onDateChange = viewModel::onEndDateChange,
                 onClear = { viewModel.onEndDateChange(null) },
             )
-            OutlinedTextField(
+            DfTextField(
                 value = uiState.notes,
                 onValueChange = viewModel::onNotesChange,
-                label = { Text(stringResource(R.string.feature_bills_notes)) },
+                label = stringResource(R.string.feature_bills_notes),
+                singleLine = false,
                 minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
             )
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.feature_bills_active), modifier = Modifier.weight(1f))
-                Switch(checked = uiState.active, onCheckedChange = viewModel::onActiveChange)
-            }
-            Button(onClick = viewModel::save, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.feature_bills_save))
-            }
+            DfSwitchRow(stringResource(R.string.feature_bills_active), uiState.active, viewModel::onActiveChange)
+            DfButton(stringResource(R.string.feature_bills_save), viewModel::save, fillWidth = true)
         }
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.feature_bills_delete_title)) },
-            text = { Text(stringResource(R.string.feature_bills_delete_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    viewModel.delete()
-                }) { Text(stringResource(R.string.feature_bills_delete)) }
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_bills_delete_title),
+            message = stringResource(R.string.feature_bills_delete_message),
+            confirmText = stringResource(R.string.feature_bills_delete),
+            dismissText = stringResource(R.string.feature_bills_cancel),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.delete()
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.feature_bills_cancel)) } },
+            onDismiss = { confirmDelete = false },
         )
     }
 }

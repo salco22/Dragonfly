@@ -1,5 +1,22 @@
 package com.salco.dragonfly.feature.reports
 
+import com.salco.dragonfly.core.designsystem.component.DfAmount
+import com.salco.dragonfly.core.designsystem.component.DfCard
+import com.salco.dragonfly.core.designsystem.component.DfLoading
+import com.salco.dragonfly.core.designsystem.component.DfPeriodSelector
+import com.salco.dragonfly.core.designsystem.component.DfProgressBar
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSegmentedControl
+import com.salco.dragonfly.core.designsystem.component.DfTabs
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.component.color
+import com.salco.dragonfly.core.designsystem.component.LineChart
+import com.salco.dragonfly.core.designsystem.component.GroupedBarChart
+import com.salco.dragonfly.core.designsystem.component.DonutChart
+import com.salco.dragonfly.core.designsystem.component.DonutSlice
+import com.salco.dragonfly.core.designsystem.component.ChartPalette
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,25 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -38,7 +36,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,17 +43,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.ChartPalette
-import com.salco.dragonfly.core.designsystem.component.DonutChart
-import com.salco.dragonfly.core.designsystem.component.DonutSlice
-import com.salco.dragonfly.core.designsystem.component.GroupedBarChart
-import com.salco.dragonfly.core.designsystem.component.LineChart
 import com.salco.dragonfly.core.model.NamedTotal
 import com.salco.dragonfly.core.model.PeriodLength
 import com.salco.dragonfly.core.model.ReportPeriod
 import com.salco.dragonfly.core.model.formatMoney
 import com.salco.dragonfly.core.model.percentChange
-import com.salco.dragonfly.core.ui.IncomeColor
 import java.time.format.DateTimeFormatter
 
 private enum class ReportTab(val labelRes: Int) {
@@ -67,38 +58,24 @@ private enum class ReportTab(val labelRes: Int) {
     TAGS(R.string.feature_reports_tab_tags),
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ReportsScreen(onBack: () -> Unit, viewModel: ReportsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var showIncome by rememberSaveable { mutableIntStateOf(0) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.feature_reports_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_reports_back)) }
-                },
-            )
-        },
-    ) { padding ->
+    DfScaffold(title = stringResource(R.string.feature_reports_title), onBack = onBack) { padding ->
         val state = uiState as? ReportsUiState.Success
         if (state == null) {
-            Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) { CircularProgressIndicator() }
-            return@Scaffold
+            DfLoading(Modifier.padding(padding))
+            return@DfScaffold
         }
         Column(Modifier.fillMaxSize().padding(padding)) {
             PeriodSelector(state.period, viewModel)
-            PrimaryScrollableTabRow(selectedTabIndex = tab, edgePadding = 8.dp) {
-                ReportTab.entries.forEachIndexed { i, t ->
-                    Tab(selected = tab == i, onClick = { tab = i }, text = { Text(stringResource(t.labelRes)) })
-                }
-            }
+            DfTabs(ReportTab.entries.map { stringResource(it.labelRes) }, tab, { tab = it })
             LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 when (ReportTab.entries[tab]) {
@@ -109,10 +86,10 @@ internal fun ReportsScreen(onBack: () -> Unit, viewModel: ReportsViewModel = hil
                     ReportTab.TAGS -> tags(state)
                 }
                 item {
-                    Text(
+                    DfText(
                         stringResource(R.string.feature_reports_currency_note, state.currencyCode),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = DfTheme.typography.caption,
+                        tone = DfTone.Tertiary,
                     )
                 }
             }
@@ -122,36 +99,29 @@ internal fun ReportsScreen(onBack: () -> Unit, viewModel: ReportsViewModel = hil
 
 @Composable
 private fun PeriodSelector(period: ReportPeriod, viewModel: ReportsViewModel) {
-    Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        val lengths = PeriodLength.entries
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            lengths.forEachIndexed { i, length ->
-                SegmentedButton(
-                    selected = period.length == length,
-                    onClick = { viewModel.setLength(length) },
-                    shape = SegmentedButtonDefaults.itemShape(i, lengths.size),
-                ) {
-                    Text(
-                        stringResource(
-                            when (length) {
-                                PeriodLength.MONTH -> R.string.feature_reports_month
-                                PeriodLength.QUARTER -> R.string.feature_reports_quarter
-                                PeriodLength.YEAR -> R.string.feature_reports_year
-                            },
-                        ),
-                    )
-                }
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = viewModel::previous) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_reports_previous))
-            }
-            Text(period.label(), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
-            IconButton(onClick = viewModel::next) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, stringResource(R.string.feature_reports_next))
-            }
-        }
+    Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        DfSegmentedControl(
+            options = PeriodLength.entries,
+            selected = period.length,
+            optionLabel = { length ->
+                stringResource(
+                    when (length) {
+                        PeriodLength.MONTH -> R.string.feature_reports_month
+                        PeriodLength.QUARTER -> R.string.feature_reports_quarter
+                        PeriodLength.YEAR -> R.string.feature_reports_year
+                    },
+                )
+            },
+            onSelect = viewModel::setLength,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        DfPeriodSelector(
+            label = period.label(),
+            onPrevious = viewModel::previous,
+            onNext = viewModel::next,
+            previousDescription = stringResource(R.string.feature_reports_previous),
+            nextDescription = stringResource(R.string.feature_reports_next),
+        )
     }
 }
 
@@ -166,19 +136,19 @@ private fun LazyListScope.overview(state: ReportsUiState.Success) {
     val currency = state.currencyCode
     item {
         Section {
-            Figure(stringResource(R.string.feature_reports_income), state.income, state.previousIncome, currency, IncomeColor, higherIsBetter = true)
-            Figure(stringResource(R.string.feature_reports_expenses), state.expenses, state.previousExpenses, currency, MaterialTheme.colorScheme.error, higherIsBetter = false)
+            Figure(stringResource(R.string.feature_reports_income), state.income, state.previousIncome, currency, DfTone.Positive, higherIsBetter = true)
+            Figure(stringResource(R.string.feature_reports_expenses), state.expenses, state.previousExpenses, currency, DfTone.Negative, higherIsBetter = false)
             Figure(
                 stringResource(R.string.feature_reports_net),
                 state.net,
                 state.previousIncome - state.previousExpenses,
                 currency,
-                if (state.net < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                if (state.net < 0) DfTone.Negative else DfTone.Primary,
                 higherIsBetter = true,
             )
-            state.savingsRate?.let { Text(stringResource(R.string.feature_reports_savings_rate, it)) }
+            state.savingsRate?.let { DfText(stringResource(R.string.feature_reports_savings_rate, it), style = DfTheme.typography.bodySmall, tone = DfTone.Secondary) }
             if (state.monthly.size > 1) {
-                Text(stringResource(R.string.feature_reports_average, formatMoney(state.averageMonthlyExpenses, currency)))
+                DfText(stringResource(R.string.feature_reports_average, formatMoney(state.averageMonthlyExpenses, currency)), style = DfTheme.typography.bodySmall, tone = DfTone.Secondary)
             }
         }
     }
@@ -190,8 +160,8 @@ private fun LazyListScope.overview(state: ReportsUiState.Success) {
                     first = state.monthly.map { it.income.toFloat() },
                     second = state.monthly.map { it.expenses.toFloat() },
                     labels = if (labels.size > 6) labels.mapIndexed { i, l -> if (i % 2 == 0) l else "" } else labels,
-                    firstColor = IncomeColor,
-                    secondColor = MaterialTheme.colorScheme.error,
+                    firstColor = DfTone.Positive.color(),
+                    secondColor = DfTone.Negative.color(),
                     description = stringResource(
                         R.string.feature_reports_chart_description,
                         stringResource(R.string.feature_reports_by_month),
@@ -220,13 +190,13 @@ private fun LazyListScope.overview(state: ReportsUiState.Success) {
 
 private fun LazyListScope.categories(state: ReportsUiState.Success, income: Boolean, onToggle: (Int) -> Unit) {
     item {
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            listOf(R.string.feature_reports_expenses, R.string.feature_reports_income).forEachIndexed { i, label ->
-                SegmentedButton(selected = (i == 1) == income, onClick = { onToggle(i) }, shape = SegmentedButtonDefaults.itemShape(i, 2)) {
-                    Text(stringResource(label))
-                }
-            }
-        }
+        DfSegmentedControl(
+            options = listOf(0, 1),
+            selected = if (income) 1 else 0,
+            optionLabel = { stringResource(if (it == 1) R.string.feature_reports_income else R.string.feature_reports_expenses) },
+            onSelect = onToggle,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
     val totals = if (income) state.incomeCategories else state.expenseCategories.map { it.total }
     if (totals.isEmpty()) {
@@ -263,10 +233,10 @@ private fun LazyListScope.categories(state: ReportsUiState.Success, income: Bool
 }
 
 private fun LazyListScope.counterparties(state: ReportsUiState.Success) {
-    item { Text(stringResource(R.string.feature_reports_payees), style = MaterialTheme.typography.titleMedium) }
+    item { DfText(stringResource(R.string.feature_reports_payees), style = DfTheme.typography.subtitle) }
     if (state.payees.isEmpty()) item { Empty(stringResource(R.string.feature_reports_empty)) }
     items(state.payees.take(20)) { TotalRow(it, state.currencyCode, "") }
-    item { Text(stringResource(R.string.feature_reports_payers), style = MaterialTheme.typography.titleMedium) }
+    item { DfText(stringResource(R.string.feature_reports_payers), style = DfTheme.typography.subtitle, modifier = Modifier.padding(top = 12.dp)) }
     if (state.payers.isEmpty()) item { Empty(stringResource(R.string.feature_reports_empty)) }
     items(state.payers.take(20)) { TotalRow(it, state.currencyCode, "") }
 }
@@ -278,20 +248,16 @@ private fun LazyListScope.budgets(state: ReportsUiState.Success) {
     }
     items(state.budgets) { row ->
         val over = row.spent > row.budgeted
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(row.name, style = MaterialTheme.typography.bodyLarge)
-                Text(
+        DfCard(spacing = 8.dp) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                DfText(row.name, modifier = Modifier.weight(1f))
+                DfText(
                     stringResource(R.string.feature_reports_budget_progress, formatMoney(row.spent, state.currencyCode), formatMoney(row.budgeted, state.currencyCode)),
-                    color = if (over) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
+                    tone = if (over) DfTone.Negative else DfTone.Secondary,
+                    style = DfTheme.typography.caption,
                 )
             }
-            LinearProgressIndicator(
-                progress = { row.progress.coerceIn(0f, 1f) },
-                color = if (over) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            DfProgressBar(row.progress, tone = if (over) DfTone.Negative else DfTone.Accent)
         }
     }
 }
@@ -306,43 +272,43 @@ private fun LazyListScope.tags(state: ReportsUiState.Success) {
 
 @Composable
 private fun TotalRow(total: NamedTotal, currency: String, fallbackName: String, share: Float? = null, change: Int? = null) {
-    ListItem(
-        headlineContent = { Text(total.name ?: fallbackName) },
-        supportingContent = {
-            val parts = listOfNotNull(
-                pluralStringResource(R.plurals.feature_reports_transactions, total.count, total.count),
-                share?.let { stringResource(R.string.feature_reports_share, Math.round(it * 100)) },
-            )
-            Text(parts.joinToString(" · "))
-        },
-        trailingContent = {
+    val parts = listOfNotNull(
+        pluralStringResource(R.plurals.feature_reports_transactions, total.count, total.count),
+        share?.let { stringResource(R.string.feature_reports_share, Math.round(it * 100)) },
+    )
+    DfCard(padding = 14.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                DfText(total.name ?: fallbackName, maxLines = 1)
+                DfText(parts.joinToString(" · "), style = DfTheme.typography.caption, tone = DfTone.Secondary)
+            }
             Column(horizontalAlignment = Alignment.End) {
-                Text(formatMoney(total.amount, currency), fontWeight = FontWeight.SemiBold)
+                DfAmount(formatMoney(total.amount, currency), style = DfTheme.typography.body)
                 change?.let {
                     // For spending, going up is bad news.
-                    Text(
+                    DfText(
                         (if (it > 0) "+" else "") + "$it%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (it > 0) MaterialTheme.colorScheme.error else IncomeColor,
+                        style = DfTheme.typography.caption,
+                        tone = if (it > 0) DfTone.Negative else DfTone.Positive,
                     )
                 }
             }
-        },
-    )
+        }
+    }
 }
 
 @Composable
-private fun Figure(label: String, value: Long, previous: Long, currency: String, color: Color, higherIsBetter: Boolean) {
+private fun Figure(label: String, value: Long, previous: Long, currency: String, tone: DfTone, higherIsBetter: Boolean) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, modifier = Modifier.weight(1f))
+        DfText(label, tone = DfTone.Secondary, modifier = Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.End) {
-            Text(formatMoney(value, currency), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = color)
+            DfAmount(formatMoney(value, currency), tone = tone)
             percentChange(value, previous)?.let { change ->
                 val good = if (higherIsBetter) change >= 0 else change <= 0
-                Text(
+                DfText(
                     stringResource(R.string.feature_reports_vs_previous, (if (change > 0) "+" else "") + "$change%"),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (good) IncomeColor else MaterialTheme.colorScheme.error,
+                    style = DfTheme.typography.caption,
+                    tone = if (good) DfTone.Positive else DfTone.Negative,
                 )
             }
         }
@@ -351,15 +317,13 @@ private fun Figure(label: String, value: Long, previous: Long, currency: String,
 
 @Composable
 private fun Section(title: String? = null, content: @Composable ColumnScope.() -> Unit) {
-    ElevatedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            title?.let { Text(it, style = MaterialTheme.typography.titleMedium) }
-            content()
-        }
+    DfCard(spacing = 12.dp) {
+        title?.let { DfText(it, style = DfTheme.typography.subtitle) }
+        content()
     }
 }
 
 @Composable
 private fun Empty(text: String) {
-    Text(text, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+    DfText(text, tone = DfTone.Secondary, modifier = Modifier.padding(vertical = 8.dp))
 }

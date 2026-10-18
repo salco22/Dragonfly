@@ -10,6 +10,7 @@ android {
 dependencies {
     api(libs.androidx.ui)
     api(libs.androidx.ui.graphics)
-    api(libs.androidx.material3)
+    api(libs.androidx.foundation)
+    implementation(libs.androidx.material3)
     api(libs.androidx.compose.material.icons.extended)
 }

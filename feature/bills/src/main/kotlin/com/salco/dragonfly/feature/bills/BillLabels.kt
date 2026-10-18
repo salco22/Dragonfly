@@ -1,13 +1,11 @@
 package com.salco.dragonfly.feature.bills
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.salco.dragonfly.core.model.Bill
 import com.salco.dragonfly.core.model.BillStatus
 import com.salco.dragonfly.core.model.formatMoney
-import com.salco.dragonfly.core.ui.IncomeColor
+import com.salco.dragonfly.core.designsystem.component.DfTone
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -28,12 +26,11 @@ internal fun BillStatus.label(): String = when (this) {
     BillStatus.Inactive -> stringResource(R.string.feature_bills_status_inactive)
 }
 
-@Composable
-internal fun BillStatus.color(): Color = when (this) {
-    is BillStatus.Paid -> IncomeColor
-    is BillStatus.Overdue -> MaterialTheme.colorScheme.error
-    is BillStatus.Due -> MaterialTheme.colorScheme.tertiary
-    else -> MaterialTheme.colorScheme.onSurfaceVariant
+internal fun BillStatus.tone(): DfTone = when (this) {
+    is BillStatus.Paid -> DfTone.Positive
+    is BillStatus.Overdue -> DfTone.Negative
+    is BillStatus.Due -> DfTone.Warning
+    else -> DfTone.Secondary
 }
 
 internal val BillStatus.canPay: Boolean get() = this is BillStatus.Due || this is BillStatus.Overdue

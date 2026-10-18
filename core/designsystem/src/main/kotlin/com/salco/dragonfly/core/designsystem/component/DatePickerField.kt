@@ -2,7 +2,6 @@ package com.salco.dragonfly.core.designsystem.component
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
@@ -11,7 +10,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -46,13 +44,13 @@ fun DatePickerField(
     LaunchedEffect(interactionSource) {
         interactionSource.interactions.collect { if (it is PressInteraction.Release) pickDate = true }
     }
-    OutlinedTextField(
+    DfTextField(
         value = date?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)).orEmpty(),
         onValueChange = {},
         readOnly = true,
-        label = { Text(label) },
-        placeholder = placeholder?.let { { Text(it) } },
-        trailingIcon = {
+        label = label,
+        placeholder = placeholder,
+        trailing = {
             if (onClear != null && date != null) {
                 IconButton(onClick = onClear) { Icon(Icons.Filled.Close, stringResource(R.string.core_designsystem_clear)) }
             } else {
@@ -60,7 +58,6 @@ fun DatePickerField(
             }
         },
         interactionSource = interactionSource,
-        modifier = Modifier.fillMaxWidth(),
     )
 
     if (pickDate) {

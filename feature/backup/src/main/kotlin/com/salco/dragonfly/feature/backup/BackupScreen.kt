@@ -1,5 +1,16 @@
 package com.salco.dragonfly.feature.backup
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfButtonStyle
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfLinearLoading
+import com.salco.dragonfly.core.designsystem.component.DfListItem
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSectionHeader
+import com.salco.dragonfly.core.designsystem.component.DfSwitch
+import com.salco.dragonfly.core.designsystem.component.DfText
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.theme.DfTheme
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -12,25 +23,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.filled.TableChart
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.Restore
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -47,12 +43,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BackupScreen(onBack: () -> Unit, onImportCsv: () -> Unit, viewModel: BackupViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbar = remember { SnackbarHostState() }
-    val context = LocalContext.current
 
     val exportBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let { viewModel.exportBackup(it.toString()) }
@@ -68,22 +61,11 @@ internal fun BackupScreen(onBack: () -> Unit, onImportCsv: () -> Unit, viewModel
         uri?.let { viewModel.enableAutoBackup(it.toString()) }
     }
 
-    LaunchedEffect(state.message) {
-        val message = state.message ?: return@LaunchedEffect
-        snackbar.showSnackbar(context.getString(message.textRes()))
-        viewModel.messageShown()
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.feature_backup_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_backup_back)) }
-                },
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbar) },
+    DfScaffold(
+        title = stringResource(R.string.feature_backup_title),
+        onBack = onBack,
+        message = state.message?.let { stringResource(it.textRes()) },
+        onMessageShown = viewModel::messageShown,
     ) { padding ->
         Column(
             Modifier
@@ -91,110 +73,108 @@ internal fun BackupScreen(onBack: () -> Unit, onImportCsv: () -> Unit, viewModel
                 .padding(padding)
                 .verticalScroll(rememberScrollState()),
         ) {
-            if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            Text(
+            if (state.busy) DfLinearLoading()
+            DfText(
                 stringResource(R.string.feature_backup_intro),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(16.dp),
+                tone = DfTone.Secondary,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             )
 
-            SectionTitle(stringResource(R.string.feature_backup_section_backup))
+            DfSectionHeader(stringResource(R.string.feature_backup_section_backup))
             ActionItem(
-                icon = Icons.Filled.Backup,
+                icon = Icons.Outlined.Backup,
                 title = stringResource(R.string.feature_backup_export),
                 description = stringResource(R.string.feature_backup_export_description),
                 enabled = !state.busy,
                 onClick = { exportBackup.launch(viewModel.backupName()) },
             )
             ActionItem(
-                icon = Icons.Filled.Restore,
+                icon = Icons.Outlined.Restore,
                 title = stringResource(R.string.feature_backup_restore),
                 description = stringResource(R.string.feature_backup_restore_description),
                 enabled = !state.busy,
                 onClick = { chooseRestore.launch(arrayOf("application/json", "application/octet-stream", "text/plain")) },
             )
 
-            SectionTitle(stringResource(R.string.feature_backup_section_auto))
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.feature_backup_auto)) },
+            DfSectionHeader(stringResource(R.string.feature_backup_section_auto))
+            DfListItem(
+                headline = stringResource(R.string.feature_backup_auto),
+                icon = Icons.Outlined.Schedule,
                 supportingContent = {
                     Column {
-                        Text(
+                        DfText(
                             state.autoBackupFolder?.let { stringResource(R.string.feature_backup_auto_folder, it) }
                                 ?: stringResource(R.string.feature_backup_auto_off),
+                            style = DfTheme.typography.bodySmall,
+                            tone = DfTone.Secondary,
                         )
-                        Text(
+                        DfText(
                             state.lastBackupAt?.let {
                                 stringResource(
                                     R.string.feature_backup_last,
                                     it.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
                                 )
                             } ?: stringResource(R.string.feature_backup_never),
+                            style = DfTheme.typography.bodySmall,
+                            tone = DfTone.Secondary,
                         )
                     }
                 },
-                trailingContent = {
-                    Switch(
+                trailing = {
+                    DfSwitch(
                         checked = state.autoBackupFolder != null,
                         onCheckedChange = { on -> if (on) chooseFolder.launch(null) else viewModel.disableAutoBackup() },
                     )
                 },
             )
             if (state.autoBackupFolder != null) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = viewModel::runAutoBackupNow) { Text(stringResource(R.string.feature_backup_run_now)) }
+                Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.End) {
+                    DfButton(stringResource(R.string.feature_backup_run_now), viewModel::runAutoBackupNow, style = DfButtonStyle.Text)
                 }
             }
 
-            SectionTitle(stringResource(R.string.feature_backup_section_export))
+            DfSectionHeader(stringResource(R.string.feature_backup_section_export))
             ActionItem(
-                icon = Icons.Filled.FileUpload,
+                icon = Icons.Outlined.FileUpload,
                 title = stringResource(R.string.feature_backup_import_csv),
                 description = stringResource(R.string.feature_backup_import_csv_description),
                 enabled = !state.busy,
                 onClick = onImportCsv,
             )
             ActionItem(
-                icon = Icons.Filled.TableChart,
+                icon = Icons.Outlined.TableChart,
                 title = stringResource(R.string.feature_backup_csv),
                 description = stringResource(R.string.feature_backup_csv_description),
                 enabled = !state.busy,
                 onClick = { exportCsv.launch(viewModel.csvName()) },
             )
 
-            Text(
+            DfText(
                 stringResource(R.string.feature_backup_privacy),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp),
+                style = DfTheme.typography.caption,
+                tone = DfTone.Tertiary,
+                modifier = Modifier.padding(20.dp),
             )
         }
     }
 
     state.pendingRestore?.let { summary ->
-        AlertDialog(
-            onDismissRequest = viewModel::cancelRestore,
-            title = { Text(stringResource(R.string.feature_backup_restore_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        R.string.feature_backup_restore_message,
-                        summary.exportedAt.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
-                        summary.accounts,
-                        summary.transactions,
-                        summary.budgets,
-                        summary.bills,
-                        summary.piggyBanks,
-                        summary.rules,
-                    ),
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::confirmRestore) {
-                    Text(stringResource(R.string.feature_backup_restore_confirm), color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = { TextButton(onClick = viewModel::cancelRestore) { Text(stringResource(R.string.feature_backup_cancel)) } },
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_backup_restore_title),
+            message = stringResource(
+                R.string.feature_backup_restore_message,
+                summary.exportedAt.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
+                summary.accounts,
+                summary.transactions,
+                summary.budgets,
+                summary.bills,
+                summary.piggyBanks,
+                summary.rules,
+            ),
+            confirmText = stringResource(R.string.feature_backup_restore_confirm),
+            dismissText = stringResource(R.string.feature_backup_cancel),
+            onConfirm = viewModel::confirmRestore,
+            onDismiss = viewModel::cancelRestore,
         )
     }
 }
@@ -211,20 +191,5 @@ private fun BackupMessage.textRes(): Int = when (this) {
 
 @Composable
 private fun ActionItem(icon: ImageVector, title: String, description: String, enabled: Boolean, onClick: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
-        leadingContent = { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        headlineContent = { Text(title) },
-        supportingContent = { Text(description) },
-    )
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp),
-    )
+    DfListItem(headline = title, supporting = description, icon = icon, onClick = onClick, enabled = enabled)
 }

@@ -1,12 +1,10 @@
 package com.salco.dragonfly.feature.classification.tags
 
+import com.salco.dragonfly.core.designsystem.component.DfListItem
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sell
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -56,26 +54,22 @@ internal fun TagsContent(
         title = stringResource(R.string.feature_classification_tags),
         isLoading = uiState is TagsUiState.Loading,
         isEmpty = tags.isEmpty(),
-        emptyIcon = Icons.Filled.Sell,
+        emptyIcon = Icons.Outlined.Sell,
         emptyTitle = stringResource(R.string.feature_classification_tags_empty_title),
         emptyMessage = stringResource(R.string.feature_classification_tags_empty_message),
         onBack = onBack,
         onAdd = onAdd,
     ) {
         items(tags, key = { it.tag.id }) { summary ->
-            ListItem(
-                modifier = Modifier.clickable { onTagClick(summary.tag) },
-                leadingContent = { Icon(Icons.Filled.Sell, contentDescription = null) },
-                headlineContent = { Text("#${summary.tag.name}") },
-                supportingContent = {
-                    Text(
-                        pluralStringResource(
-                            R.plurals.feature_classification_transaction_count,
-                            summary.transactionCount,
-                            summary.transactionCount,
-                        ),
-                    )
-                },
+            DfListItem(
+                headline = "#${summary.tag.name}",
+                icon = Icons.Outlined.Sell,
+                onClick = { onTagClick(summary.tag) },
+                supporting = pluralStringResource(
+                    R.plurals.feature_classification_transaction_count,
+                    summary.transactionCount,
+                    summary.transactionCount,
+                ),
             )
         }
     }

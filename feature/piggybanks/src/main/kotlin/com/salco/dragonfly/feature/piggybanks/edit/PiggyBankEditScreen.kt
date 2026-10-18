@@ -1,5 +1,15 @@
 package com.salco.dragonfly.feature.piggybanks.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import com.salco.dragonfly.core.designsystem.component.DfConfirmDialog
+import com.salco.dragonfly.core.designsystem.component.DfEmptyState
+import com.salco.dragonfly.core.designsystem.component.DfFormColumn
+import com.salco.dragonfly.core.designsystem.component.DfIconButton
+import com.salco.dragonfly.core.designsystem.component.DfKeyboard
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfTextField
+import com.salco.dragonfly.core.designsystem.component.DropdownField
+import com.salco.dragonfly.core.designsystem.component.DatePickerField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,19 +20,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,68 +35,43 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.DatePickerField
-import com.salco.dragonfly.core.designsystem.component.DropdownField
-import com.salco.dragonfly.core.designsystem.component.EmptyState
 import com.salco.dragonfly.core.model.formatMoney
 import com.salco.dragonfly.feature.piggybanks.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PiggyBankEditScreen(onBack: () -> Unit, viewModel: PiggyBankEditViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var confirmDelete by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.isFinished) { if (uiState.isFinished) onBack() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (uiState.isNew) R.string.feature_piggybanks_new else R.string.feature_piggybanks_edit)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.feature_piggybanks_back)) }
-                },
-                actions = {
-                    if (!uiState.isNew) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, stringResource(R.string.feature_piggybanks_delete))
-                        }
-                    }
-                },
-            )
+    DfScaffold(
+        title = stringResource(if (uiState.isNew) R.string.feature_piggybanks_new else R.string.feature_piggybanks_edit),
+        onBack = onBack,
+        actions = {
+            if (!uiState.isNew) DfIconButton(Icons.Outlined.Delete, stringResource(R.string.feature_piggybanks_delete), { confirmDelete = true })
         },
     ) { padding ->
-        if (uiState.isLoading) return@Scaffold
+        if (uiState.isLoading) return@DfScaffold
         if (uiState.accounts.isEmpty()) {
-            EmptyState(
-                icon = Icons.Filled.AccountBalance,
+            DfEmptyState(
+                icon = Icons.Outlined.AccountBalance,
                 title = stringResource(R.string.feature_piggybanks_error_account),
                 message = stringResource(R.string.feature_piggybanks_no_accounts),
                 modifier = Modifier.padding(padding),
             )
-            return@Scaffold
+            return@DfScaffold
         }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            OutlinedTextField(
+        DfFormColumn(Modifier.padding(padding)) {
+            DfTextField(
                 value = uiState.name,
                 onValueChange = viewModel::onNameChange,
-                label = { Text(stringResource(R.string.feature_piggybanks_name)) },
-                isError = uiState.nameError != null,
-                supportingText = when (uiState.nameError) {
-                    NameError.BLANK -> { { Text(stringResource(R.string.feature_piggybanks_error_name)) } }
-                    NameError.DUPLICATE -> { { Text(stringResource(R.string.feature_piggybanks_error_duplicate)) } }
+                label = stringResource(R.string.feature_piggybanks_name),
+                keyboard = DfKeyboard.Sentences,
+                error = when (uiState.nameError) {
+                    NameError.BLANK -> stringResource(R.string.feature_piggybanks_error_name)
+                    NameError.DUPLICATE -> stringResource(R.string.feature_piggybanks_error_duplicate)
                     null -> null
                 },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
             )
             DropdownField(
                 label = stringResource(R.string.feature_piggybanks_account),
@@ -107,20 +81,14 @@ internal fun PiggyBankEditScreen(onBack: () -> Unit, viewModel: PiggyBankEditVie
                 onSelected = { viewModel.onAccountChange(it.id) },
                 isError = uiState.accountError,
             )
-            OutlinedTextField(
+            DfTextField(
                 value = uiState.target,
                 onValueChange = viewModel::onTargetChange,
-                label = { Text(stringResource(R.string.feature_piggybanks_target)) },
-                suffix = { Text(uiState.account?.currencyCode.orEmpty()) },
-                isError = uiState.targetError,
-                supportingText = if (uiState.targetError) {
-                    { Text(stringResource(R.string.feature_piggybanks_error_target)) }
-                } else {
-                    null
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.feature_piggybanks_target),
+                suffix = uiState.account?.currencyCode.orEmpty(),
+                keyboard = DfKeyboard.Decimal,
+                large = true,
+                error = stringResource(R.string.feature_piggybanks_error_target).takeIf { uiState.targetError },
             )
             DatePickerField(
                 label = stringResource(R.string.feature_piggybanks_start_date),
@@ -133,31 +101,28 @@ internal fun PiggyBankEditScreen(onBack: () -> Unit, viewModel: PiggyBankEditVie
                 onDateChange = viewModel::onTargetDateChange,
                 onClear = { viewModel.onTargetDateChange(null) },
             )
-            OutlinedTextField(
+            DfTextField(
                 value = uiState.notes,
                 onValueChange = viewModel::onNotesChange,
-                label = { Text(stringResource(R.string.feature_piggybanks_notes)) },
+                label = stringResource(R.string.feature_piggybanks_notes),
+                singleLine = false,
                 minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
             )
-            Button(onClick = viewModel::save, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.feature_piggybanks_save))
-            }
+            DfButton(stringResource(R.string.feature_piggybanks_save), viewModel::save, fillWidth = true)
         }
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.feature_piggybanks_delete_title)) },
-            text = { Text(stringResource(R.string.feature_piggybanks_delete_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    viewModel.delete()
-                }) { Text(stringResource(R.string.feature_piggybanks_delete)) }
+        DfConfirmDialog(
+            title = stringResource(R.string.feature_piggybanks_delete_title),
+            message = stringResource(R.string.feature_piggybanks_delete_message),
+            confirmText = stringResource(R.string.feature_piggybanks_delete),
+            dismissText = stringResource(R.string.feature_piggybanks_cancel),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.delete()
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.feature_piggybanks_cancel)) } },
+            onDismiss = { confirmDelete = false },
         )
     }
 }

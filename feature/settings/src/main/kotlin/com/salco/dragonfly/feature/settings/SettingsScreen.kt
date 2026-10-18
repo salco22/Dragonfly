@@ -1,31 +1,31 @@
 package com.salco.dragonfly.feature.settings
 
+import com.salco.dragonfly.core.designsystem.component.DfIcon
+import com.salco.dragonfly.core.designsystem.component.DfListItem
+import com.salco.dragonfly.core.designsystem.component.DfScaffold
+import com.salco.dragonfly.core.designsystem.component.DfSectionHeader
+import com.salco.dragonfly.core.designsystem.component.DfSwitch
+import com.salco.dragonfly.core.designsystem.component.DfTone
+import com.salco.dragonfly.core.designsystem.component.DropdownField
 import android.content.Context
 import android.content.ContextWrapper
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.AutoFixHigh
-import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.EventRepeat
-import androidx.compose.material.icons.filled.Savings
-import androidx.compose.material.icons.filled.Sell
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.automirrored.outlined.EventNote
+import androidx.compose.material.icons.outlined.AutoFixHigh
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.EventRepeat
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.salco.dragonfly.core.designsystem.component.DropdownField
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.SupportedCurrencyCodes
 import com.salco.dragonfly.core.model.UserPreferences
@@ -86,7 +85,6 @@ internal fun SettingsScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsContent(
     uiState: SettingsUiState,
@@ -102,37 +100,38 @@ internal fun SettingsContent(
     onBackupClick: () -> Unit = {},
     onReportsClick: () -> Unit = {},
 ) {
-    Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_settings_title)) }) },
-    ) { padding ->
-        val preferences = (uiState as? SettingsUiState.Success)?.preferences ?: return@Scaffold
+    DfScaffold(title = stringResource(R.string.feature_settings_title)) { padding ->
+        val preferences = (uiState as? SettingsUiState.Success)?.preferences ?: return@DfScaffold
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp),
         ) {
-            SectionTitle(stringResource(R.string.feature_settings_analysis))
-            NavigationItem(Icons.Filled.BarChart, stringResource(R.string.feature_settings_reports), onReportsClick)
+            DfSectionHeader(stringResource(R.string.feature_settings_analysis))
+            NavigationItem(Icons.Outlined.BarChart, stringResource(R.string.feature_settings_reports), onReportsClick)
 
-            SectionTitle(stringResource(R.string.feature_settings_planning))
-            NavigationItem(Icons.AutoMirrored.Filled.EventNote, stringResource(R.string.feature_settings_bills), onBillsClick)
-            NavigationItem(Icons.Filled.Savings, stringResource(R.string.feature_settings_piggy_banks), onPiggyBanksClick)
-            NavigationItem(Icons.Filled.EventRepeat, stringResource(R.string.feature_settings_recurring), onRecurringClick)
+            DfSectionHeader(stringResource(R.string.feature_settings_planning))
+            NavigationItem(Icons.AutoMirrored.Outlined.EventNote, stringResource(R.string.feature_settings_bills), onBillsClick)
+            NavigationItem(Icons.Outlined.Savings, stringResource(R.string.feature_settings_piggy_banks), onPiggyBanksClick)
+            NavigationItem(Icons.Outlined.EventRepeat, stringResource(R.string.feature_settings_recurring), onRecurringClick)
 
-            SectionTitle(stringResource(R.string.feature_settings_security))
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.feature_settings_app_lock)) },
-                supportingContent = {
-                    Text(
-                        stringResource(
-                            if (lockAvailable) R.string.feature_settings_app_lock_description
-                            else R.string.feature_settings_app_lock_unavailable,
-                        ),
-                    )
-                },
-                trailingContent = {
-                    Switch(
+            DfSectionHeader(stringResource(R.string.feature_settings_organization))
+            NavigationItem(Icons.Outlined.Category, stringResource(R.string.feature_settings_categories), onCategoriesClick)
+            NavigationItem(Icons.Outlined.Sell, stringResource(R.string.feature_settings_tags), onTagsClick)
+            NavigationItem(Icons.Outlined.AutoFixHigh, stringResource(R.string.feature_settings_rules), onRulesClick)
+
+            DfSectionHeader(stringResource(R.string.feature_settings_security))
+            DfListItem(
+                headline = stringResource(R.string.feature_settings_app_lock),
+                supporting = stringResource(
+                    if (lockAvailable) R.string.feature_settings_app_lock_description
+                    else R.string.feature_settings_app_lock_unavailable,
+                ),
+                icon = Icons.Outlined.Fingerprint,
+                trailing = {
+                    DfSwitch(
                         checked = preferences.appLockEnabled,
                         onCheckedChange = onAppLockChange,
                         enabled = lockAvailable || preferences.appLockEnabled,
@@ -140,20 +139,15 @@ internal fun SettingsContent(
                 },
             )
 
-            SectionTitle(stringResource(R.string.feature_settings_organization))
-            NavigationItem(Icons.Filled.Category, stringResource(R.string.feature_settings_categories), onCategoriesClick)
-            NavigationItem(Icons.Filled.Sell, stringResource(R.string.feature_settings_tags), onTagsClick)
-            NavigationItem(Icons.Filled.AutoFixHigh, stringResource(R.string.feature_settings_rules), onRulesClick)
-
-            SectionTitle(stringResource(R.string.feature_settings_general))
-            NavigationItem(Icons.Filled.Backup, stringResource(R.string.feature_settings_backup), onBackupClick)
+            DfSectionHeader(stringResource(R.string.feature_settings_general))
+            NavigationItem(Icons.Outlined.Backup, stringResource(R.string.feature_settings_backup), onBackupClick)
             DropdownField(
                 label = stringResource(R.string.feature_settings_default_currency),
                 options = SupportedCurrencyCodes,
                 selected = preferences.defaultCurrencyCode,
                 optionLabel = { it },
                 onSelected = onDefaultCurrencyChange,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
             )
         }
     }
@@ -161,21 +155,11 @@ internal fun SettingsContent(
 
 @Composable
 private fun NavigationItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        leadingContent = { Icon(icon, contentDescription = null) },
-        headlineContent = { Text(label) },
-        trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-    )
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
+    DfListItem(
+        headline = label,
+        icon = icon,
+        onClick = onClick,
+        trailing = { DfIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tone = DfTone.Tertiary) },
     )
 }
 

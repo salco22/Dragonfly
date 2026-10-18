@@ -40,10 +40,10 @@ fun LineChart(
     labels: List<String>,
     description: String,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
+    color: Color = com.salco.dragonfly.core.designsystem.theme.DfTheme.colors.accent,
 ) {
     if (values.isEmpty()) return
-    val gridColor = MaterialTheme.colorScheme.outlineVariant
+    val gridColor = com.salco.dragonfly.core.designsystem.theme.DfTheme.colors.border
     Column(modifier) {
         Canvas(
             Modifier
@@ -68,8 +68,8 @@ fun LineChart(
                 lineTo(0f, size.height)
                 close()
             }
-            drawPath(area, Brush.verticalGradient(listOf(color.copy(alpha = 0.3f), Color.Transparent)))
-            drawPath(line, color, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
+            drawPath(area, Brush.verticalGradient(listOf(color.copy(alpha = 0.18f), Color.Transparent)))
+            drawPath(line, color, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
             drawCircle(color, radius = 4.dp.toPx(), center = Offset((values.size - 1) * stepX, y(values.last())))
         }
         AxisLabels(labels)
@@ -135,7 +135,7 @@ fun DonutChart(
                     .size(132.dp)
                     .semantics { contentDescription = description },
             ) {
-                val stroke = 22.dp.toPx()
+                val stroke = 14.dp.toPx()
                 var start = -90f
                 slices.forEach { slice ->
                     val sweep = slice.value / total * 360f
@@ -151,39 +151,39 @@ fun DonutChart(
                     start += sweep
                 }
             }
-            Text(centerText, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
+            DfText(centerText, style = com.salco.dragonfly.core.designsystem.theme.DfTheme.typography.label, textAlign = TextAlign.Center)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             slices.forEach { slice ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Canvas(Modifier.size(10.dp)) { drawCircle(slice.color) }
-                    Text(slice.label, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f), maxLines = 1)
-                    Text(slice.valueLabel, style = MaterialTheme.typography.bodySmall)
+                    DfText(slice.label, style = com.salco.dragonfly.core.designsystem.theme.DfTheme.typography.bodySmall, modifier = Modifier.weight(1f), maxLines = 1)
+                    DfText(slice.valueLabel, style = com.salco.dragonfly.core.designsystem.theme.DfTheme.typography.bodySmall, tone = DfTone.Secondary)
                 }
             }
         }
     }
 }
 
-/** Distinct colors for chart series, readable on the light Dragonfly palette. */
+/** Muted, distinct colors for chart series, readable in light and dark themes. */
 val ChartPalette = listOf(
-    Color(0xFF3DBB59),
-    Color(0xFF3B6470),
-    Color(0xFFE8A33D),
-    Color(0xFF8E6BBF),
-    Color(0xFFD9534F),
-    Color(0xFF5B8DEF),
-    Color(0xFF9E9E9E),
+    Color(0xFF2F9E5B),
+    Color(0xFF5B7FA6),
+    Color(0xFFC9963A),
+    Color(0xFF8C6BB1),
+    Color(0xFFC75C5C),
+    Color(0xFF4FA3A3),
+    Color(0xFF9E9E9A),
 )
 
 @Composable
 private fun AxisLabels(labels: List<String>) {
     Row(Modifier.fillMaxWidth()) {
         labels.forEach { label ->
-            Text(
+            DfText(
                 label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = com.salco.dragonfly.core.designsystem.theme.DfTheme.typography.caption,
+                tone = DfTone.Tertiary,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
