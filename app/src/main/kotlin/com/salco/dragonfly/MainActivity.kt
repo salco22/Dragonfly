@@ -36,7 +36,7 @@ class MainActivity : FragmentActivity() {
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             DragonflyTheme {
-                DragonflyAppRoot(uiState = uiState, onUnlocked = viewModel::unlock)
+                DragonflyAppRoot(uiState = uiState, onUnlocked = viewModel::unlock, onSkipLogin = viewModel::skipLogin)
             }
         }
     }

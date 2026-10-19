@@ -110,6 +110,8 @@ internal class OfflineFirstSyncRepository(
         translating { network.signOut() }
         store.reset()
         userDataRepository.setSyncState(lastSyncAt = null, syncedUserId = null)
+        // Back to the login screen, as after a fresh install.
+        userDataRepository.setLoginSkipped(false)
         lastError.value = null
     }
 

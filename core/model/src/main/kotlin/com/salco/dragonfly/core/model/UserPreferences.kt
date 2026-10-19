@@ -15,4 +15,6 @@ data class UserPreferences(
     val lastSyncAt: Long? = null,
     /** Account the local data was last synced with; another account starts from scratch. */
     val syncedUserId: String? = null,
+    /** The user chose to use the app without an account; the login screen is not shown again. */
+    val loginSkipped: Boolean = false,
 )

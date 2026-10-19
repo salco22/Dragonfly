@@ -104,6 +104,7 @@ class FakeUserDataRepository(currency: String = "EUR") : UserDataRepository {
     override suspend fun setHideInRecents(hide: Boolean) = prefs.update { it.copy(hideInRecents = hide) }
     override suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?) =
         prefs.update { it.copy(lastSyncAt = lastSyncAt, syncedUserId = syncedUserId) }
+    override suspend fun setLoginSkipped(skipped: Boolean) = prefs.update { it.copy(loginSkipped = skipped) }
 }
 
 /** In-memory transactions that resolve accounts against [accounts], mirroring the Room implementation. */

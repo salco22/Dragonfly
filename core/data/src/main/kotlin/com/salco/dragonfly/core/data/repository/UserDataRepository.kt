@@ -14,6 +14,7 @@ interface UserDataRepository {
     suspend fun setRecurringNotificationsEnabled(enabled: Boolean)
     suspend fun setHideInRecents(hide: Boolean)
     suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?)
+    suspend fun setLoginSkipped(skipped: Boolean)
 }
 
 internal class OfflineUserDataRepository @Inject constructor(
@@ -28,4 +29,5 @@ internal class OfflineUserDataRepository @Inject constructor(
     override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) = dataSource.setRecurringNotificationsEnabled(enabled)
     override suspend fun setHideInRecents(hide: Boolean) = dataSource.setHideInRecents(hide)
     override suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?) = dataSource.setSyncState(lastSyncAt, syncedUserId)
+    override suspend fun setLoginSkipped(skipped: Boolean) = dataSource.setLoginSkipped(skipped)
 }

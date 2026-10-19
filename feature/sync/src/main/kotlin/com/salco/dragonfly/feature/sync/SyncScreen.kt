@@ -47,25 +47,28 @@ import java.time.format.FormatStyle
 @Composable
 internal fun SyncScreen(onBack: () -> Unit, viewModel: SyncViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    SyncContent(uiState = uiState, actions = rememberSyncActions(viewModel, onBack))
+}
+
+/** Callbacks wired to [viewModel], including the Google account picker when it is set up. */
+@Composable
+internal fun rememberSyncActions(viewModel: SyncViewModel, onBack: () -> Unit = {}): SyncActions {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val googleClientId = viewModel.googleClientId
-    SyncContent(
-        uiState = uiState,
-        actions = SyncActions(
-            onBack = onBack,
-            onGoogle = googleClientId?.let { clientId ->
-                { scope.launch { viewModel.onGoogleResult(requestGoogleIdToken(context, clientId)) } }
-            },
-            onEmailChange = viewModel::onEmailChange,
-            onSendCode = viewModel::sendCode,
-            onCodeChange = viewModel::onCodeChange,
-            onVerify = viewModel::verifyCode,
-            onChangeEmail = viewModel::changeEmail,
-            onSyncNow = viewModel::syncNow,
-            onSignOut = viewModel::signOut,
-            onMessageShown = viewModel::messageShown,
-        ),
+    return SyncActions(
+        onBack = onBack,
+        onGoogle = googleClientId?.let { clientId ->
+            { scope.launch { viewModel.onGoogleResult(requestGoogleIdToken(context, clientId)) } }
+        },
+        onEmailChange = viewModel::onEmailChange,
+        onSendCode = viewModel::sendCode,
+        onCodeChange = viewModel::onCodeChange,
+        onVerify = viewModel::verifyCode,
+        onChangeEmail = viewModel::changeEmail,
+        onSyncNow = viewModel::syncNow,
+        onSignOut = viewModel::signOut,
+        onMessageShown = viewModel::messageShown,
     )
 }
 
@@ -110,7 +113,7 @@ internal fun SyncContent(uiState: SyncUiState, actions: SyncActions) {
 }
 
 @Composable
-private fun SignInForm(form: SignInForm, actions: SyncActions) {
+internal fun SignInForm(form: SignInForm, actions: SyncActions) {
     if (form.busy) DfLinearLoading()
     DfText(stringResource(R.string.feature_sync_intro), tone = DfTone.Secondary)
     val onGoogle = actions.onGoogle

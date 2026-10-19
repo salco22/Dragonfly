@@ -36,4 +36,8 @@
     <string name="feature_sync_or_email">oppure ricevi un codice via email</string>
     <string name="feature_sync_google_no_account">Nessun account Google su questo dispositivo. Aggiungine uno nelle impostazioni del telefono.</string>
     <string name="feature_sync_google_failed">Accesso con Google non riuscito. Riprova.</string>
+    <string name="feature_sync_login_title">Dragonfly</string>
+    <string name="feature_sync_login_subtitle">Le tue finanze, su tutti i tuoi dispositivi.</string>
+    <string name="feature_sync_login_skip">Continua senza account</string>
+    <string name="feature_sync_login_skip_hint">I dati restano solo su questo telefono. Puoi accedere più tardi da Altro.</string>
 </resources>
