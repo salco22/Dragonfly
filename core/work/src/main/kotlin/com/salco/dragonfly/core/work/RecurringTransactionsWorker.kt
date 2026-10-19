@@ -10,8 +10,10 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.salco.dragonfly.core.data.repository.RecurringTransactionsRepository
+import com.salco.dragonfly.core.data.repository.UserDataRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
@@ -21,10 +23,14 @@ class RecurringTransactionsWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val repository: RecurringTransactionsRepository,
+    private val userDataRepository: UserDataRepository,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        repository.generateDueTransactions(LocalDate.now())
+        val created = repository.generateDueTransactions(LocalDate.now())
+        if (userDataRepository.userPreferences.first().recurringNotificationsEnabled) {
+            RecurringNotifier(applicationContext).notify(created)
+        }
         return Result.success()
     }
 

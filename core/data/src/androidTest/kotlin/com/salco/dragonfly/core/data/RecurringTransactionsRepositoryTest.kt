@@ -70,9 +70,9 @@ class RecurringTransactionsRepositoryTest {
         )
 
         // 31 August, then the last day of September and 31 October again.
-        assertEquals(3, repository.generateDueTransactions(LocalDate.of(2026, 10, 31)))
+        assertEquals(3, repository.generateDueTransactions(LocalDate.of(2026, 10, 31)).size)
         // Running again on the same day creates nothing new.
-        assertEquals(0, repository.generateDueTransactions(LocalDate.of(2026, 10, 31)))
+        assertEquals(0, repository.generateDueTransactions(LocalDate.of(2026, 10, 31)).size)
 
         val created = all()
         assertEquals(
@@ -88,7 +88,7 @@ class RecurringTransactionsRepositoryTest {
         assertEquals("Padrone di casa", saved.destinationName)
 
         // The fourth and last occurrence ends the schedule.
-        assertEquals(1, repository.generateDueTransactions(LocalDate.of(2026, 12, 31)))
+        assertEquals(1, repository.generateDueTransactions(LocalDate.of(2026, 12, 31)).size)
         assertNull(repository.observeRecurringTransaction(id).first()!!.nextDate)
     }
 
@@ -96,7 +96,7 @@ class RecurringTransactionsRepositoryTest {
     fun editingTheSchedule_doesNotRepeatGeneratedDates() = runTest {
         val start = LocalDate.of(2026, 10, 1)
         val id = repository.saveRecurringTransaction(rent(RecurrenceRule(RecurrenceFrequency.WEEKLY, startDate = start)))
-        assertEquals(3, repository.generateDueTransactions(LocalDate.of(2026, 10, 15)))
+        assertEquals(3, repository.generateDueTransactions(LocalDate.of(2026, 10, 15)).size)
 
         // Switching to daily from the same start continues after the last generated date.
         val saved = repository.observeRecurringTransaction(id).first()!!
@@ -109,7 +109,7 @@ class RecurringTransactionsRepositoryTest {
         repository.saveRecurringTransaction(
             rent(RecurrenceRule(RecurrenceFrequency.DAILY, startDate = LocalDate.of(2026, 10, 1))).copy(active = false),
         )
-        assertEquals(0, repository.generateDueTransactions(LocalDate.of(2026, 10, 10)))
+        assertEquals(0, repository.generateDueTransactions(LocalDate.of(2026, 10, 10)).size)
         assertEquals(0, all().size)
     }
 }

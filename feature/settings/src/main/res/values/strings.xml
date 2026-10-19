@@ -18,4 +18,8 @@
     <string name="feature_settings_rules">Regole automatiche</string>
     <string name="feature_settings_general">Generali</string>
     <string name="feature_settings_default_currency">Valuta predefinita</string>
+    <string name="feature_settings_notifications">Notifiche</string>
+    <string name="feature_settings_recurring_notifications">Transazioni ricorrenti</string>
+    <string name="feature_settings_recurring_notifications_description">Avvisa quando vengono create in automatico</string>
+    <string name="feature_settings_notifications_blocked">Le notifiche sono bloccate: tocca per attivarle</string>
 </resources>

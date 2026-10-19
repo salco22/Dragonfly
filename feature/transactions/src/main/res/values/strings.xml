@@ -97,4 +97,8 @@
     <string name="feature_transactions_error_split_title">Inserisci un titolo</string>
     <string name="feature_transactions_split_total">Totale</string>
     <string name="feature_transactions_delete_split_message">Verranno eliminate tutte le parti della transazione divisa.</string>
+    <string name="feature_transactions_recurring_notify_title">Vuoi un avviso?</string>
+    <string name="feature_transactions_recurring_notify_message">Ti mando una notifica quando le transazioni ricorrenti vengono create in automatico.</string>
+    <string name="feature_transactions_recurring_notify_allow">Attiva le notifiche</string>
+    <string name="feature_transactions_recurring_notify_decline">No, grazie</string>
 </resources>

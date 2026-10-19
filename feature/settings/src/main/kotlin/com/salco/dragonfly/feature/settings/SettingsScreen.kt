@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.EventRepeat
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Sell
@@ -42,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.SupportedCurrencyCodes
 import com.salco.dragonfly.core.model.UserPreferences
+import com.salco.dragonfly.core.ui.rememberNotificationPermission
 import com.salco.dragonfly.feature.lock.isAppLockAvailable
 import com.salco.dragonfly.feature.lock.showAppLockPrompt
 
@@ -60,6 +62,9 @@ internal fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lockAvailable = remember(context) { isAppLockAvailable(context) }
+    val notificationPermission = rememberNotificationPermission { granted ->
+        if (granted) viewModel.setRecurringNotificationsEnabled(true)
+    }
 
     SettingsContent(
         uiState = uiState,
@@ -74,6 +79,12 @@ internal fun SettingsScreen(
             }
         },
         onDefaultCurrencyChange = viewModel::setDefaultCurrency,
+        notificationsAllowed = notificationPermission.granted,
+        onRecurringNotificationsChange = { enabled ->
+            viewModel.setRecurringNotificationsEnabled(enabled)
+            if (enabled && !notificationPermission.granted) notificationPermission.request()
+        },
+        onAllowNotifications = notificationPermission::request,
         onCategoriesClick = onCategoriesClick,
         onTagsClick = onTagsClick,
         onBillsClick = onBillsClick,
@@ -91,6 +102,9 @@ internal fun SettingsContent(
     lockAvailable: Boolean,
     onAppLockChange: (Boolean) -> Unit,
     onDefaultCurrencyChange: (String) -> Unit,
+    notificationsAllowed: Boolean = true,
+    onRecurringNotificationsChange: (Boolean) -> Unit = {},
+    onAllowNotifications: () -> Unit = {},
     onCategoriesClick: () -> Unit = {},
     onTagsClick: () -> Unit = {},
     onBillsClick: () -> Unit = {},
@@ -121,6 +135,25 @@ internal fun SettingsContent(
             NavigationItem(Icons.Outlined.Category, stringResource(R.string.feature_settings_categories), onCategoriesClick)
             NavigationItem(Icons.Outlined.Sell, stringResource(R.string.feature_settings_tags), onTagsClick)
             NavigationItem(Icons.Outlined.AutoFixHigh, stringResource(R.string.feature_settings_rules), onRulesClick)
+
+            DfSectionHeader(stringResource(R.string.feature_settings_notifications))
+            val blocked = preferences.recurringNotificationsEnabled && !notificationsAllowed
+            DfListItem(
+                headline = stringResource(R.string.feature_settings_recurring_notifications),
+                supporting = stringResource(
+                    if (blocked) R.string.feature_settings_notifications_blocked
+                    else R.string.feature_settings_recurring_notifications_description,
+                ),
+                supportingTone = if (blocked) DfTone.Negative else DfTone.Secondary,
+                icon = Icons.Outlined.Notifications,
+                onClick = if (blocked) onAllowNotifications else null,
+                trailing = {
+                    DfSwitch(
+                        checked = preferences.recurringNotificationsEnabled,
+                        onCheckedChange = onRecurringNotificationsChange,
+                    )
+                },
+            )
 
             DfSectionHeader(stringResource(R.string.feature_settings_security))
             DfListItem(
