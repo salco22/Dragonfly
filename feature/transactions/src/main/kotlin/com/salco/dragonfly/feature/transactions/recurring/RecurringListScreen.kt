@@ -1,5 +1,11 @@
 package com.salco.dragonfly.feature.transactions.recurring
 
+import com.salco.dragonfly.core.ui.rememberNotificationPermission
+import com.salco.dragonfly.core.designsystem.component.DfCard
+import com.salco.dragonfly.core.designsystem.component.DfButtonStyle
+import com.salco.dragonfly.core.designsystem.component.DfButton
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import com.salco.dragonfly.core.designsystem.component.DfAmount
 import com.salco.dragonfly.core.designsystem.component.DfEmptyState
 import com.salco.dragonfly.core.designsystem.component.DfFab
@@ -54,7 +60,16 @@ internal fun RecurringListScreen(
     viewModel: RecurringListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    RecurringListContent(uiState, onBack, onItemClick, onAdd)
+    val notificationPermission = rememberNotificationPermission()
+    RecurringListContent(
+        uiState = uiState,
+        onBack = onBack,
+        onItemClick = onItemClick,
+        onAdd = onAdd,
+        askForNotifications = !notificationPermission.granted,
+        onAllowNotifications = notificationPermission::request,
+        onDeclineNotifications = viewModel::declineNotifications,
+    )
 }
 
 @Composable
@@ -63,6 +78,9 @@ internal fun RecurringListContent(
     onBack: () -> Unit,
     onItemClick: (Long) -> Unit,
     onAdd: () -> Unit,
+    askForNotifications: Boolean = false,
+    onAllowNotifications: () -> Unit = {},
+    onDeclineNotifications: () -> Unit = {},
 ) {
     DfScaffold(
         title = stringResource(R.string.feature_transactions_recurring_title),
@@ -79,8 +97,24 @@ internal fun RecurringListContent(
                 modifier = Modifier.padding(padding),
             )
             else -> LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 96.dp)) {
+                if (askForNotifications && (uiState as RecurringListUiState.Success).notificationsWanted) {
+                    item(key = "notifications") { NotificationsCard(onAllowNotifications, onDeclineNotifications) }
+                }
                 items(items, key = { it.id }) { item -> RecurringRow(item, onClick = { onItemClick(item.id) }) }
             }
+        }
+    }
+}
+
+/** Offers to notify when transactions are created in the background; shown until the user decides. */
+@Composable
+private fun NotificationsCard(onAllow: () -> Unit, onDecline: () -> Unit) {
+    DfCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), highlighted = true) {
+        DfText(stringResource(R.string.feature_transactions_recurring_notify_title), style = DfTheme.typography.subtitle)
+        DfText(stringResource(R.string.feature_transactions_recurring_notify_message), style = DfTheme.typography.bodySmall, tone = DfTone.Secondary)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DfButton(stringResource(R.string.feature_transactions_recurring_notify_allow), onAllow)
+            DfButton(stringResource(R.string.feature_transactions_recurring_notify_decline), onDecline, style = DfButtonStyle.Text)
         }
     }
 }

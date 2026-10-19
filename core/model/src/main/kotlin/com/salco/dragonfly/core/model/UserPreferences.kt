@@ -7,4 +7,6 @@ data class UserPreferences(
     val autoBackupFolder: String? = null,
     /** When the last backup was written, in epoch milliseconds. */
     val lastBackupAt: Long? = null,
+    /** Notify when recurring transactions are created in the background. */
+    val recurringNotificationsEnabled: Boolean = true,
 )

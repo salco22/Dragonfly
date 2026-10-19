@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_work_recurring_channel">Transazioni ricorrenti</string>
+    <string name="core_work_recurring_channel_description">Avvisa quando vengono create le transazioni ricorrenti</string>
+    <plurals name="core_work_recurring_title">
+        <item quantity="one">Creata %d transazione ricorrente</item>
+        <item quantity="other">Create %d transazioni ricorrenti</item>
+    </plurals>
+    <string name="core_work_recurring_more">e altre %d</string>
+</resources>

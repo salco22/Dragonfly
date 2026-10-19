@@ -28,8 +28,8 @@ interface RecurringTransactionsRepository {
     /** Deletes the schedule; transactions it already created stay. */
     suspend fun deleteRecurringTransaction(id: Long)
 
-    /** Creates every transaction due on or before [today] and returns how many were created. */
-    suspend fun generateDueTransactions(today: LocalDate): Int
+    /** Creates every transaction due on or before [today] and returns them, oldest first per schedule. */
+    suspend fun generateDueTransactions(today: LocalDate): List<TransactionDraft>
 }
 
 internal class OfflineRecurringTransactionsRepository @Inject constructor(
@@ -54,24 +54,25 @@ internal class OfflineRecurringTransactionsRepository @Inject constructor(
 
     override suspend fun deleteRecurringTransaction(id: Long) = recurringDao.deleteById(id)
 
-    override suspend fun generateDueTransactions(today: LocalDate): Int {
-        var created = 0
+    override suspend fun generateDueTransactions(today: LocalDate): List<TransactionDraft> {
+        val created = mutableListOf<TransactionDraft>()
         recurringDao.getDue(today.toEpochDay()).forEach { due ->
             // One database transaction per schedule: its transactions and counter move together.
             created += runInTransaction {
-                var recurring = recurringDao.getById(due.id) ?: return@runInTransaction 0
-                var count = 0
+                var recurring = recurringDao.getById(due.id) ?: return@runInTransaction emptyList()
+                val drafts = mutableListOf<TransactionDraft>()
                 while (recurring.active && recurring.nextDate != null && recurring.nextDate!! <= today.toEpochDay()) {
-                    transactionsRepository.saveTransaction(recurring.draftFor(LocalDate.ofEpochDay(recurring.nextDate!!)))
+                    val draft = recurring.draftFor(LocalDate.ofEpochDay(recurring.nextDate!!))
+                    transactionsRepository.saveTransaction(draft)
+                    drafts += draft
                     val occurrences = recurring.occurrencesCreated + 1
                     recurring = recurring.copy(
                         occurrencesCreated = occurrences,
                         nextDate = recurring.rule().nextAfter(occurrences)?.toEpochDay(),
                     )
-                    count++
                 }
                 recurringDao.upsert(recurring)
-                count
+                drafts
             }
         }
         return created

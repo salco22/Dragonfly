@@ -11,6 +11,7 @@ interface UserDataRepository {
     suspend fun setDefaultCurrencyCode(currencyCode: String)
     suspend fun setAutoBackupFolder(uri: String?)
     suspend fun setLastBackupAt(epochMillis: Long)
+    suspend fun setRecurringNotificationsEnabled(enabled: Boolean)
 }
 
 internal class OfflineUserDataRepository @Inject constructor(
@@ -22,4 +23,5 @@ internal class OfflineUserDataRepository @Inject constructor(
         dataSource.setDefaultCurrencyCode(currencyCode)
     override suspend fun setAutoBackupFolder(uri: String?) = dataSource.setAutoBackupFolder(uri)
     override suspend fun setLastBackupAt(epochMillis: Long) = dataSource.setLastBackupAt(epochMillis)
+    override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) = dataSource.setRecurringNotificationsEnabled(enabled)
 }

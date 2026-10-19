@@ -21,6 +21,7 @@ class UserPreferencesDataSource @Inject constructor(
             defaultCurrencyCode = prefs[DEFAULT_CURRENCY] ?: SupportedCurrencyCodes.first(),
             autoBackupFolder = prefs[AUTO_BACKUP_FOLDER],
             lastBackupAt = prefs[LAST_BACKUP_AT],
+            recurringNotificationsEnabled = prefs[RECURRING_NOTIFICATIONS] ?: true,
         )
     }
 
@@ -40,10 +41,15 @@ class UserPreferencesDataSource @Inject constructor(
         dataStore.edit { it[LAST_BACKUP_AT] = epochMillis }
     }
 
+    suspend fun setRecurringNotificationsEnabled(enabled: Boolean) {
+        dataStore.edit { it[RECURRING_NOTIFICATIONS] = enabled }
+    }
+
     private companion object {
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
         val DEFAULT_CURRENCY = stringPreferencesKey("default_currency")
         val AUTO_BACKUP_FOLDER = stringPreferencesKey("auto_backup_folder")
         val LAST_BACKUP_AT = longPreferencesKey("last_backup_at")
+        val RECURRING_NOTIFICATIONS = booleanPreferencesKey("recurring_notifications")
     }
 }

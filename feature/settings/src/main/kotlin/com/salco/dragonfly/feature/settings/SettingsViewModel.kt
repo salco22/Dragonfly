@@ -25,6 +25,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { userDataRepository.setAppLockEnabled(enabled) }
     }
 
+    fun setRecurringNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch { userDataRepository.setRecurringNotificationsEnabled(enabled) }
+    }
+
     fun setDefaultCurrency(currencyCode: String) {
         viewModelScope.launch { userDataRepository.setDefaultCurrencyCode(currencyCode) }
     }

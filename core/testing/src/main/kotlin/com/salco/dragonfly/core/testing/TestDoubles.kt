@@ -93,6 +93,8 @@ class FakeUserDataRepository(currency: String = "EUR") : UserDataRepository {
         prefs.update { it.copy(defaultCurrencyCode = currencyCode) }
     override suspend fun setAutoBackupFolder(uri: String?) = prefs.update { it.copy(autoBackupFolder = uri) }
     override suspend fun setLastBackupAt(epochMillis: Long) = prefs.update { it.copy(lastBackupAt = epochMillis) }
+    override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) =
+        prefs.update { it.copy(recurringNotificationsEnabled = enabled) }
 }
 
 /** In-memory transactions that resolve accounts against [accounts], mirroring the Room implementation. */
@@ -325,15 +327,16 @@ class FakeRecurringTransactionsRepository(
 
     override suspend fun deleteRecurringTransaction(id: Long) = recurring.update { list -> list.filterNot { it.id == id } }
 
-    override suspend fun generateDueTransactions(today: LocalDate): Int {
-        var created = 0
+    override suspend fun generateDueTransactions(today: LocalDate): List<TransactionDraft> {
+        val created = mutableListOf<TransactionDraft>()
         recurring.value = recurring.value.map { item ->
             var current = item
             while (current.active && current.nextDate != null && !current.nextDate!!.isAfter(today)) {
-                transactions.saveTransaction(current.template.copy(id = 0, date = current.nextDate!!))
+                val draft = current.template.copy(id = 0, date = current.nextDate!!)
+                transactions.saveTransaction(draft)
+                created += draft
                 val count = current.occurrencesCreated + 1
                 current = current.copy(occurrencesCreated = count, nextDate = current.rule.nextAfter(count))
-                created++
             }
             current
         }
