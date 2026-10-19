@@ -29,6 +29,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { userDataRepository.setRecurringNotificationsEnabled(enabled) }
     }
 
+    fun setHideInRecents(hide: Boolean) {
+        viewModelScope.launch { userDataRepository.setHideInRecents(hide) }
+    }
+
     fun setDefaultCurrency(currencyCode: String) {
         viewModelScope.launch { userDataRepository.setDefaultCurrencyCode(currencyCode) }
     }

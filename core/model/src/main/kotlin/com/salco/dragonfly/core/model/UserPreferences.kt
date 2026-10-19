@@ -9,4 +9,6 @@ data class UserPreferences(
     val lastBackupAt: Long? = null,
     /** Notify when recurring transactions are created in the background. */
     val recurringNotificationsEnabled: Boolean = true,
+    /** Keep the app's content out of the recent apps preview. */
+    val hideInRecents: Boolean = true,
 )

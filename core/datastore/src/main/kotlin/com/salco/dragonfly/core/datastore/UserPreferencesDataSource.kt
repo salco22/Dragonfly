@@ -22,6 +22,7 @@ class UserPreferencesDataSource @Inject constructor(
             autoBackupFolder = prefs[AUTO_BACKUP_FOLDER],
             lastBackupAt = prefs[LAST_BACKUP_AT],
             recurringNotificationsEnabled = prefs[RECURRING_NOTIFICATIONS] ?: true,
+            hideInRecents = prefs[HIDE_IN_RECENTS] ?: true,
         )
     }
 
@@ -45,11 +46,16 @@ class UserPreferencesDataSource @Inject constructor(
         dataStore.edit { it[RECURRING_NOTIFICATIONS] = enabled }
     }
 
+    suspend fun setHideInRecents(hide: Boolean) {
+        dataStore.edit { it[HIDE_IN_RECENTS] = hide }
+    }
+
     private companion object {
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
         val DEFAULT_CURRENCY = stringPreferencesKey("default_currency")
         val AUTO_BACKUP_FOLDER = stringPreferencesKey("auto_backup_folder")
         val LAST_BACKUP_AT = longPreferencesKey("last_backup_at")
         val RECURRING_NOTIFICATIONS = booleanPreferencesKey("recurring_notifications")
+        val HIDE_IN_RECENTS = booleanPreferencesKey("hide_in_recents")
     }
 }
