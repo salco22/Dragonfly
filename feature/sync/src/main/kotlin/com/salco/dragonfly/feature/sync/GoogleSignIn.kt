@@ -1,6 +1,7 @@
 package com.salco.dragonfly.feature.sync
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -33,6 +34,7 @@ internal suspend fun requestGoogleIdToken(activityContext: Context, clientId: St
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             GoogleSignInResult.Token(GoogleIdTokenCredential.createFrom(credential.data).idToken, rawNonce)
         } else {
+            Log.w(TAG, "Unexpected credential type ${credential.type}")
             GoogleSignInResult.Failed
         }
     } catch (e: GetCredentialCancellationException) {
@@ -40,6 +42,10 @@ internal suspend fun requestGoogleIdToken(activityContext: Context, clientId: St
     } catch (e: NoCredentialException) {
         GoogleSignInResult.NoAccount
     } catch (e: GetCredentialException) {
+        // A setup problem (e.g. "[28444] Developer console is not set up correctly") shows up here.
+        Log.w(TAG, "Google sign-in failed: ${e.type} ${e.errorMessage}", e)
         GoogleSignInResult.Failed
     }
 }
+
+private const val TAG = "GoogleSignIn"
