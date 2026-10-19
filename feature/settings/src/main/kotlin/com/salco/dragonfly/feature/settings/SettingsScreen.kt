@@ -131,6 +131,16 @@ internal fun SettingsContent(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 24.dp),
         ) {
+            DfSectionHeader(stringResource(R.string.feature_settings_account))
+            DfListItem(
+                headline = stringResource(R.string.feature_settings_sync),
+                supporting = stringResource(R.string.feature_settings_sync_description),
+                icon = Icons.Outlined.Sync,
+                iconTone = DfTone.Accent,
+                onClick = onSyncClick,
+                trailing = { DfIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tone = DfTone.Tertiary) },
+            )
+
             DfSectionHeader(stringResource(R.string.feature_settings_analysis))
             NavigationItem(Icons.Outlined.BarChart, stringResource(R.string.feature_settings_reports), onReportsClick)
 
@@ -192,7 +202,6 @@ internal fun SettingsContent(
             )
 
             DfSectionHeader(stringResource(R.string.feature_settings_general))
-            NavigationItem(Icons.Outlined.Sync, stringResource(R.string.feature_settings_sync), onSyncClick)
             NavigationItem(Icons.Outlined.Backup, stringResource(R.string.feature_settings_backup), onBackupClick)
             DropdownField(
                 label = stringResource(R.string.feature_settings_default_currency),
