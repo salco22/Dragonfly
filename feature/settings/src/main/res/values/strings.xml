@@ -25,4 +25,5 @@
     <string name="feature_settings_hide_in_recents">Nascondi nelle app recenti</string>
     <string name="feature_settings_hide_in_recents_description">L\'anteprima di Dragonfly resta vuota quando cambi app</string>
     <string name="feature_settings_hide_in_recents_description_legacy">L\'anteprima resta vuota quando cambi app; blocca anche gli screenshot</string>
+    <string name="feature_settings_sync">Account e sincronizzazione</string>
 </resources>

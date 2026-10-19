@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_sync_title">Account e sincronizzazione</string>
+    <string name="feature_sync_not_configured_title">Sincronizzazione non configurata</string>
+    <string name="feature_sync_not_configured_message">Aggiungi SUPABASE_URL e SUPABASE_KEY in secrets.properties e ricompila l\'app.</string>
+    <string name="feature_sync_intro">Accedi per avere gli stessi dati su tutti i tuoi dispositivi. Ti mandiamo un codice via email, senza password. L\'app continua a funzionare anche offline.</string>
+    <string name="feature_sync_email">Email</string>
+    <string name="feature_sync_error_email">Inserisci un indirizzo email valido</string>
+    <string name="feature_sync_send_code">Invia il codice</string>
+    <string name="feature_sync_code_sent">Abbiamo inviato un codice a %s.</string>
+    <string name="feature_sync_code">Codice</string>
+    <string name="feature_sync_sign_in">Accedi</string>
+    <string name="feature_sync_change_email">Cambia email</string>
+    <string name="feature_sync_resend">Invia di nuovo</string>
+    <string name="feature_sync_signed_in_as">Accesso effettuato come</string>
+    <string name="feature_sync_last_sync">Ultima sincronizzazione: %s</string>
+    <string name="feature_sync_never">Non ancora sincronizzato</string>
+    <string name="feature_sync_syncing">Sincronizzazione in corso…</string>
+    <plurals name="feature_sync_pending">
+        <item quantity="one">%d modifica da inviare</item>
+        <item quantity="other">%d modifiche da inviare</item>
+    </plurals>
+    <string name="feature_sync_up_to_date">Tutto aggiornato</string>
+    <string name="feature_sync_now">Sincronizza ora</string>
+    <string name="feature_sync_automatic">Si sincronizza anche da solo quando apri o chiudi l\'app e ogni ora, se c\'è connessione.</string>
+    <string name="feature_sync_sign_out">Esci</string>
+    <string name="feature_sync_sign_out_title">Uscire dall\'account?</string>
+    <string name="feature_sync_sign_out_message">I dati restano su questo telefono ma smettono di sincronizzarsi.</string>
+    <string name="feature_sync_cancel">Annulla</string>
+    <string name="feature_sync_error_offline">Nessuna connessione. Riprova quando sei online.</string>
+    <string name="feature_sync_error_invalid_code">Codice errato o scaduto.</string>
+    <string name="feature_sync_error_rate_limited">Troppi tentativi. Aspetta qualche minuto e riprova.</string>
+    <string name="feature_sync_error_signed_out">La sessione è scaduta: accedi di nuovo.</string>
+    <string name="feature_sync_error_server">Il server non ha risposto come previsto. Riprova più tardi.</string>
+</resources>

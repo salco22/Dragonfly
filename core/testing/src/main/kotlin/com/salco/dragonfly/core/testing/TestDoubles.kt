@@ -1,5 +1,11 @@
 package com.salco.dragonfly.core.testing
 
+import com.salco.dragonfly.core.model.SyncStatus
+import com.salco.dragonfly.core.model.SyncResult
+import com.salco.dragonfly.core.model.SyncException
+import com.salco.dragonfly.core.model.SyncError
+import com.salco.dragonfly.core.model.SyncAccount
+import com.salco.dragonfly.core.data.repository.SyncRepository
 import com.salco.dragonfly.core.data.repository.AccountsRepository
 import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
@@ -590,5 +596,44 @@ class FakeImportRepository(
             imported++
         }
         return ImportResult(imported, duplicates)
+    }
+}
+
+/** Sync account and status driven by the test; [verifyCode] accepts "123456". */
+class FakeSyncRepository(configured: Boolean = true) : SyncRepository {
+    val accountState = MutableStateFlow<SyncAccount>(if (configured) SyncAccount.SignedOut else SyncAccount.NotConfigured)
+    val statusState = MutableStateFlow(SyncStatus())
+    var failNextWith: SyncError? = null
+    var codesSent = 0
+    var syncs = 0
+
+    override val account: Flow<SyncAccount> = accountState
+    override val status: Flow<SyncStatus> = statusState
+
+    private fun maybeFail() {
+        failNextWith?.let { failNextWith = null; throw SyncException(it) }
+    }
+
+    override suspend fun sendCode(email: String) {
+        maybeFail()
+        codesSent++
+    }
+
+    override suspend fun verifyCode(email: String, code: String) {
+        maybeFail()
+        if (code != "123456") throw SyncException(SyncError.InvalidCode)
+        accountState.value = SyncAccount.SignedIn(email)
+    }
+
+    override suspend fun signOut() {
+        accountState.value = SyncAccount.SignedOut
+    }
+
+    override suspend fun sync(): SyncResult? {
+        maybeFail()
+        if (accountState.value !is SyncAccount.SignedIn) return null
+        syncs++
+        statusState.value = statusState.value.copy(lastSyncAt = 1_000L * syncs, pendingChanges = 0)
+        return SyncResult(0, 0)
     }
 }

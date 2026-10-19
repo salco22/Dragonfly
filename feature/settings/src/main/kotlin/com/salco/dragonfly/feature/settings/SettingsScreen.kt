@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +60,7 @@ internal fun SettingsScreen(
     onRulesClick: () -> Unit,
     onBackupClick: () -> Unit,
     onReportsClick: () -> Unit,
+    onSyncClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,6 +98,7 @@ internal fun SettingsScreen(
         onRulesClick = onRulesClick,
         onBackupClick = onBackupClick,
         onReportsClick = onReportsClick,
+        onSyncClick = onSyncClick,
     )
 }
 
@@ -117,6 +120,7 @@ internal fun SettingsContent(
     onRulesClick: () -> Unit = {},
     onBackupClick: () -> Unit = {},
     onReportsClick: () -> Unit = {},
+    onSyncClick: () -> Unit = {},
 ) {
     DfScaffold(title = stringResource(R.string.feature_settings_title)) { padding ->
         val preferences = (uiState as? SettingsUiState.Success)?.preferences ?: return@DfScaffold
@@ -188,6 +192,7 @@ internal fun SettingsContent(
             )
 
             DfSectionHeader(stringResource(R.string.feature_settings_general))
+            NavigationItem(Icons.Outlined.Sync, stringResource(R.string.feature_settings_sync), onSyncClick)
             NavigationItem(Icons.Outlined.Backup, stringResource(R.string.feature_settings_backup), onBackupClick)
             DropdownField(
                 label = stringResource(R.string.feature_settings_default_currency),

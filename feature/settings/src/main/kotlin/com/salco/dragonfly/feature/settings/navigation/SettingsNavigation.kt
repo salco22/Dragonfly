@@ -22,6 +22,7 @@ fun NavGraphBuilder.settingsScreen(
     onRulesClick: () -> Unit,
     onBackupClick: () -> Unit,
     onReportsClick: () -> Unit,
+    onSyncClick: () -> Unit,
 ) {
     composable<SettingsRoute> {
         SettingsScreen(
@@ -33,6 +34,7 @@ fun NavGraphBuilder.settingsScreen(
             onRulesClick = onRulesClick,
             onBackupClick = onBackupClick,
             onReportsClick = onReportsClick,
+            onSyncClick = onSyncClick,
         )
     }
 }
