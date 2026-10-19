@@ -10,6 +10,7 @@ import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountRef
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.TransactionDraft
+import com.salco.dragonfly.core.model.TransactionGroupDraft
 import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.parseAmountToMinorUnits
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,7 +58,7 @@ abstract class TransactionFormViewModel(
 
     /** Keeps inactive budgets and archived accounts selectable when they are already in use. */
     protected fun TransactionEditUiState.keepingSelected(): TransactionEditUiState = copy(
-        budgets = budgets.filter { it.active || it.id == budgetId },
+        budgets = budgets.filter { budget -> budget.active || budget.id == budgetId || splits.any { it.budgetId == budget.id } },
         bills = bills.filter { it.active || it.id == billId },
         ownAccounts = (ownAccounts + allAccounts.filter { (it.id == accountId || it.id == toAccountId) && it.type.isOwn })
             .distinctBy { it.id },
@@ -88,6 +89,83 @@ abstract class TransactionFormViewModel(
     }
 
     fun removeTag(name: String) = _uiState.update { it.copy(tags = it.tags - name) }
+
+    fun onGroupTitleChange(value: String) = _uiState.update { it.copy(groupTitle = value, groupTitleError = false) }
+
+    /** Adds an empty part; the first time, the title starts from the description of part 1. */
+    fun addSplit() = _uiState.update { state ->
+        state.copy(
+            splits = state.splits + SplitForm(),
+            groupTitle = state.groupTitle.ifBlank { state.description },
+        )
+    }
+
+    /** Removes a part after the first; with no parts left the transaction is an ordinary one again. */
+    fun removeSplit(index: Int) = _uiState.update { state ->
+        state.copy(splits = state.splits.filterIndexed { i, _ -> i != index })
+    }
+
+    /** Changes the part at [index] (0 is part 2), clearing the errors of the fields being edited. */
+    fun updateSplit(index: Int, change: (SplitForm) -> SplitForm) = _uiState.update { state ->
+        state.copy(splits = state.splits.mapIndexed { i, split -> if (i == index) change(split) else split })
+    }
+
+    fun onSplitDescriptionChange(index: Int, value: String) = updateSplit(index) { it.copy(description = value, descriptionError = false) }
+    fun onSplitAmountChange(index: Int, value: String) = updateSplit(index) { it.copy(amount = value, amountError = false) }
+    fun onSplitCounterpartyChange(index: Int, value: String) = updateSplit(index) { it.copy(counterparty = value, counterpartyError = false) }
+    fun onSplitCategoryChange(index: Int, value: String) = updateSplit(index) { it.copy(category = value) }
+    fun onSplitBudgetChange(index: Int, id: Long?) = updateSplit(index) { it.copy(budgetId = id) }
+    fun onSplitTagInputChange(index: Int, value: String) = updateSplit(index) { it.copy(tagInput = value) }
+
+    fun addSplitTag(index: Int, name: String) = updateSplit(index) { split ->
+        val tag = name.trim()
+        if (tag.isEmpty() || split.tags.any { it.equals(tag, ignoreCase = true) }) split.copy(tagInput = "")
+        else split.copy(tags = split.tags + tag, tagInput = "")
+    }
+
+    fun removeSplitTag(index: Int, name: String) = updateSplit(index) { it.copy(tags = it.tags - name) }
+
+    /**
+     * Validates a split transaction: part 1 through [validatedDraft], every other part with the
+     * same type, date and own account. Returns null and shows errors when something is missing.
+     */
+    protected fun validatedGroup(firstId: Long): TransactionGroupDraft? {
+        val first = validatedDraft(firstId)
+        val state = _uiState.value
+        val currency = state.currencyCode
+        val checked = state.splits.map { split ->
+            split.copy(
+                amountError = currency == null || parseAmountToMinorUnits(split.amount, currency)?.takeIf { it > 0 } == null,
+                descriptionError = split.description.isBlank(),
+                counterpartyError = split.counterparty.isBlank(),
+            )
+        }
+        val titleError = state.groupTitle.isBlank()
+        if (first == null || titleError || checked.any { it.hasErrors }) {
+            _uiState.update { it.copy(splits = checked, groupTitleError = titleError) }
+            return null
+        }
+        val others = checked.map { split ->
+            val counterparty = if (state.type == TransactionType.DEPOSIT) {
+                counterpartyRef(split.counterparty, AccountType.REVENUE, first.currencyCode)
+            } else {
+                counterpartyRef(split.counterparty, AccountType.EXPENSE, first.currencyCode)
+            }
+            first.copy(
+                id = split.id,
+                description = split.description.trim(),
+                amount = parseAmountToMinorUnits(split.amount, first.currencyCode)!!,
+                source = if (state.type == TransactionType.DEPOSIT) counterparty else first.source,
+                destination = if (state.type == TransactionType.DEPOSIT) first.destination else counterparty,
+                notes = null,
+                categoryName = split.category.trim().ifEmpty { null },
+                tagNames = (split.tags + split.tagInput.trim()).filter { it.isNotEmpty() },
+                budgetId = split.budgetId.takeIf { state.type == TransactionType.WITHDRAWAL },
+                billId = null,
+            )
+        }
+        return TransactionGroupDraft(id = state.groupId, title = state.groupTitle.trim(), splits = listOf(first) + others)
+    }
 
     /** Validates the form, showing errors, and returns the transaction it describes or null. */
     protected fun validatedDraft(id: Long = 0): TransactionDraft? {
@@ -142,7 +220,7 @@ abstract class TransactionFormViewModel(
         )
     }
 
-    private fun counterpartyRef(name: String, type: AccountType, currency: String): AccountRef {
+    protected fun counterpartyRef(name: String, type: AccountType, currency: String): AccountRef {
         val trimmed = name.trim()
         val existing = allAccounts.firstOrNull { it.type == type && it.name.equals(trimmed, ignoreCase = true) }
         return existing?.let { AccountRef.Existing(it.id) } ?: AccountRef.New(trimmed, type, currency)

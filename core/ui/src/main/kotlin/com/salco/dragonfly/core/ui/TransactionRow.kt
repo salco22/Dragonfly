@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.SwapHoriz
@@ -55,7 +56,7 @@ fun TransactionRow(
         false -> "−" to DfTone.Primary
         null -> "" to DfTone.Secondary
     }
-    val icon = when (transaction.type) {
+    val icon = if (transaction.groupId != null) Icons.AutoMirrored.Outlined.CallSplit else when (transaction.type) {
         TransactionType.WITHDRAWAL -> Icons.Outlined.ArrowUpward
         TransactionType.DEPOSIT -> Icons.Outlined.ArrowDownward
         TransactionType.TRANSFER -> Icons.Outlined.SwapHoriz

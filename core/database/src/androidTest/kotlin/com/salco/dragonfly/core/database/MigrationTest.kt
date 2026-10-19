@@ -4,6 +4,7 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -103,6 +104,31 @@ class MigrationTest {
         helper.createDatabase(DB_NAME, 7).close()
         helper.runMigrationsAndValidate(DB_NAME, 8, true).use { db ->
             db.query("SELECT COUNT(*) FROM rules").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
+    @Test
+    fun migrate8To9_addsSplitGroups_keepingTransactions() {
+        helper.createDatabase(DB_NAME, 8).use { db ->
+            db.execSQL(
+                "INSERT INTO accounts (id, name, type, currency_code, opening_balance, active, include_in_net_worth, created_at) " +
+                    "VALUES (1, 'Conto', 'ASSET', 'EUR', 0, 1, 1, 0), (2, 'Bar', 'EXPENSE', 'EUR', 0, 1, 0, 0)",
+            )
+            db.execSQL(
+                "INSERT INTO transactions (id, type, description, date, amount, currency_code, source_account_id, destination_account_id) " +
+                    "VALUES (1, 'WITHDRAWAL', 'Caffè', 20000, 150, 'EUR', 1, 2)",
+            )
+        }
+        helper.runMigrationsAndValidate(DB_NAME, 9, true).use { db ->
+            db.query("SELECT description, group_id FROM transactions").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals("Caffè", cursor.getString(0))
+                assertTrue(cursor.isNull(1))
+            }
+            db.query("SELECT COUNT(*) FROM transaction_groups").use { cursor ->
                 cursor.moveToFirst()
                 assertEquals(0, cursor.getInt(0))
             }

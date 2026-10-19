@@ -26,12 +26,14 @@ import com.salco.dragonfly.core.database.model.RuleEntity
 import com.salco.dragonfly.core.database.model.RuleTriggerEntity
 import com.salco.dragonfly.core.database.model.TagEntity
 import com.salco.dragonfly.core.database.model.TransactionEntity
+import com.salco.dragonfly.core.database.model.TransactionGroupEntity
 import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
 
 @Database(
     entities = [
         AccountEntity::class,
         TransactionEntity::class,
+        TransactionGroupEntity::class,
         CategoryEntity::class,
         TagEntity::class,
         TransactionTagCrossRef::class,
@@ -53,13 +55,14 @@ import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
         AutoMigration(from = 7, to = 8),
+        AutoMigration(from = 8, to = 9),
     ],
     exportSchema = true,
 )
 abstract class DragonflyDatabase : RoomDatabase() {
     companion object {
         /** Keep in sync with [Database.version]; written into backups. */
-        const val VERSION = 8
+        const val VERSION = 9
     }
 
 

@@ -238,4 +238,90 @@ class TransactionEditViewModelTest {
         vm.save()
         assertEquals(bill, transactions.transactions.value.single().bill?.id)
     }
+
+    @Test
+    fun splitTransaction_isSavedAsOneGroupAndReloaded() = runTest {
+        val vm = viewModel()
+        vm.onAmountChange("30")
+        vm.onDescriptionChange("Spesa")
+        vm.onCounterpartyChange("Supermercato")
+        vm.addSplit()
+        assertEquals("Spesa", vm.uiState.value.groupTitle)
+        vm.onSplitAmountChange(0, "12,50")
+        vm.onSplitDescriptionChange(0, "Medicine")
+        vm.onSplitCounterpartyChange(0, "Farmacia")
+        vm.onSplitCategoryChange(0, "Salute")
+        vm.onGroupTitleChange("Centro commerciale")
+        assertEquals(4_250L, vm.uiState.value.splitTotal)
+        vm.save()
+
+        val saved = transactions.transactions.value.sortedBy { it.id }
+        assertEquals(2, saved.size)
+        assertEquals(listOf(3_000L, 1_250L), saved.map { it.amount })
+        assertEquals(listOf("Supermercato", "Farmacia"), saved.map { it.destination.name })
+        assertTrue(saved.all { it.groupId != null && it.groupTitle == "Centro commerciale" && it.source.id == checkingId })
+        assertEquals("Salute", saved[1].category?.name)
+
+        // Opening any part edits the whole group.
+        with(viewModel(saved[1].id).uiState.value) {
+            assertEquals("Centro commerciale", groupTitle)
+            assertEquals("Spesa", description)
+            assertEquals(listOf("Medicine"), splits.map { it.description })
+        }
+    }
+
+    @Test
+    fun splitTransaction_withMissingFields_showsErrorsOnTheParts() = runTest {
+        val vm = viewModel()
+        vm.onAmountChange("30")
+        vm.onDescriptionChange("Spesa")
+        vm.onCounterpartyChange("Supermercato")
+        vm.addSplit()
+        vm.onGroupTitleChange("")
+        vm.save()
+        with(vm.uiState.value) {
+            assertTrue(groupTitleError)
+            assertTrue(splits.single().amountError)
+            assertTrue(splits.single().descriptionError)
+            assertTrue(splits.single().counterpartyError)
+        }
+        assertTrue(transactions.transactions.value.isEmpty())
+    }
+
+    @Test
+    fun removingEveryOtherPart_turnsItBackIntoAnOrdinaryTransaction() = runTest {
+        val vm = viewModel()
+        vm.onAmountChange("30")
+        vm.onDescriptionChange("Spesa")
+        vm.onCounterpartyChange("Supermercato")
+        vm.addSplit()
+        vm.onSplitAmountChange(0, "5")
+        vm.onSplitDescriptionChange(0, "Pane")
+        vm.onSplitCounterpartyChange(0, "Forno")
+        vm.save()
+        val firstId = transactions.transactions.value.minOf { it.id }
+
+        val edit = viewModel(firstId)
+        edit.removeSplit(0)
+        edit.save()
+        val left = transactions.transactions.value.single()
+        assertEquals(firstId, left.id)
+        assertNull(left.groupId)
+    }
+
+    @Test
+    fun deletingASplitTransaction_deletesEveryPart() = runTest {
+        val vm = viewModel()
+        vm.onAmountChange("30")
+        vm.onDescriptionChange("Spesa")
+        vm.onCounterpartyChange("Supermercato")
+        vm.addSplit()
+        vm.onSplitAmountChange(0, "5")
+        vm.onSplitDescriptionChange(0, "Pane")
+        vm.onSplitCounterpartyChange(0, "Forno")
+        vm.save()
+
+        viewModel(transactions.transactions.value.maxOf { it.id }).delete()
+        assertTrue(transactions.transactions.value.isEmpty())
+    }
 }

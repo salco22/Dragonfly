@@ -44,6 +44,9 @@ data class Transaction(
     val budget: BudgetRef? = null,
     /** Bill or subscription paid by a withdrawal. */
     val bill: BillRef? = null,
+    /** Split transaction this is a part of, as in Firefly III's transaction groups. */
+    val groupId: Long? = null,
+    val groupTitle: String? = null,
 )
 
 data class BudgetRef(val id: Long, val name: String)
@@ -77,6 +80,57 @@ data class TransactionDraft(
     /** Bill paid by a withdrawal; ignored for other types. */
     val billId: Long? = null,
 )
+
+/**
+ * A split transaction: one movement of money divided into parts, each with its own description,
+ * amount, counterparty, category, budget and tags. Every part shares type, date and own account.
+ */
+data class TransactionGroupDraft(
+    val id: Long = 0,
+    val title: String,
+    /** Parts to keep; an existing part has its id set, a new one has id 0. */
+    val splits: List<TransactionDraft>,
+)
+
+/**
+ * Shows each split transaction as one entry: the parts of a group found in this list are replaced,
+ * at the position of the first one, by a transaction with the group's title, the total amount and
+ * what the parts have in common (category, budget) plus all their counterparties and tags. The id
+ * is the first part's (in entry order), so opening it edits the whole group. A group with a single part in the
+ * list (for example when filtering by category) is left as that part.
+ */
+fun List<Transaction>.mergingSplits(): List<Transaction> {
+    val parts = filter { it.groupId != null }.groupBy { it.groupId }
+    if (parts.values.none { it.size > 1 }) return this
+    val emitted = mutableSetOf<Long>()
+    return mapNotNull { transaction ->
+        val groupId = transaction.groupId ?: return@mapNotNull transaction
+        val group = parts.getValue(groupId)
+        when {
+            group.size == 1 -> transaction
+            !emitted.add(groupId) -> null
+            else -> group.merged()
+        }
+    }
+}
+
+private fun List<Transaction>.merged(): Transaction = sortedBy { it.id }.run {
+    val first = first()
+    fun names(of: (Transaction) -> AccountSummary) = map(of).distinctBy { it.id }
+        .let { accounts -> if (accounts.size == 1) accounts.single() else accounts.first().copy(name = accounts.joinToString(", ") { it.name }) }
+    first.copy(
+        description = first.groupTitle ?: first.description,
+        amount = sumOf { it.amount },
+        foreignAmount = null,
+        source = names { it.source },
+        destination = names { it.destination },
+        notes = null,
+        category = map { it.category }.distinct().singleOrNull(),
+        tags = flatMap { it.tags }.distinctBy { it.id },
+        budget = map { it.budget }.distinct().singleOrNull(),
+        bill = map { it.bill }.distinct().singleOrNull(),
+    )
+}
 
 /** Criteria for searching transactions; null fields do not filter. */
 data class TransactionFilter(

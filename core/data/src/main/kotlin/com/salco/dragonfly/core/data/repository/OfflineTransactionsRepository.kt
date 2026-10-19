@@ -1,5 +1,6 @@
 package com.salco.dragonfly.core.data.repository
 
+import com.salco.dragonfly.core.database.dao.SplitPart
 import com.salco.dragonfly.core.database.dao.TransactionDao
 import com.salco.dragonfly.core.database.model.AccountEntity
 import com.salco.dragonfly.core.database.model.PopulatedTransaction
@@ -9,6 +10,7 @@ import com.salco.dragonfly.core.model.AccountRef
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionFilter
+import com.salco.dragonfly.core.model.TransactionGroupDraft
 import com.salco.dragonfly.core.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -47,32 +49,46 @@ internal class OfflineTransactionsRepository @Inject constructor(
         if (draft.id == 0L) ruleApplier.apply(draft) else draft,
     )
 
-    private suspend fun saveResolved(draft: TransactionDraft): Long =
-        transactionDao.save(
-            transaction = TransactionEntity(
-                id = draft.id,
-                type = draft.type,
-                description = draft.description,
-                date = draft.date.toEpochDay(),
-                amount = draft.amount,
-                currencyCode = draft.currencyCode,
-                foreignAmount = draft.foreignAmount,
-                sourceAccountId = (draft.source as? AccountRef.Existing)?.id ?: 0,
-                destinationAccountId = (draft.destination as? AccountRef.Existing)?.id ?: 0,
-                notes = draft.notes,
-                budgetId = draft.budgetId.takeIf { draft.type == TransactionType.WITHDRAWAL },
-                billId = draft.billId.takeIf { draft.type == TransactionType.WITHDRAWAL },
-            ),
-            newSource = (draft.source as? AccountRef.New)?.asEntity(),
-            newDestination = (draft.destination as? AccountRef.New)?.asEntity(),
-            categoryName = draft.categoryName,
-            tagNames = draft.tagNames,
-        )
+    private suspend fun saveResolved(draft: TransactionDraft): Long = draft.asSplitPart().let { part ->
+        transactionDao.save(part.transaction, part.newSource, part.newDestination, part.categoryName, part.tagNames)
+    }
+
+    override fun observeSplitTransaction(groupId: Long): Flow<List<Transaction>> =
+        transactionDao.observeGroup(groupId).map(List<PopulatedTransaction>::asModels)
+
+    override suspend fun saveSplitTransaction(group: TransactionGroupDraft): Long = transactionDao.saveGroup(
+        groupId = group.id,
+        title = group.title,
+        parts = group.splits.map { split -> (if (split.id == 0L) ruleApplier.apply(split) else split).asSplitPart() },
+    )
+
+    override suspend fun deleteSplitTransaction(groupId: Long) = transactionDao.deleteGroup(groupId)
 
     override suspend fun deleteTransaction(id: Long) = transactionDao.deleteById(id)
 }
 
 private fun List<PopulatedTransaction>.asModels() = map { it.asExternalModel() }
+
+private fun TransactionDraft.asSplitPart() = SplitPart(
+    transaction = TransactionEntity(
+        id = id,
+        type = type,
+        description = description,
+        date = date.toEpochDay(),
+        amount = amount,
+        currencyCode = currencyCode,
+        foreignAmount = foreignAmount,
+        sourceAccountId = (source as? AccountRef.Existing)?.id ?: 0,
+        destinationAccountId = (destination as? AccountRef.Existing)?.id ?: 0,
+        notes = notes,
+        budgetId = budgetId.takeIf { type == TransactionType.WITHDRAWAL },
+        billId = billId.takeIf { type == TransactionType.WITHDRAWAL },
+    ),
+    newSource = (source as? AccountRef.New)?.asEntity(),
+    newDestination = (destination as? AccountRef.New)?.asEntity(),
+    categoryName = categoryName,
+    tagNames = tagNames,
+)
 
 private fun AccountRef.New.asEntity() = AccountEntity(
     name = name.trim(),

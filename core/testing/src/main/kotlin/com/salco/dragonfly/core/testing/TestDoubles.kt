@@ -44,6 +44,7 @@ import com.salco.dragonfly.core.model.AccountSummary
 import com.salco.dragonfly.core.model.Transaction
 import com.salco.dragonfly.core.model.TransactionDraft
 import com.salco.dragonfly.core.model.TransactionFilter
+import com.salco.dragonfly.core.model.TransactionGroupDraft
 import java.time.LocalDate
 import java.time.YearMonth
 import com.salco.dragonfly.core.model.Account
@@ -160,6 +161,33 @@ class FakeTransactionsRepository(
     }
 
     override suspend fun deleteTransaction(id: Long) = transactions.update { list -> list.filterNot { it.id == id } }
+
+    private var nextGroupId = 1L
+
+    override fun observeSplitTransaction(groupId: Long): Flow<List<Transaction>> =
+        transactions.map { list -> list.filter { it.groupId == groupId }.sortedBy { it.id } }
+
+    override suspend fun saveSplitTransaction(group: TransactionGroupDraft): Long {
+        val groupId = when {
+            group.splits.size < 2 -> 0L
+            group.id != 0L -> group.id
+            else -> nextGroupId++
+        }
+        val kept = group.splits.map { saveTransaction(it) }
+        transactions.update { list ->
+            list.filterNot { group.id != 0L && it.groupId == group.id && it.id !in kept }
+                .map { t ->
+                    when {
+                        t.id in kept -> t.copy(groupId = groupId.takeIf { it != 0L }, groupTitle = group.title.takeIf { groupId != 0L })
+                        else -> t
+                    }
+                }
+        }
+        return groupId
+    }
+
+    override suspend fun deleteSplitTransaction(groupId: Long) =
+        transactions.update { list -> list.filterNot { it.groupId == groupId } }
 
     private suspend fun resolve(ref: AccountRef): AccountSummary {
         val account = when (ref) {

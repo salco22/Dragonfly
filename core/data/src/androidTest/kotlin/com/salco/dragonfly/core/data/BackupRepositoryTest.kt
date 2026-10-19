@@ -162,10 +162,10 @@ class BackupRepositoryTest {
     @Test
     fun csvQuotesSpecialCharacters() = runTest {
         populate()
-        val csv = ByteArrayOutputStream().also { backup.writeTransactionsCsv(it) }.toString(Charsets.UTF_8.name()).removePrefix("﻿")
+        val csv = ByteArrayOutputStream().also { backup.writeTransactionsCsv(it) }.toString(Charsets.UTF_8.name()).removePrefix("\uFEFF")
         val lines = csv.split("\r\n").filter { it.isNotEmpty() }
-        assertEquals("date,type,description,amount,currency,foreign_amount,source,destination,category,tags,budget,bill,notes", lines.first())
-        assertTrue(csv.contains("2026-10-03,withdrawal,\"Spesa, \"\"grande\"\"\",42.50,EUR,,Conto,Supermercato,Cibo,Casa Settimana,Spesa,,\"riga 1\nriga 2\""))
+        assertEquals("date,type,description,amount,currency,foreign_amount,source,destination,category,tags,budget,bill,notes,split_group", lines.first())
+        assertTrue(csv.contains("2026-10-03,withdrawal,\"Spesa, \"\"grande\"\"\",42.50,EUR,,Conto,Supermercato,Cibo,Casa Settimana,Spesa,,\"riga 1\nriga 2\","))
         assertTrue(csv.contains("2026-10-05,withdrawal,Affitto,800.00,EUR,,Conto,Padrone,,,,Affitto,"))
     }
 }
