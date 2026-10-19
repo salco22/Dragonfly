@@ -96,6 +96,8 @@ class FakeUserDataRepository(currency: String = "EUR") : UserDataRepository {
     override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) =
         prefs.update { it.copy(recurringNotificationsEnabled = enabled) }
     override suspend fun setHideInRecents(hide: Boolean) = prefs.update { it.copy(hideInRecents = hide) }
+    override suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?) =
+        prefs.update { it.copy(lastSyncAt = lastSyncAt, syncedUserId = syncedUserId) }
 }
 
 /** In-memory transactions that resolve accounts against [accounts], mirroring the Room implementation. */

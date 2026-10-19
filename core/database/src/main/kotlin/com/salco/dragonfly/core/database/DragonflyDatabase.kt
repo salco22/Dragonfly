@@ -28,6 +28,7 @@ import com.salco.dragonfly.core.database.model.TagEntity
 import com.salco.dragonfly.core.database.model.TransactionEntity
 import com.salco.dragonfly.core.database.model.TransactionGroupEntity
 import com.salco.dragonfly.core.database.model.TransactionTagCrossRef
+import com.salco.dragonfly.core.database.sync.SyncMetaDao
 import com.salco.dragonfly.core.database.sync.SyncMetaEntity
 import com.salco.dragonfly.core.database.sync.SyncStateEntity
 
@@ -75,6 +76,7 @@ abstract class DragonflyDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
     abstract fun tagDao(): TagDao
+    abstract fun syncMetaDao(): SyncMetaDao
     abstract fun budgetDao(): BudgetDao
     abstract fun billDao(): BillDao
     abstract fun insightsDao(): InsightsDao

@@ -25,6 +25,7 @@ include(":core:designsystem")
 include(":core:testing")
 include(":core:ui")
 include(":core:work")
+include(":core:network")
 
 include(":feature:accounts")
 include(":feature:backup")

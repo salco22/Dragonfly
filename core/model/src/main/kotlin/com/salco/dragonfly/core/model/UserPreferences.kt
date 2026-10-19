@@ -11,4 +11,8 @@ data class UserPreferences(
     val recurringNotificationsEnabled: Boolean = true,
     /** Keep the app's content out of the recent apps preview. */
     val hideInRecents: Boolean = true,
+    /** End of the last successful sync, in epoch milliseconds. */
+    val lastSyncAt: Long? = null,
+    /** Account the local data was last synced with; another account starts from scratch. */
+    val syncedUserId: String? = null,
 )

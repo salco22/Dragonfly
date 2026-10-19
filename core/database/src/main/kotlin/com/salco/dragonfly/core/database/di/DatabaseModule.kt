@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.salco.dragonfly.core.database.sync.SyncMetaDao
 import com.salco.dragonfly.core.database.sync.SyncTriggers
 import com.salco.dragonfly.core.database.DragonflyDatabase
 import com.salco.dragonfly.core.database.dao.AccountDao
@@ -86,4 +87,7 @@ internal object DatabaseModule {
 
     @Provides
     fun providesTagDao(database: DragonflyDatabase): TagDao = database.tagDao()
+
+    @Provides
+    fun providesSyncMetaDao(database: DragonflyDatabase): SyncMetaDao = database.syncMetaDao()
 }

@@ -13,6 +13,7 @@ interface UserDataRepository {
     suspend fun setLastBackupAt(epochMillis: Long)
     suspend fun setRecurringNotificationsEnabled(enabled: Boolean)
     suspend fun setHideInRecents(hide: Boolean)
+    suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?)
 }
 
 internal class OfflineUserDataRepository @Inject constructor(
@@ -26,4 +27,5 @@ internal class OfflineUserDataRepository @Inject constructor(
     override suspend fun setLastBackupAt(epochMillis: Long) = dataSource.setLastBackupAt(epochMillis)
     override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) = dataSource.setRecurringNotificationsEnabled(enabled)
     override suspend fun setHideInRecents(hide: Boolean) = dataSource.setHideInRecents(hide)
+    override suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?) = dataSource.setSyncState(lastSyncAt, syncedUserId)
 }

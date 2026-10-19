@@ -119,6 +119,8 @@ class SyncStore @Inject constructor(private val database: DragonflyDatabase) {
             Meta(c.getString(0), c.getLong(1), c.getInt(2) == 1, c.getInt(3) == 1)
         }.firstOrNull()
         if (meta != null && meta.dirty && meta.modifiedAt > record.modifiedAt) return ApplyResult.Skipped
+        // Our own change coming back from the server.
+        if (meta != null && !meta.dirty && meta.modifiedAt == record.modifiedAt) return ApplyResult.Skipped
 
         if (record.deleted) {
             if (meta == null) return ApplyResult.Skipped
