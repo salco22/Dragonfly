@@ -60,15 +60,31 @@ class SyncViewModel @Inject constructor(
         }
     }
 
+    /** Google client id for the account picker, or null when Google sign-in is not set up. */
+    val googleClientId: String? get() = repository.googleClientId
+
+    internal fun onGoogleResult(result: GoogleSignInResult) {
+        when (result) {
+            is GoogleSignInResult.Token -> launchBusy {
+                repository.signInWithGoogle(result.idToken, result.rawNonce)
+                form.value = SignInForm()
+                runCatching { repository.sync() }
+            }
+            GoogleSignInResult.Cancelled -> Unit
+            GoogleSignInResult.NoAccount -> form.update { it.copy(googleError = GoogleError.NoAccount) }
+            GoogleSignInResult.Failed -> form.update { it.copy(googleError = GoogleError.Failed) }
+        }
+    }
+
     fun syncNow() = launchBusy { repository.sync() }
 
     fun signOut() = launchBusy { repository.signOut() }
 
-    fun messageShown() = form.update { it.copy(error = null) }
+    fun messageShown() = form.update { it.copy(error = null, googleError = null) }
 
     private fun launchBusy(block: suspend () -> Unit) {
         if (form.value.busy) return
-        form.update { it.copy(busy = true, error = null) }
+        form.update { it.copy(busy = true, error = null, googleError = null) }
         viewModelScope.launch {
             try {
                 block()
@@ -94,7 +110,10 @@ data class SignInForm(
     val busy: Boolean = false,
     /** Error of the last action, shown once. */
     val error: SyncError? = null,
+    val googleError: GoogleError? = null,
 )
+
+enum class GoogleError { NoAccount, Failed }
 
 data class SyncUiState(
     val account: SyncAccount = SyncAccount.Loading,

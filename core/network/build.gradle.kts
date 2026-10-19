@@ -17,6 +17,8 @@ android {
     defaultConfig {
         buildConfigField("String", "SUPABASE_URL", "\"${secrets.getProperty("SUPABASE_URL", "")}\"")
         buildConfigField("String", "SUPABASE_KEY", "\"${secrets.getProperty("SUPABASE_KEY", "")}\"")
+        // OAuth "Web application" client id from Google Cloud, also set in Supabase's Google provider.
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${secrets.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
     }
 }
 

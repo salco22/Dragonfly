@@ -69,6 +69,8 @@ private class FakeNetwork(private val server: FakeServer, userId: String?) : Syn
     )
     private val userId get() = (account.value as NetworkAccount.SignedIn).userId
 
+    override val googleClientId: String? = null
+    override suspend fun signInWithGoogle(idToken: String, rawNonce: String) = Unit
     override suspend fun sendCode(email: String) = Unit
     override suspend fun verifyCode(email: String, code: String) {
         if (code != "123456") throw SyncNetworkException(SyncNetworkException.Reason.InvalidCode)

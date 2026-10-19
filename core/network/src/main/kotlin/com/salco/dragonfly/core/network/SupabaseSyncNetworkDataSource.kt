@@ -4,6 +4,8 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
+import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.providers.builtin.OTP
 import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -61,6 +63,18 @@ internal class SupabaseSyncNetworkDataSource @Inject constructor() : SyncNetwork
     override suspend fun verifyCode(email: String, code: String) {
         translatingErrors(invalidInput = SyncNetworkException.Reason.InvalidCode) {
             client.auth.verifyEmailOtp(type = OtpType.Email.EMAIL, email = email, token = code)
+        }
+    }
+
+    override val googleClientId: String? = BuildConfig.GOOGLE_WEB_CLIENT_ID.takeIf { isConfigured && it.isNotBlank() }
+
+    override suspend fun signInWithGoogle(idToken: String, rawNonce: String) {
+        translatingErrors {
+            client.auth.signInWith(IDToken) {
+                this.idToken = idToken
+                provider = Google
+                nonce = rawNonce
+            }
         }
     }
 

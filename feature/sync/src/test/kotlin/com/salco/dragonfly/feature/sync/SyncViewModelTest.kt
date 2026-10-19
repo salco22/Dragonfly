@@ -65,4 +65,18 @@ class SyncViewModelTest {
         vm.signOut()
         assertEquals(SyncAccount.SignedOut, vm.uiState.value.account)
     }
+
+    @Test
+    fun googleSignIn_signsInAndSyncs_cancelIsIgnored() = runTest {
+        val vm = viewModel()
+        vm.onGoogleResult(GoogleSignInResult.Cancelled)
+        assertEquals(null, vm.uiState.value.form.googleError)
+        vm.onGoogleResult(GoogleSignInResult.NoAccount)
+        assertEquals(GoogleError.NoAccount, vm.uiState.value.form.googleError)
+
+        vm.onGoogleResult(GoogleSignInResult.Token("id-token", "nonce"))
+        assertEquals(SyncAccount.SignedIn("google@example.com"), vm.uiState.value.account)
+        assertEquals(1, repository.syncs)
+        assertEquals(null, vm.uiState.value.form.googleError)
+    }
 }

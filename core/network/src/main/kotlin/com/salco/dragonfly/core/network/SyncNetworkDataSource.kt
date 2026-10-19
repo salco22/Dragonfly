@@ -52,11 +52,17 @@ interface SyncNetworkDataSource {
 
     val account: Flow<NetworkAccount>
 
+    /** Google client id to request an ID token for, or null when Google sign-in is not set up. */
+    val googleClientId: String?
+
     /** Emails a one-time code; a new account is created for an unknown address. */
     suspend fun sendCode(email: String)
 
     /** Signs in with the code received by email. */
     suspend fun verifyCode(email: String, code: String)
+
+    /** Signs in with a Google ID token requested with the SHA-256 of [rawNonce]. */
+    suspend fun signInWithGoogle(idToken: String, rawNonce: String)
 
     suspend fun signOut()
 

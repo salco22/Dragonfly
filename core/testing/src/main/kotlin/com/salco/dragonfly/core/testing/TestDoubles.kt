@@ -600,7 +600,7 @@ class FakeImportRepository(
 }
 
 /** Sync account and status driven by the test; [verifyCode] accepts "123456". */
-class FakeSyncRepository(configured: Boolean = true) : SyncRepository {
+class FakeSyncRepository(configured: Boolean = true, override val googleClientId: String? = null) : SyncRepository {
     val accountState = MutableStateFlow<SyncAccount>(if (configured) SyncAccount.SignedOut else SyncAccount.NotConfigured)
     val statusState = MutableStateFlow(SyncStatus())
     var failNextWith: SyncError? = null
@@ -623,6 +623,11 @@ class FakeSyncRepository(configured: Boolean = true) : SyncRepository {
         maybeFail()
         if (code != "123456") throw SyncException(SyncError.InvalidCode)
         accountState.value = SyncAccount.SignedIn(email)
+    }
+
+    override suspend fun signInWithGoogle(idToken: String, rawNonce: String) {
+        maybeFail()
+        accountState.value = SyncAccount.SignedIn("google@example.com")
     }
 
     override suspend fun signOut() {

@@ -10,8 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +38,7 @@ import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.SyncAccount
 import com.salco.dragonfly.core.model.SyncError
 import com.salco.dragonfly.core.model.SyncStatus
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -44,10 +47,16 @@ import java.time.format.FormatStyle
 @Composable
 internal fun SyncScreen(onBack: () -> Unit, viewModel: SyncViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val googleClientId = viewModel.googleClientId
     SyncContent(
         uiState = uiState,
         actions = SyncActions(
             onBack = onBack,
+            onGoogle = googleClientId?.let { clientId ->
+                { scope.launch { viewModel.onGoogleResult(requestGoogleIdToken(context, clientId)) } }
+            },
             onEmailChange = viewModel::onEmailChange,
             onSendCode = viewModel::sendCode,
             onCodeChange = viewModel::onCodeChange,
@@ -62,6 +71,8 @@ internal fun SyncScreen(onBack: () -> Unit, viewModel: SyncViewModel = hiltViewM
 
 internal data class SyncActions(
     val onBack: () -> Unit = {},
+    /** Null when Google sign-in is not set up. */
+    val onGoogle: (() -> Unit)? = null,
     val onEmailChange: (String) -> Unit = {},
     val onSendCode: () -> Unit = {},
     val onCodeChange: (String) -> Unit = {},
@@ -102,6 +113,18 @@ internal fun SyncContent(uiState: SyncUiState, actions: SyncActions) {
 private fun SignInForm(form: SignInForm, actions: SyncActions) {
     if (form.busy) DfLinearLoading()
     DfText(stringResource(R.string.feature_sync_intro), tone = DfTone.Secondary)
+    val onGoogle = actions.onGoogle
+    if (onGoogle != null && !form.codeSent) {
+        DfButton(stringResource(R.string.feature_sync_google), onGoogle, enabled = !form.busy, fillWidth = true)
+        form.googleError?.let {
+            DfText(
+                stringResource(if (it == GoogleError.NoAccount) R.string.feature_sync_google_no_account else R.string.feature_sync_google_failed),
+                style = DfTheme.typography.bodySmall,
+                tone = DfTone.Negative,
+            )
+        }
+        DfText(stringResource(R.string.feature_sync_or_email), style = DfTheme.typography.caption, tone = DfTone.Tertiary)
+    }
     if (!form.codeSent) {
         DfTextField(
             value = form.email,
@@ -115,7 +138,13 @@ private fun SignInForm(form: SignInForm, actions: SyncActions) {
             },
             onDone = actions.onSendCode,
         )
-        DfButton(stringResource(R.string.feature_sync_send_code), actions.onSendCode, enabled = !form.busy, fillWidth = true)
+        DfButton(
+            stringResource(R.string.feature_sync_send_code),
+            actions.onSendCode,
+            enabled = !form.busy,
+            fillWidth = true,
+            style = if (onGoogle != null) DfButtonStyle.Secondary else DfButtonStyle.Primary,
+        )
     } else {
         DfText(stringResource(R.string.feature_sync_code_sent, form.email.trim()))
         DfTextField(

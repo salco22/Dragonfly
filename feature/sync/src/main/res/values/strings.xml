@@ -32,4 +32,8 @@
     <string name="feature_sync_error_rate_limited">Troppi tentativi. Aspetta qualche minuto e riprova.</string>
     <string name="feature_sync_error_signed_out">La sessione è scaduta: accedi di nuovo.</string>
     <string name="feature_sync_error_server">Il server non ha risposto come previsto. Riprova più tardi.</string>
+    <string name="feature_sync_google">Continua con Google</string>
+    <string name="feature_sync_or_email">oppure ricevi un codice via email</string>
+    <string name="feature_sync_google_no_account">Nessun account Google su questo dispositivo. Aggiungine uno nelle impostazioni del telefono.</string>
+    <string name="feature_sync_google_failed">Accesso con Google non riuscito. Riprova.</string>
 </resources>

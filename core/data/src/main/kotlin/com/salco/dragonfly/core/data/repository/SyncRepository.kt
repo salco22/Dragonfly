@@ -33,11 +33,17 @@ interface SyncRepository {
     val account: Flow<SyncAccount>
     val status: Flow<SyncStatus>
 
+    /** Google client id for the sign-in request, or null when Google sign-in is not available. */
+    val googleClientId: String?
+
     /** Emails a one-time code; throws [SyncException]. */
     suspend fun sendCode(email: String)
 
     /** Signs in with the emailed code; throws [SyncException]. */
     suspend fun verifyCode(email: String, code: String)
+
+    /** Signs in with a Google ID token obtained with the SHA-256 of [rawNonce]; throws [SyncException]. */
+    suspend fun signInWithGoogle(idToken: String, rawNonce: String)
 
     /** Signs out; local data stays and is sent again to the next account. */
     suspend fun signOut()
@@ -91,6 +97,10 @@ internal class OfflineFirstSyncRepository(
     ) { running, error, pending, preferences ->
         SyncStatus(running = running, pendingChanges = pending, lastSyncAt = preferences.lastSyncAt, lastError = error)
     }
+
+    override val googleClientId: String? get() = network.googleClientId
+
+    override suspend fun signInWithGoogle(idToken: String, rawNonce: String) = translating { network.signInWithGoogle(idToken, rawNonce) }
 
     override suspend fun sendCode(email: String) = translating { network.sendCode(email.trim()) }
 
