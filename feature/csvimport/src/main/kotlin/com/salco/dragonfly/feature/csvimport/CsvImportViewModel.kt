@@ -4,17 +4,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.salco.dragonfly.core.data.repository.AccountsRepository
 import com.salco.dragonfly.core.data.repository.ImportRepository
+import com.salco.dragonfly.core.data.repository.FireflyImportPreview
 import com.salco.dragonfly.core.data.repository.ImportResult
 import com.salco.dragonfly.core.model.Account
 import com.salco.dragonfly.core.model.AccountType
 import com.salco.dragonfly.core.model.ColumnRole
+import com.salco.dragonfly.core.model.FireflyExport
+import com.salco.dragonfly.core.model.FireflyType
 import com.salco.dragonfly.core.model.ImportRow
 import com.salco.dragonfly.core.model.SupportedDatePatterns
 import com.salco.dragonfly.core.model.decodeCsvBytes
 import com.salco.dragonfly.core.model.detectDatePattern
 import com.salco.dragonfly.core.model.guessColumnRoles
+import com.salco.dragonfly.core.model.isFireflyExport
 import com.salco.dragonfly.core.model.mapImportRows
 import com.salco.dragonfly.core.model.parseCsv
+import com.salco.dragonfly.core.model.parseFireflyExport
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +42,7 @@ class CsvImportViewModel @Inject constructor(
 
     /** Every row of the file, header included. */
     private var allRows: List<List<String>> = emptyList()
+    private var fireflyExport: FireflyExport? = null
     private var previewJob: Job? = null
 
     init {
@@ -58,6 +64,25 @@ class CsvImportViewModel @Inject constructor(
             _uiState.update { it.copy(error = ImportError.EMPTY) }
             return
         }
+        // A Firefly III export carries accounts, transfers and types: it needs no column mapping.
+        if (isFireflyExport(allRows.first())) {
+            val export = parseFireflyExport(allRows)
+            fireflyExport = export
+            _uiState.update {
+                CsvImportUiState(
+                    accounts = it.accounts,
+                    accountId = it.accountId,
+                    fileName = fileSource.displayName(uri) ?: uri.substringAfterLast('/'),
+                    firefly = FireflySummary(export),
+                )
+            }
+            viewModelScope.launch {
+                val preview = importRepository.previewFirefly(export)
+                _uiState.update { state -> state.copy(firefly = state.firefly?.copy(preview = preview)) }
+            }
+            return
+        }
+        fireflyExport = null
         val columns = allRows.maxOf { it.size }
         val guessed = guessColumnRoles(allRows.first()).let { it + List(columns - it.size) { ColumnRole.IGNORE } }
         // Without any recognised header name, the first row is probably data.
@@ -70,6 +95,7 @@ class CsvImportViewModel @Inject constructor(
                 hasHeader = hasHeader,
                 roles = guessed,
                 result = null,
+                firefly = null,
             )
         }
         detectDateFormat()
@@ -110,8 +136,22 @@ class CsvImportViewModel @Inject constructor(
     fun onSkipDuplicatesChange(value: Boolean) = _uiState.update { it.copy(skipDuplicates = value) }
     fun onUnnamedChange(value: String) = _uiState.update { it.copy(unnamedCounterparty = value) }
 
-    fun import(defaultUnnamed: String) {
+    fun import(defaultUnnamed: String, reconciliationName: String = defaultUnnamed) {
         val state = _uiState.value
+        val export = fireflyExport
+        if (state.firefly != null && export != null) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(importing = true) }
+                val result = importRepository.importFirefly(
+                    export = export,
+                    skipDuplicates = state.skipDuplicates,
+                    unnamedCounterparty = state.unnamedCounterparty.trim().ifEmpty { defaultUnnamed },
+                    reconciliationName = reconciliationName,
+                )
+                _uiState.update { it.copy(importing = false, result = result) }
+            }
+            return
+        }
         val accountId = state.accountId ?: return
         val rows = state.rows.filterIsInstance<ImportRow.Valid>()
         if (rows.isEmpty()) return
@@ -159,6 +199,35 @@ class CsvImportViewModel @Inject constructor(
 
 enum class ImportError { READ, EMPTY }
 
+/** What a Firefly III export contains, and what importing it would change here. */
+data class FireflySummary(
+    val withdrawals: Int,
+    val deposits: Int,
+    val transfers: Int,
+    val reconciliations: Int,
+    val openingBalances: Int,
+    val categories: Int,
+    val budgets: Int,
+    val tags: Int,
+    val invalidLines: Int,
+    val movements: Int,
+    /** Null until compared with the data already here. */
+    val preview: FireflyImportPreview? = null,
+) {
+    constructor(export: FireflyExport) : this(
+        withdrawals = export.count(FireflyType.WITHDRAWAL),
+        deposits = export.count(FireflyType.DEPOSIT),
+        transfers = export.count(FireflyType.TRANSFER),
+        reconciliations = export.count(FireflyType.RECONCILIATION),
+        openingBalances = export.count(FireflyType.OPENING_BALANCE),
+        categories = export.categories.size,
+        budgets = export.budgets.size,
+        tags = export.tags.size,
+        invalidLines = export.invalidLines.size,
+        movements = export.movements.size,
+    )
+}
+
 data class CsvImportUiState(
     val accounts: List<Account> = emptyList(),
     val accountId: Long? = null,
@@ -177,6 +246,8 @@ data class CsvImportUiState(
     val duplicateLines: Set<Int> = emptySet(),
     val importing: Boolean = false,
     val result: ImportResult? = null,
+    /** Set when the file is a Firefly III export, imported as a whole. */
+    val firefly: FireflySummary? = null,
 ) {
     val account: Account? get() = accounts.firstOrNull { it.id == accountId }
     val hasRequiredRoles: Boolean

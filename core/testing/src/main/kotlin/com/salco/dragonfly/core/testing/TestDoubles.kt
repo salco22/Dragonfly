@@ -1,5 +1,7 @@
 package com.salco.dragonfly.core.testing
 
+import com.salco.dragonfly.core.data.repository.FireflyImportPreview
+import com.salco.dragonfly.core.model.FireflyExport
 import com.salco.dragonfly.core.model.SyncStatus
 import com.salco.dragonfly.core.model.SyncResult
 import com.salco.dragonfly.core.model.SyncException
@@ -145,7 +147,7 @@ class FakeTransactionsRepository(
             (filter.to == null || date <= filter.to)
     }
 
-    override suspend fun saveTransaction(draft: TransactionDraft): Long {
+    override suspend fun saveTransaction(draft: TransactionDraft, applyRules: Boolean): Long {
         val id = if (draft.id == 0L) nextId++ else draft.id
         val transaction = Transaction(
             id = id,
@@ -179,7 +181,7 @@ class FakeTransactionsRepository(
     override fun observeSplitTransaction(groupId: Long): Flow<List<Transaction>> =
         transactions.map { list -> list.filter { it.groupId == groupId }.sortedBy { it.id } }
 
-    override suspend fun saveSplitTransaction(group: TransactionGroupDraft): Long {
+    override suspend fun saveSplitTransaction(group: TransactionGroupDraft, applyRules: Boolean): Long {
         val groupId = when {
             group.splits.size < 2 -> 0L
             group.id != 0L -> group.id
@@ -570,6 +572,22 @@ class FakeImportRepository(
     private fun ImportRow.Valid.isDuplicateOn(accountId: Long) = transactions.transactions.value.any {
         (it.source.id == accountId || it.destination.id == accountId) && it.date == date && it.amount == amount &&
             it.description.equals(description, ignoreCase = true)
+    }
+
+    /** Every own account of the export is new; nothing is a duplicate. */
+    override suspend fun previewFirefly(export: FireflyExport) =
+        FireflyImportPreview(newAccounts = export.ownAccounts.keys.sorted(), existingAccounts = emptyList(), duplicates = 0)
+
+    var fireflyImports = 0
+
+    override suspend fun importFirefly(
+        export: FireflyExport,
+        skipDuplicates: Boolean,
+        unnamedCounterparty: String,
+        reconciliationName: String,
+    ): ImportResult {
+        fireflyImports++
+        return ImportResult(imported = export.movements.size, duplicates = 0, accountsCreated = export.ownAccounts.size)
     }
 
     override suspend fun findDuplicates(accountId: Long, rows: List<ImportRow.Valid>): Set<Int> =

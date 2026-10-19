@@ -107,4 +107,28 @@ class CsvImportViewModelTest {
         vm.onFileChosen("content://empty.csv")
         assertEquals(ImportError.EMPTY, vm.uiState.value.error)
     }
+
+    @Test
+    fun fireflyExport_isImportedAsAWhole() = runTest {
+        val firefly = """
+            user_id,group_id,journal_id,type,amount,currency_code,description,date,source_name,source_type,destination_name,destination_type,category,budget,tags
+            1,10,100,Withdrawal,-42.500000000000,EUR,pranzo,2026-09-25T12:05:00+02:00,ISP,Asset account,Cash account,Cash account,Spese Variabili,,"Ristoranti,Lavoro"
+            1,11,101,Transfer,-300.000000000000,EUR,a Revolut,2026-09-28T10:00:00+02:00,ISP,Asset account,Revolut,Asset account,,,
+        """.trimIndent()
+        val importer = FakeImportRepository(transactions, accounts)
+        val vm = CsvImportViewModel(FakeFiles(mapOf("content://firefly.csv" to firefly.toByteArray())), importer, accounts)
+        vm.onFileChosen("content://firefly.csv")
+        with(vm.uiState.value.firefly!!) {
+            assertEquals(1, withdrawals)
+            assertEquals(1, transfers)
+            assertEquals(2, tags)
+            assertEquals(listOf("ISP", "Revolut"), preview!!.newAccounts)
+        }
+        // No column mapping for Firefly files.
+        assertTrue(vm.uiState.value.roles.isEmpty())
+        vm.import("Senza nome", "Riconciliazione")
+        assertEquals(1, importer.fireflyImports)
+        assertEquals(2, vm.uiState.value.result!!.imported)
+        assertEquals(2, vm.uiState.value.result!!.accountsCreated)
+    }
 }

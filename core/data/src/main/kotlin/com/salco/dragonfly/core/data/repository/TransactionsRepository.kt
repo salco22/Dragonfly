@@ -17,7 +17,8 @@ interface TransactionsRepository {
     fun searchTransactions(filter: TransactionFilter): Flow<List<Transaction>>
 
     /** Inserts or updates [draft], creating counterparties given by name, and returns its id. */
-    suspend fun saveTransaction(draft: TransactionDraft): Long
+    /** [applyRules] runs the user's rules on a new transaction; imports of curated data turn it off. */
+    suspend fun saveTransaction(draft: TransactionDraft, applyRules: Boolean = true): Long
     suspend fun deleteTransaction(id: Long)
 
     /** Parts of the split transaction [groupId], in entry order. */
@@ -27,7 +28,7 @@ interface TransactionsRepository {
      * Saves a split transaction with all its parts and returns the group id. Parts no longer
      * listed are deleted; with a single part the group is dissolved (returns 0).
      */
-    suspend fun saveSplitTransaction(group: TransactionGroupDraft): Long
+    suspend fun saveSplitTransaction(group: TransactionGroupDraft, applyRules: Boolean = true): Long
 
     /** Deletes a split transaction with all its parts. */
     suspend fun deleteSplitTransaction(groupId: Long)
