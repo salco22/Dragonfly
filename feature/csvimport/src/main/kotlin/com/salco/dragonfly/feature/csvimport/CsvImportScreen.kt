@@ -47,15 +47,12 @@ internal fun CsvImportScreen(onBack: () -> Unit, viewModel: CsvImportViewModel =
         uri?.let { viewModel.onFileChosen(it.toString()) }
     }
     val defaultUnnamed = stringResource(R.string.feature_csvimport_unnamed_default)
+    val reconciliationName = stringResource(R.string.feature_csvimport_firefly_reconciliation)
 
     DfScaffold(title = stringResource(R.string.feature_csvimport_title), onBack = onBack) { padding ->
         DfFormColumn(Modifier.padding(padding)) {
             if (state.importing) DfLinearLoading()
             DfText(stringResource(R.string.feature_csvimport_intro), tone = DfTone.Secondary)
-            if (state.accounts.isEmpty()) {
-                DfText(stringResource(R.string.feature_csvimport_no_accounts), tone = DfTone.Negative)
-                return@DfFormColumn
-            }
             DfButton(
                 stringResource(R.string.feature_csvimport_pick),
                 { pickFile.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) },
@@ -69,7 +66,15 @@ internal fun CsvImportScreen(onBack: () -> Unit, viewModel: CsvImportViewModel =
                     tone = DfTone.Negative,
                 )
             }
+            state.firefly?.let { firefly ->
+                FireflySection(firefly, state, viewModel, defaultUnnamed, reconciliationName)
+                return@DfFormColumn
+            }
             if (state.roles.isEmpty()) return@DfFormColumn
+            if (state.accounts.isEmpty()) {
+                DfText(stringResource(R.string.feature_csvimport_no_accounts), tone = DfTone.Negative)
+                return@DfFormColumn
+            }
 
             DropdownField(
                 label = stringResource(R.string.feature_csvimport_account),
@@ -131,9 +136,97 @@ internal fun CsvImportScreen(onBack: () -> Unit, viewModel: CsvImportViewModel =
             confirmText = stringResource(R.string.feature_csvimport_done),
             onConfirm = onBack,
         ) {
-            DfText(stringResource(R.string.feature_csvimport_done_message, result.imported, result.duplicates), tone = DfTone.Secondary)
+            DfText(
+                if (state.firefly != null) {
+                    stringResource(R.string.feature_csvimport_firefly_done, result.imported, result.accountsCreated, result.duplicates)
+                } else {
+                    stringResource(R.string.feature_csvimport_done_message, result.imported, result.duplicates)
+                },
+                tone = DfTone.Secondary,
+            )
         }
     }
+}
+
+/** Summary of a Firefly III export: accounts, movements and what is already here. */
+@Composable
+private fun FireflySection(
+    firefly: FireflySummary,
+    state: CsvImportUiState,
+    viewModel: CsvImportViewModel,
+    defaultUnnamed: String,
+    reconciliationName: String,
+) {
+    DfCard(highlighted = true, spacing = 6.dp) {
+        DfText(stringResource(R.string.feature_csvimport_firefly_title), style = DfTheme.typography.subtitle)
+        DfText(
+            stringResource(
+                R.string.feature_csvimport_firefly_movements,
+                firefly.withdrawals,
+                firefly.deposits,
+                firefly.transfers,
+            ),
+        )
+        DfText(
+            stringResource(R.string.feature_csvimport_firefly_details, firefly.categories, firefly.budgets, firefly.tags),
+            style = DfTheme.typography.bodySmall,
+            tone = DfTone.Secondary,
+        )
+        if (firefly.openingBalances > 0 || firefly.reconciliations > 0) {
+            DfText(
+                stringResource(R.string.feature_csvimport_firefly_balances, firefly.openingBalances, firefly.reconciliations),
+                style = DfTheme.typography.bodySmall,
+                tone = DfTone.Secondary,
+            )
+        }
+        val preview = firefly.preview
+        if (preview == null) {
+            DfLinearLoading()
+        } else {
+            if (preview.newAccounts.isNotEmpty()) {
+                DfText(
+                    stringResource(R.string.feature_csvimport_firefly_new_accounts, preview.newAccounts.joinToString(", ")),
+                    style = DfTheme.typography.bodySmall,
+                )
+            }
+            if (preview.existingAccounts.isNotEmpty()) {
+                DfText(
+                    stringResource(R.string.feature_csvimport_firefly_existing_accounts, preview.existingAccounts.joinToString(", ")),
+                    style = DfTheme.typography.bodySmall,
+                    tone = DfTone.Secondary,
+                )
+            }
+            if (preview.duplicates > 0) {
+                DfText(
+                    stringResource(R.string.feature_csvimport_firefly_duplicates, preview.duplicates),
+                    style = DfTheme.typography.bodySmall,
+                    tone = DfTone.Warning,
+                )
+            }
+        }
+        if (firefly.invalidLines > 0) {
+            DfText(
+                stringResource(R.string.feature_csvimport_firefly_invalid, firefly.invalidLines),
+                style = DfTheme.typography.bodySmall,
+                tone = DfTone.Negative,
+            )
+        }
+    }
+    DfTextField(
+        value = state.unnamedCounterparty,
+        onValueChange = viewModel::onUnnamedChange,
+        label = stringResource(R.string.feature_csvimport_firefly_unnamed),
+        placeholder = defaultUnnamed,
+        helper = stringResource(R.string.feature_csvimport_firefly_unnamed_hint),
+    )
+    DfCheckboxRow(stringResource(R.string.feature_csvimport_skip_duplicates), state.skipDuplicates, viewModel::onSkipDuplicatesChange)
+    val toImport = firefly.movements - if (state.skipDuplicates) firefly.preview?.duplicates ?: 0 else 0
+    DfButton(
+        stringResource(R.string.feature_csvimport_import, toImport),
+        { viewModel.import(defaultUnnamed, reconciliationName) },
+        enabled = firefly.preview != null && toImport > 0 && !state.importing,
+        fillWidth = true,
+    )
 }
 
 @Composable

@@ -16,7 +16,7 @@
     <string name="feature_backup_run_now">Esegui ora</string>
     <string name="feature_backup_section_export">Importa ed esporta</string>
     <string name="feature_backup_import_csv">Importa transazioni da CSV</string>
-    <string name="feature_backup_import_csv_description">Dall\'estratto conto della tua banca o da un altro CSV.</string>
+    <string name="feature_backup_import_csv_description">Dall\'estratto conto della tua banca, da un export di Firefly III o da un altro CSV.</string>
     <string name="feature_backup_csv">Esporta transazioni (CSV)</string>
     <string name="feature_backup_csv_description">Per aprirle in Excel, Fogli Google o Numbers.</string>
     <string name="feature_backup_privacy">I file non sono cifrati: contengono le tue informazioni finanziarie, conservali con cura.</string>

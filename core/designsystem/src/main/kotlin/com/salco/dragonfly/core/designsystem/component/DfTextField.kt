@@ -24,7 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.salco.dragonfly.core.designsystem.theme.DfTheme
 
 /** What the keyboard should offer for a text field. */
-enum class DfKeyboard { Text, Sentences, Characters, Number, Decimal }
+enum class DfKeyboard { Text, Sentences, Characters, Number, Decimal, Email }
 
 private fun DfKeyboard.options(imeAction: ImeAction) = KeyboardOptions(
     capitalization = when (this) {
@@ -35,6 +35,7 @@ private fun DfKeyboard.options(imeAction: ImeAction) = KeyboardOptions(
     keyboardType = when (this) {
         DfKeyboard.Number -> KeyboardType.Number
         DfKeyboard.Decimal -> KeyboardType.Decimal
+        DfKeyboard.Email -> KeyboardType.Email
         else -> KeyboardType.Text
     },
     imeAction = imeAction,

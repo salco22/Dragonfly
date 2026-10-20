@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":feature:reports"))
     implementation(project(":feature:rules"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:sync"))
     implementation(project(":feature:transactions"))
 
     implementation(libs.androidx.core.ktx)

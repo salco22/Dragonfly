@@ -135,6 +135,17 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate9To10_addsSyncTables() {
+        helper.createDatabase(DB_NAME, 9).close()
+        helper.runMigrationsAndValidate(DB_NAME, 10, true).use { db ->
+            db.query("SELECT COUNT(*) FROM sync_meta").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

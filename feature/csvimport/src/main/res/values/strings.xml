@@ -1,7 +1,7 @@
 <resources>
     <string name="feature_csvimport_title">Importa da CSV</string>
     <string name="feature_csvimport_back">Indietro</string>
-    <string name="feature_csvimport_intro">Importa i movimenti esportati dal sito o dall\'app della tua banca, o un CSV esportato da Dragonfly. Le colonne vengono riconosciute in automatico e puoi correggerle prima di importare.</string>
+    <string name="feature_csvimport_intro">Importa i movimenti esportati dal sito o dall\'app della tua banca, o un CSV esportato da Dragonfly. Le colonne vengono riconosciute in automatico e puoi correggerle prima di importare. Un export delle transazioni di Firefly III viene importato per intero, con conti, trasferimenti, categorie, budget e tag.</string>
     <string name="feature_csvimport_pick">Scegli file CSV</string>
     <string name="feature_csvimport_file">File: %1$s</string>
     <string name="feature_csvimport_account">Conto su cui importare</string>
@@ -40,4 +40,16 @@
     <string name="feature_csvimport_role_category">Categoria</string>
     <string name="feature_csvimport_role_tags">Tag</string>
     <string name="feature_csvimport_role_notes">Note</string>
+    <string name="feature_csvimport_firefly_title">Export di Firefly III riconosciuto</string>
+    <string name="feature_csvimport_firefly_movements">%1$d uscite, %2$d entrate, %3$d trasferimenti</string>
+    <string name="feature_csvimport_firefly_details">%1$d categorie, %2$d budget, %3$d tag</string>
+    <string name="feature_csvimport_firefly_balances">%1$d saldi iniziali, %2$d riconciliazioni</string>
+    <string name="feature_csvimport_firefly_new_accounts">Conti da creare: %s</string>
+    <string name="feature_csvimport_firefly_existing_accounts">Conti già presenti: %s</string>
+    <string name="feature_csvimport_firefly_duplicates">%d movimenti sono già presenti</string>
+    <string name="feature_csvimport_firefly_invalid">%d righe non leggibili verranno saltate</string>
+    <string name="feature_csvimport_firefly_unnamed">Beneficiario per i pagamenti in contanti</string>
+    <string name="feature_csvimport_firefly_unnamed_hint">Firefly li registra su \"Cash account\", senza un beneficiario</string>
+    <string name="feature_csvimport_firefly_reconciliation">Riconciliazione</string>
+    <string name="feature_csvimport_firefly_done">%1$d movimenti importati, %2$d conti creati, %3$d già presenti saltati. Le regole non sono state applicate: i dati restano come in Firefly III.</string>
 </resources>

@@ -36,6 +36,8 @@ import com.salco.dragonfly.feature.rules.navigation.navigateToRuleEdit
 import com.salco.dragonfly.feature.rules.navigation.navigateToRules
 import com.salco.dragonfly.feature.rules.navigation.rulesScreens
 import com.salco.dragonfly.feature.settings.navigation.settingsScreen
+import com.salco.dragonfly.feature.sync.navigation.navigateToSync
+import com.salco.dragonfly.feature.sync.navigation.syncScreen
 import com.salco.dragonfly.feature.transactions.navigation.navigateToBillPayment
 import com.salco.dragonfly.feature.transactions.navigation.navigateToNewTransaction
 import com.salco.dragonfly.feature.transactions.navigation.navigateToRecurringEdit
@@ -117,10 +119,12 @@ fun DragonflyNavHost(
             onPiggyBanksClick = navController::navigateToPiggyBanks,
             onRecurringClick = navController::navigateToRecurringTransactions,
             onRulesClick = navController::navigateToRules,
+            onSyncClick = navController::navigateToSync,
             onBackupClick = navController::navigateToBackup,
             onReportsClick = navController::navigateToReports,
         )
         backupScreen(onBack = navController::popBackStack, onImportCsv = navController::navigateToCsvImport)
+        syncScreen(onBack = navController::popBackStack)
         csvImportScreen(onBack = navController::popBackStack)
         rulesScreens(
             onBack = navController::popBackStack,

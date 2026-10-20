@@ -23,6 +23,9 @@ class UserPreferencesDataSource @Inject constructor(
             lastBackupAt = prefs[LAST_BACKUP_AT],
             recurringNotificationsEnabled = prefs[RECURRING_NOTIFICATIONS] ?: true,
             hideInRecents = prefs[HIDE_IN_RECENTS] ?: true,
+            lastSyncAt = prefs[LAST_SYNC_AT],
+            syncedUserId = prefs[SYNCED_USER_ID],
+            loginSkipped = prefs[LOGIN_SKIPPED] ?: false,
         )
     }
 
@@ -50,6 +53,17 @@ class UserPreferencesDataSource @Inject constructor(
         dataStore.edit { it[HIDE_IN_RECENTS] = hide }
     }
 
+    suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?) {
+        dataStore.edit { prefs ->
+            if (lastSyncAt == null) prefs.remove(LAST_SYNC_AT) else prefs[LAST_SYNC_AT] = lastSyncAt
+            if (syncedUserId == null) prefs.remove(SYNCED_USER_ID) else prefs[SYNCED_USER_ID] = syncedUserId
+        }
+    }
+
+    suspend fun setLoginSkipped(skipped: Boolean) {
+        dataStore.edit { it[LOGIN_SKIPPED] = skipped }
+    }
+
     private companion object {
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
         val DEFAULT_CURRENCY = stringPreferencesKey("default_currency")
@@ -57,5 +71,8 @@ class UserPreferencesDataSource @Inject constructor(
         val LAST_BACKUP_AT = longPreferencesKey("last_backup_at")
         val RECURRING_NOTIFICATIONS = booleanPreferencesKey("recurring_notifications")
         val HIDE_IN_RECENTS = booleanPreferencesKey("hide_in_recents")
+        val LAST_SYNC_AT = longPreferencesKey("last_sync_at")
+        val SYNCED_USER_ID = stringPreferencesKey("synced_user_id")
+        val LOGIN_SKIPPED = booleanPreferencesKey("login_skipped")
     }
 }

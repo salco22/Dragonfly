@@ -25,18 +25,19 @@ import com.salco.dragonfly.feature.budgets.navigation.navigateToBudgets
 import com.salco.dragonfly.feature.home.navigation.navigateToHome
 import com.salco.dragonfly.feature.lock.LockScreen
 import com.salco.dragonfly.feature.settings.navigation.navigateToSettings
+import com.salco.dragonfly.feature.sync.LoginScreen
 import com.salco.dragonfly.feature.transactions.navigation.navigateToTransactions
 import com.salco.dragonfly.navigation.DragonflyNavHost
 import com.salco.dragonfly.navigation.TopLevelDestination
 
 @Composable
-fun DragonflyAppRoot(uiState: MainActivityUiState, onUnlocked: () -> Unit) {
+fun DragonflyAppRoot(uiState: MainActivityUiState, onUnlocked: () -> Unit, onSkipLogin: () -> Unit) {
     // The nav controller lives above the lock so the back stack survives locking.
     val navController = rememberNavController()
     when (uiState) {
         MainActivityUiState.Loading -> DfSurface {}
         is MainActivityUiState.Ready -> Box {
-            DragonflyApp(navController)
+            if (uiState.showLogin) LoginScreen(onSkip = onSkipLogin) else DragonflyApp(navController)
             if (uiState.locked) LockScreen(onUnlocked = onUnlocked)
         }
     }

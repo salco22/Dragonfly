@@ -1,5 +1,13 @@
 package com.salco.dragonfly.core.testing
 
+import com.salco.dragonfly.core.data.repository.FireflyImportPreview
+import com.salco.dragonfly.core.model.FireflyExport
+import com.salco.dragonfly.core.model.SyncStatus
+import com.salco.dragonfly.core.model.SyncResult
+import com.salco.dragonfly.core.model.SyncException
+import com.salco.dragonfly.core.model.SyncError
+import com.salco.dragonfly.core.model.SyncAccount
+import com.salco.dragonfly.core.data.repository.SyncRepository
 import com.salco.dragonfly.core.data.repository.AccountsRepository
 import com.salco.dragonfly.core.data.repository.BillsRepository
 import com.salco.dragonfly.core.data.repository.BudgetsRepository
@@ -96,6 +104,9 @@ class FakeUserDataRepository(currency: String = "EUR") : UserDataRepository {
     override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) =
         prefs.update { it.copy(recurringNotificationsEnabled = enabled) }
     override suspend fun setHideInRecents(hide: Boolean) = prefs.update { it.copy(hideInRecents = hide) }
+    override suspend fun setSyncState(lastSyncAt: Long?, syncedUserId: String?) =
+        prefs.update { it.copy(lastSyncAt = lastSyncAt, syncedUserId = syncedUserId) }
+    override suspend fun setLoginSkipped(skipped: Boolean) = prefs.update { it.copy(loginSkipped = skipped) }
 }
 
 /** In-memory transactions that resolve accounts against [accounts], mirroring the Room implementation. */
@@ -136,7 +147,7 @@ class FakeTransactionsRepository(
             (filter.to == null || date <= filter.to)
     }
 
-    override suspend fun saveTransaction(draft: TransactionDraft): Long {
+    override suspend fun saveTransaction(draft: TransactionDraft, applyRules: Boolean): Long {
         val id = if (draft.id == 0L) nextId++ else draft.id
         val transaction = Transaction(
             id = id,
@@ -170,7 +181,7 @@ class FakeTransactionsRepository(
     override fun observeSplitTransaction(groupId: Long): Flow<List<Transaction>> =
         transactions.map { list -> list.filter { it.groupId == groupId }.sortedBy { it.id } }
 
-    override suspend fun saveSplitTransaction(group: TransactionGroupDraft): Long {
+    override suspend fun saveSplitTransaction(group: TransactionGroupDraft, applyRules: Boolean): Long {
         val groupId = when {
             group.splits.size < 2 -> 0L
             group.id != 0L -> group.id
@@ -563,6 +574,22 @@ class FakeImportRepository(
             it.description.equals(description, ignoreCase = true)
     }
 
+    /** Every own account of the export is new; nothing is a duplicate. */
+    override suspend fun previewFirefly(export: FireflyExport) =
+        FireflyImportPreview(newAccounts = export.ownAccounts.keys.sorted(), existingAccounts = emptyList(), duplicates = 0)
+
+    var fireflyImports = 0
+
+    override suspend fun importFirefly(
+        export: FireflyExport,
+        skipDuplicates: Boolean,
+        unnamedCounterparty: String,
+        reconciliationName: String,
+    ): ImportResult {
+        fireflyImports++
+        return ImportResult(imported = export.movements.size, duplicates = 0, accountsCreated = export.ownAccounts.size)
+    }
+
     override suspend fun findDuplicates(accountId: Long, rows: List<ImportRow.Valid>): Set<Int> =
         rows.filter { it.isDuplicateOn(accountId) }.map { it.line }.toSet()
 
@@ -588,5 +615,49 @@ class FakeImportRepository(
             imported++
         }
         return ImportResult(imported, duplicates)
+    }
+}
+
+/** Sync account and status driven by the test; [verifyCode] accepts "123456". */
+class FakeSyncRepository(configured: Boolean = true, override val googleClientId: String? = null) : SyncRepository {
+    val accountState = MutableStateFlow<SyncAccount>(if (configured) SyncAccount.SignedOut else SyncAccount.NotConfigured)
+    val statusState = MutableStateFlow(SyncStatus())
+    var failNextWith: SyncError? = null
+    var codesSent = 0
+    var syncs = 0
+
+    override val account: Flow<SyncAccount> = accountState
+    override val status: Flow<SyncStatus> = statusState
+
+    private fun maybeFail() {
+        failNextWith?.let { failNextWith = null; throw SyncException(it) }
+    }
+
+    override suspend fun sendCode(email: String) {
+        maybeFail()
+        codesSent++
+    }
+
+    override suspend fun verifyCode(email: String, code: String) {
+        maybeFail()
+        if (code != "123456") throw SyncException(SyncError.InvalidCode)
+        accountState.value = SyncAccount.SignedIn(email)
+    }
+
+    override suspend fun signInWithGoogle(idToken: String, rawNonce: String) {
+        maybeFail()
+        accountState.value = SyncAccount.SignedIn("google@example.com")
+    }
+
+    override suspend fun signOut() {
+        accountState.value = SyncAccount.SignedOut
+    }
+
+    override suspend fun sync(): SyncResult? {
+        maybeFail()
+        if (accountState.value !is SyncAccount.SignedIn) return null
+        syncs++
+        statusState.value = statusState.value.copy(lastSyncAt = 1_000L * syncs, pendingChanges = 0)
+        return SyncResult(0, 0)
     }
 }

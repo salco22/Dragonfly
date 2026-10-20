@@ -45,8 +45,8 @@ internal class OfflineTransactionsRepository @Inject constructor(
         ).map(List<PopulatedTransaction>::asModels)
 
     // Rules run on new transactions only, so manual edits are never overridden.
-    override suspend fun saveTransaction(draft: TransactionDraft): Long = saveResolved(
-        if (draft.id == 0L) ruleApplier.apply(draft) else draft,
+    override suspend fun saveTransaction(draft: TransactionDraft, applyRules: Boolean): Long = saveResolved(
+        if (draft.id == 0L && applyRules) ruleApplier.apply(draft) else draft,
     )
 
     private suspend fun saveResolved(draft: TransactionDraft): Long = draft.asSplitPart().let { part ->
@@ -56,10 +56,10 @@ internal class OfflineTransactionsRepository @Inject constructor(
     override fun observeSplitTransaction(groupId: Long): Flow<List<Transaction>> =
         transactionDao.observeGroup(groupId).map(List<PopulatedTransaction>::asModels)
 
-    override suspend fun saveSplitTransaction(group: TransactionGroupDraft): Long = transactionDao.saveGroup(
+    override suspend fun saveSplitTransaction(group: TransactionGroupDraft, applyRules: Boolean): Long = transactionDao.saveGroup(
         groupId = group.id,
         title = group.title,
-        parts = group.splits.map { split -> (if (split.id == 0L) ruleApplier.apply(split) else split).asSplitPart() },
+        parts = group.splits.map { split -> (if (split.id == 0L && applyRules) ruleApplier.apply(split) else split).asSplitPart() },
     )
 
     override suspend fun deleteSplitTransaction(groupId: Long) = transactionDao.deleteGroup(groupId)

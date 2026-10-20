@@ -2,6 +2,10 @@ package com.salco.dragonfly.core.database.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.salco.dragonfly.core.database.sync.SyncMetaDao
+import com.salco.dragonfly.core.database.sync.SyncTriggers
 import com.salco.dragonfly.core.database.DragonflyDatabase
 import com.salco.dragonfly.core.database.dao.AccountDao
 import com.salco.dragonfly.core.database.dao.BackupDao
@@ -43,6 +47,11 @@ internal object DatabaseModule {
         context,
         DragonflyDatabase::class.java,
         "dragonfly-database",
+    ).addCallback(
+        object : RoomDatabase.Callback() {
+            // On every open, so a migrated database gets its triggers too.
+            override fun onOpen(db: SupportSQLiteDatabase) = SyncTriggers.install(db)
+        },
     ).build()
 
     @Provides
@@ -78,4 +87,7 @@ internal object DatabaseModule {
 
     @Provides
     fun providesTagDao(database: DragonflyDatabase): TagDao = database.tagDao()
+
+    @Provides
+    fun providesSyncMetaDao(database: DragonflyDatabase): SyncMetaDao = database.syncMetaDao()
 }

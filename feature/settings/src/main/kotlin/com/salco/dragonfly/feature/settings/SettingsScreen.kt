@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +60,7 @@ internal fun SettingsScreen(
     onRulesClick: () -> Unit,
     onBackupClick: () -> Unit,
     onReportsClick: () -> Unit,
+    onSyncClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,6 +98,7 @@ internal fun SettingsScreen(
         onRulesClick = onRulesClick,
         onBackupClick = onBackupClick,
         onReportsClick = onReportsClick,
+        onSyncClick = onSyncClick,
     )
 }
 
@@ -117,6 +120,7 @@ internal fun SettingsContent(
     onRulesClick: () -> Unit = {},
     onBackupClick: () -> Unit = {},
     onReportsClick: () -> Unit = {},
+    onSyncClick: () -> Unit = {},
 ) {
     DfScaffold(title = stringResource(R.string.feature_settings_title)) { padding ->
         val preferences = (uiState as? SettingsUiState.Success)?.preferences ?: return@DfScaffold
@@ -127,6 +131,16 @@ internal fun SettingsContent(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 24.dp),
         ) {
+            DfSectionHeader(stringResource(R.string.feature_settings_account))
+            DfListItem(
+                headline = stringResource(R.string.feature_settings_sync),
+                supporting = stringResource(R.string.feature_settings_sync_description),
+                icon = Icons.Outlined.Sync,
+                iconTone = DfTone.Accent,
+                onClick = onSyncClick,
+                trailing = { DfIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tone = DfTone.Tertiary) },
+            )
+
             DfSectionHeader(stringResource(R.string.feature_settings_analysis))
             NavigationItem(Icons.Outlined.BarChart, stringResource(R.string.feature_settings_reports), onReportsClick)
 
