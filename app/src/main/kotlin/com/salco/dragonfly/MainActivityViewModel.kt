@@ -26,7 +26,8 @@ class MainActivityViewModel @Inject constructor(
     // Locks again whenever the whole app goes to the background (not on rotation).
     private val processObserver = object : DefaultLifecycleObserver {
         override fun onStop(owner: LifecycleOwner) {
-            if (lockEnabled) _uiState.value = MainActivityUiState.Ready(locked = true)
+            val current = _uiState.value
+            if (lockEnabled && current is MainActivityUiState.Ready) _uiState.value = current.copy(locked = true)
         }
     }
 
@@ -37,16 +38,20 @@ class MainActivityViewModel @Inject constructor(
                 lockEnabled = prefs.appLockEnabled
                 _uiState.value = when (val current = _uiState.value) {
                     // Cold start: lock immediately if the user enabled it.
-                    MainActivityUiState.Loading -> MainActivityUiState.Ready(locked = prefs.appLockEnabled)
+                    MainActivityUiState.Loading -> MainActivityUiState.Ready(locked = prefs.appLockEnabled, hideInRecents = prefs.hideInRecents)
                     // Turning the lock off releases it; turning it on waits for the next background.
-                    is MainActivityUiState.Ready -> current.copy(locked = current.locked && prefs.appLockEnabled)
+                    is MainActivityUiState.Ready -> current.copy(
+                        locked = current.locked && prefs.appLockEnabled,
+                        hideInRecents = prefs.hideInRecents,
+                    )
                 }
             }
         }
     }
 
     fun unlock() {
-        _uiState.value = MainActivityUiState.Ready(locked = false)
+        val current = _uiState.value
+        if (current is MainActivityUiState.Ready) _uiState.value = current.copy(locked = false)
     }
 
     override fun onCleared() {
@@ -55,6 +60,12 @@ class MainActivityViewModel @Inject constructor(
 }
 
 sealed interface MainActivityUiState {
-    data object Loading : MainActivityUiState
-    data class Ready(val locked: Boolean) : MainActivityUiState
+    /** Hides the app in recents until preferences are read, so nothing shows meanwhile. */
+    val hideInRecents: Boolean
+
+    data object Loading : MainActivityUiState {
+        override val hideInRecents = true
+    }
+
+    data class Ready(val locked: Boolean, override val hideInRecents: Boolean = true) : MainActivityUiState
 }

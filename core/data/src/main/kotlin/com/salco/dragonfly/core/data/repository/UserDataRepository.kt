@@ -12,6 +12,7 @@ interface UserDataRepository {
     suspend fun setAutoBackupFolder(uri: String?)
     suspend fun setLastBackupAt(epochMillis: Long)
     suspend fun setRecurringNotificationsEnabled(enabled: Boolean)
+    suspend fun setHideInRecents(hide: Boolean)
 }
 
 internal class OfflineUserDataRepository @Inject constructor(
@@ -24,4 +25,5 @@ internal class OfflineUserDataRepository @Inject constructor(
     override suspend fun setAutoBackupFolder(uri: String?) = dataSource.setAutoBackupFolder(uri)
     override suspend fun setLastBackupAt(epochMillis: Long) = dataSource.setLastBackupAt(epochMillis)
     override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) = dataSource.setRecurringNotificationsEnabled(enabled)
+    override suspend fun setHideInRecents(hide: Boolean) = dataSource.setHideInRecents(hide)
 }

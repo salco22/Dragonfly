@@ -95,6 +95,7 @@ class FakeUserDataRepository(currency: String = "EUR") : UserDataRepository {
     override suspend fun setLastBackupAt(epochMillis: Long) = prefs.update { it.copy(lastBackupAt = epochMillis) }
     override suspend fun setRecurringNotificationsEnabled(enabled: Boolean) =
         prefs.update { it.copy(recurringNotificationsEnabled = enabled) }
+    override suspend fun setHideInRecents(hide: Boolean) = prefs.update { it.copy(hideInRecents = hide) }
 }
 
 /** In-memory transactions that resolve accounts against [accounts], mirroring the Room implementation. */

@@ -9,6 +9,7 @@ import com.salco.dragonfly.core.designsystem.component.DfTone
 import com.salco.dragonfly.core.designsystem.component.DropdownField
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -85,6 +87,7 @@ internal fun SettingsScreen(
             if (enabled && !notificationPermission.granted) notificationPermission.request()
         },
         onAllowNotifications = notificationPermission::request,
+        onHideInRecentsChange = viewModel::setHideInRecents,
         onCategoriesClick = onCategoriesClick,
         onTagsClick = onTagsClick,
         onBillsClick = onBillsClick,
@@ -105,6 +108,7 @@ internal fun SettingsContent(
     notificationsAllowed: Boolean = true,
     onRecurringNotificationsChange: (Boolean) -> Unit = {},
     onAllowNotifications: () -> Unit = {},
+    onHideInRecentsChange: (Boolean) -> Unit = {},
     onCategoriesClick: () -> Unit = {},
     onTagsClick: () -> Unit = {},
     onBillsClick: () -> Unit = {},
@@ -170,6 +174,17 @@ internal fun SettingsContent(
                         enabled = lockAvailable || preferences.appLockEnabled,
                     )
                 },
+            )
+
+            DfListItem(
+                headline = stringResource(R.string.feature_settings_hide_in_recents),
+                supporting = stringResource(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.feature_settings_hide_in_recents_description
+                    else R.string.feature_settings_hide_in_recents_description_legacy,
+                ),
+                icon = Icons.Outlined.VisibilityOff,
+                onClick = { onHideInRecentsChange(!preferences.hideInRecents) },
+                trailing = { DfSwitch(checked = preferences.hideInRecents, onCheckedChange = onHideInRecentsChange) },
             )
 
             DfSectionHeader(stringResource(R.string.feature_settings_general))
