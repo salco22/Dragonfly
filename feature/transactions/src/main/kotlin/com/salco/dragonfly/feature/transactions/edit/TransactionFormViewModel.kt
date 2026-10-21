@@ -71,7 +71,7 @@ abstract class TransactionFormViewModel(
     fun onDateChange(value: LocalDate) = _uiState.update { it.copy(date = value) }
     fun onAccountChange(id: Long) = _uiState.update { it.copy(accountId = id).clearErrors() }
     fun onToAccountChange(id: Long) = _uiState.update { it.copy(toAccountId = id).clearErrors() }
-    fun onCounterpartyChange(value: String) = _uiState.update { it.copy(counterparty = value, counterpartyError = false) }
+    fun onCounterpartyChange(value: String) = _uiState.update { it.copy(counterparty = value) }
     fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
     fun onCategoryChange(value: String) = _uiState.update { it.copy(category = value) }
     fun onBudgetChange(id: Long?) = _uiState.update { it.copy(budgetId = id) }
@@ -112,7 +112,7 @@ abstract class TransactionFormViewModel(
 
     fun onSplitDescriptionChange(index: Int, value: String) = updateSplit(index) { it.copy(description = value, descriptionError = false) }
     fun onSplitAmountChange(index: Int, value: String) = updateSplit(index) { it.copy(amount = value, amountError = false) }
-    fun onSplitCounterpartyChange(index: Int, value: String) = updateSplit(index) { it.copy(counterparty = value, counterpartyError = false) }
+    fun onSplitCounterpartyChange(index: Int, value: String) = updateSplit(index) { it.copy(counterparty = value) }
     fun onSplitCategoryChange(index: Int, value: String) = updateSplit(index) { it.copy(category = value) }
     fun onSplitBudgetChange(index: Int, id: Long?) = updateSplit(index) { it.copy(budgetId = id) }
     fun onSplitTagInputChange(index: Int, value: String) = updateSplit(index) { it.copy(tagInput = value) }
@@ -129,15 +129,14 @@ abstract class TransactionFormViewModel(
      * Validates a split transaction: part 1 through [validatedDraft], every other part with the
      * same type, date and own account. Returns null and shows errors when something is missing.
      */
-    protected fun validatedGroup(firstId: Long): TransactionGroupDraft? {
-        val first = validatedDraft(firstId)
+    protected fun validatedGroup(firstId: Long, unnamedCounterparty: String): TransactionGroupDraft? {
+        val first = validatedDraft(firstId, unnamedCounterparty)
         val state = _uiState.value
         val currency = state.currencyCode
         val checked = state.splits.map { split ->
             split.copy(
                 amountError = currency == null || parseAmountToMinorUnits(split.amount, currency)?.takeIf { it > 0 } == null,
                 descriptionError = split.description.isBlank(),
-                counterpartyError = split.counterparty.isBlank(),
             )
         }
         val titleError = state.groupTitle.isBlank()
@@ -147,9 +146,9 @@ abstract class TransactionFormViewModel(
         }
         val others = checked.map { split ->
             val counterparty = if (state.type == TransactionType.DEPOSIT) {
-                counterpartyRef(split.counterparty, AccountType.REVENUE, first.currencyCode)
+                counterpartyRef(split.counterparty.ifBlank { unnamedCounterparty }, AccountType.REVENUE, first.currencyCode)
             } else {
-                counterpartyRef(split.counterparty, AccountType.EXPENSE, first.currencyCode)
+                counterpartyRef(split.counterparty.ifBlank { unnamedCounterparty }, AccountType.EXPENSE, first.currencyCode)
             }
             first.copy(
                 id = split.id,
@@ -167,8 +166,11 @@ abstract class TransactionFormViewModel(
         return TransactionGroupDraft(id = state.groupId, title = state.groupTitle.trim(), splits = listOf(first) + others)
     }
 
-    /** Validates the form, showing errors, and returns the transaction it describes or null. */
-    protected fun validatedDraft(id: Long = 0): TransactionDraft? {
+    /**
+     * Validates the form, showing errors, and returns the transaction it describes or null. The
+     * payee or payer is optional: without one the money goes to (or comes from) [unnamedCounterparty].
+     */
+    protected fun validatedDraft(id: Long = 0, unnamedCounterparty: String = DEFAULT_UNNAMED): TransactionDraft? {
         val state = _uiState.value
         val account = state.account
         val toAccount = state.toAccount
@@ -188,7 +190,6 @@ abstract class TransactionFormViewModel(
             descriptionError = state.description.isBlank(),
             accountError = state.type == TransactionType.TRANSFER && toAccount == null,
             sameAccountError = state.type == TransactionType.TRANSFER && toAccount?.id == account.id,
-            counterpartyError = state.type != TransactionType.TRANSFER && state.counterparty.isBlank(),
         )
         if (errors.hasErrors || amount == null) {
             _uiState.value = errors
@@ -197,8 +198,8 @@ abstract class TransactionFormViewModel(
 
         val own = AccountRef.Existing(account.id)
         val (source, destination) = when (state.type) {
-            TransactionType.WITHDRAWAL -> own to counterpartyRef(state.counterparty, AccountType.EXPENSE, currency)
-            TransactionType.DEPOSIT -> counterpartyRef(state.counterparty, AccountType.REVENUE, currency) to own
+            TransactionType.WITHDRAWAL -> own to counterpartyRef(state.counterparty.ifBlank { unnamedCounterparty }, AccountType.EXPENSE, currency)
+            TransactionType.DEPOSIT -> counterpartyRef(state.counterparty.ifBlank { unnamedCounterparty }, AccountType.REVENUE, currency) to own
             TransactionType.TRANSFER -> own to AccountRef.Existing(toAccount!!.id)
         }
         return TransactionDraft(
@@ -218,6 +219,11 @@ abstract class TransactionFormViewModel(
             budgetId = state.budgetId.takeIf { state.type == TransactionType.WITHDRAWAL },
             billId = state.billId.takeIf { state.type == TransactionType.WITHDRAWAL },
         )
+    }
+
+    companion object {
+        /** Payee/payer used without one when the screen does not pass its translated name (tests). */
+        const val DEFAULT_UNNAMED = "Senza nome"
     }
 
     protected fun counterpartyRef(name: String, type: AccountType, currency: String): AccountRef {

@@ -76,7 +76,7 @@ internal fun SplitFormFields(uiState: TransactionEditUiState, actions: Transacti
     val counterpartyLabel = stringResource(
         if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer else R.string.feature_transactions_payee,
     )
-    val counterpartyError = stringResource(R.string.feature_transactions_error_counterparty)
+    val optional = stringResource(R.string.feature_transactions_optional)
     val amountError = stringResource(R.string.feature_transactions_error_amount)
     val descriptionError = stringResource(R.string.feature_transactions_error_description)
 
@@ -100,8 +100,7 @@ internal fun SplitFormFields(uiState: TransactionEditUiState, actions: Transacti
             value = uiState.counterparty,
             onValueChange = actions.onCounterpartyChange,
             suggestions = uiState.counterpartySuggestions,
-            isError = uiState.counterpartyError,
-            supportingText = counterpartyError.takeIf { uiState.counterpartyError },
+            supportingText = optional,
         )
         AutocompleteField(
             label = stringResource(R.string.feature_transactions_category),
@@ -150,8 +149,7 @@ internal fun SplitFormFields(uiState: TransactionEditUiState, actions: Transacti
                 value = part.counterparty,
                 onValueChange = { split.onCounterpartyChange(index, it) },
                 suggestions = uiState.counterpartySuggestions,
-                isError = part.counterpartyError,
-                supportingText = counterpartyError.takeIf { part.counterpartyError },
+                supportingText = optional,
             )
             AutocompleteField(
                 label = stringResource(R.string.feature_transactions_category),

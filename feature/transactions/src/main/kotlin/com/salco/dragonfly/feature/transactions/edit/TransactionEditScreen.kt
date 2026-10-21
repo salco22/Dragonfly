@@ -1,5 +1,9 @@
 package com.salco.dragonfly.feature.transactions.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfIcon
+import com.salco.dragonfly.core.designsystem.component.DfListItem
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.salco.dragonfly.core.designsystem.component.DfButton
 import com.salco.dragonfly.core.designsystem.component.DfButtonStyle
 import com.salco.dragonfly.core.designsystem.component.DfChipFlow
@@ -69,12 +73,13 @@ internal fun TransactionEditScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.isFinished) { if (uiState.isFinished) onBack() }
+    val unnamed = stringResource(R.string.feature_transactions_unnamed)
 
     TransactionEditContent(
         uiState = uiState,
         actions = TransactionEditActions(
             onBack = onBack,
-            onSave = viewModel::save,
+            onSave = { viewModel.save(unnamed) },
             onDelete = viewModel::delete,
             onTypeChange = viewModel::onTypeChange,
             onAmountChange = viewModel::onAmountChange,
@@ -236,20 +241,17 @@ internal fun TransactionFormFields(
             value = uiState.counterparty,
             onValueChange = actions.onCounterpartyChange,
             suggestions = uiState.counterpartySuggestions,
-            isError = uiState.counterpartyError,
-            supportingText = stringResource(R.string.feature_transactions_error_counterparty).takeIf { uiState.counterpartyError },
+            supportingText = stringResource(R.string.feature_transactions_optional),
         )
     }
     val accountField = @Composable { AccountDropdown(accountLabel, uiState.ownAccounts, uiState.account, actions.onAccountChange) }
 
     when (uiState.type) {
-        TransactionType.WITHDRAWAL -> {
+        // A spending or an income is just "spent" or "received": account and payee are details,
+        // prefilled with the last account used and an unnamed payee.
+        TransactionType.WITHDRAWAL, TransactionType.DEPOSIT -> AccountDetails(uiState, accountLabel) {
             accountField()
             counterpartyField()
-        }
-        TransactionType.DEPOSIT -> {
-            counterpartyField()
-            accountField()
         }
         TransactionType.TRANSFER -> {
             accountField()
@@ -316,6 +318,29 @@ internal fun TransactionFormFields(
         label = stringResource(R.string.feature_transactions_notes),
         singleLine = false,
         minLines = 2,
+    )
+}
+
+/** Account and payee/payer, folded into one line until the user opens them. */
+@Composable
+private fun AccountDetails(uiState: TransactionEditUiState, accountLabel: String, fields: @Composable () -> Unit) {
+    // Open when editing a transaction that has a named payee, so it is visible what it is.
+    var open by rememberSaveable { mutableStateOf(!uiState.isNew && uiState.counterparty.isNotBlank()) }
+    if (open) {
+        fields()
+        return
+    }
+    val unnamed = stringResource(R.string.feature_transactions_unnamed)
+    val payee = uiState.counterparty.ifBlank { unnamed }
+    DfListItem(
+        headline = "$accountLabel: ${uiState.account?.name.orEmpty()}",
+        supporting = stringResource(
+            if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer_summary else R.string.feature_transactions_payee_summary,
+            payee,
+        ),
+        icon = Icons.Outlined.AccountBalance,
+        onClick = { open = true },
+        trailing = { DfIcon(Icons.Outlined.ExpandMore, contentDescription = stringResource(R.string.feature_transactions_change_details)) },
     )
 }
 
