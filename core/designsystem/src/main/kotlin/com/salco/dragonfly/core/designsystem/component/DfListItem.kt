@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.salco.dragonfly.core.designsystem.theme.DfTheme
 
 /**
- * A row of a list: optional round icon, a headline with an optional supporting line and a
+ * A row of a list: optional icon in a rounded tile, a headline with an optional supporting line and a
  * trailing slot (an amount, a switch, a chevron…).
  */
 @Composable
@@ -46,10 +46,10 @@ fun DfListItem(
         if (icon != null) {
             Box(
                 Modifier
-                    .size(36.dp)
-                    .background(DfTheme.colors.surfaceMuted, CircleShape),
+                    .size(40.dp)
+                    .background(DfTheme.colors.surfaceMuted, RoundedCornerShape(DfTheme.spacing.radiusIcon)),
                 contentAlignment = Alignment.Center,
-            ) { DfIcon(icon, contentDescription = null, tone = iconTone, modifier = Modifier.size(18.dp)) }
+            ) { DfIcon(icon, contentDescription = null, tone = iconTone, modifier = Modifier.size(20.dp)) }
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             DfText(headline, style = DfTheme.typography.subtitle, tone = if (enabled) DfTone.Primary else DfTone.Tertiary, maxLines = 2)

@@ -1,11 +1,17 @@
 package com.salco.dragonfly.core.designsystem.component
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
@@ -67,6 +73,10 @@ fun DfIcon(
     Icon(icon, contentDescription, modifier, tint)
 }
 
+/** True inside a page header, where icon buttons are drawn as outlined circles. */
+internal val LocalCircleIconButtons = compositionLocalOf { false }
+
+/** A plain icon button; [circle] (the default in page headers) draws it in an outlined circle. */
 @Composable
 fun DfIconButton(
     icon: ImageVector,
@@ -75,9 +85,36 @@ fun DfIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     tone: DfTone = DfTone.Primary,
+    circle: Boolean = LocalCircleIconButtons.current,
 ) {
-    IconButton(onClick = onClick, modifier = modifier, enabled = enabled) {
-        DfIcon(icon, contentDescription, tint = if (enabled) tone.color() else DfTheme.colors.textTertiary)
+    val tint = if (enabled) tone.color() else DfTheme.colors.textTertiary
+    if (circle) {
+        DfCircleIconButton(icon, contentDescription, onClick, modifier, enabled, tint)
+    } else {
+        IconButton(onClick = onClick, modifier = modifier, enabled = enabled) {
+            DfIcon(icon, contentDescription, tint = tint)
+        }
+    }
+}
+
+/** A round icon button with a thin border, as in page headers. */
+@Composable
+fun DfCircleIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    tint: Color = DfTheme.colors.textPrimary,
+) {
+    OutlinedIconButton(
+        onClick = onClick,
+        modifier = modifier.size(44.dp),
+        enabled = enabled,
+        shape = CircleShape,
+        border = BorderStroke(1.dp, DfTheme.colors.border),
+    ) {
+        DfIcon(icon, contentDescription, tint = tint, modifier = Modifier.size(22.dp))
     }
 }
 

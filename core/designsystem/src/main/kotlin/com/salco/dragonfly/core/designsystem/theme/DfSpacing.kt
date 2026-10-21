@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/** Spacing steps on a 4dp grid, plus the shared corner radius. */
+/** Spacing steps on a 4dp grid, plus the shared corner radii. */
 @Immutable
 data class DfSpacing(
     val xs: Dp = 4.dp,
@@ -15,6 +15,10 @@ data class DfSpacing(
     val xxl: Dp = 32.dp,
     /** Horizontal margin of screen content. */
     val screen: Dp = 20.dp,
-    val radius: Dp = 14.dp,
-    val radiusSmall: Dp = 10.dp,
+    /** Cards. */
+    val radius: Dp = 24.dp,
+    /** Inputs and grouped tiles. */
+    val radiusSmall: Dp = 16.dp,
+    /** Icon tiles. */
+    val radiusIcon: Dp = 12.dp,
 )

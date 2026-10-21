@@ -23,10 +23,10 @@ import androidx.compose.ui.unit.dp
 import com.salco.dragonfly.core.designsystem.theme.DfTheme
 
 enum class DfButtonStyle {
-    /** The main action of a screen, filled with the accent. */
+    /** The main action of a screen: a pill filled with the accent. */
     Primary,
 
-    /** Secondary actions, outlined. */
+    /** Secondary actions, an outlined pill. */
     Secondary,
 
     /** Low-emphasis actions, text only. */
@@ -46,9 +46,9 @@ fun DfButton(
     enabled: Boolean = true,
     fillWidth: Boolean = false,
 ) {
-    val shape = RoundedCornerShape(DfTheme.spacing.radiusSmall)
-    val sized = if (fillWidth) modifier.fillMaxWidth().height(52.dp) else modifier.height(if (style == DfButtonStyle.Text || style == DfButtonStyle.Danger) 40.dp else 48.dp)
-    val padding = PaddingValues(horizontal = 18.dp)
+    val shape = RoundedCornerShape(50)
+    val sized = if (fillWidth) modifier.fillMaxWidth().height(54.dp) else modifier.height(if (style == DfButtonStyle.Text || style == DfButtonStyle.Danger) 40.dp else 48.dp)
+    val padding = PaddingValues(horizontal = 22.dp)
     val content: @Composable () -> Unit = {
         if (icon != null) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -70,12 +70,16 @@ fun DfButton(
         DfButtonStyle.Secondary -> OutlinedButton(
             onClick = onClick, modifier = sized, enabled = enabled, shape = shape, contentPadding = padding,
             border = BorderStroke(1.dp, DfTheme.colors.border),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = DfTheme.colors.textPrimary, disabledContentColor = DfTheme.colors.textTertiary),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = DfTheme.colors.surface,
+                contentColor = DfTheme.colors.textPrimary,
+                disabledContentColor = DfTheme.colors.textTertiary,
+            ),
         ) { content() }
         DfButtonStyle.Text, DfButtonStyle.Danger -> TextButton(
             onClick = onClick, modifier = sized, enabled = enabled, shape = shape, contentPadding = PaddingValues(horizontal = 12.dp),
             colors = ButtonDefaults.textButtonColors(
-                contentColor = if (style == DfButtonStyle.Danger) DfTheme.colors.negative else DfTheme.colors.accent,
+                contentColor = if (style == DfButtonStyle.Danger) DfTheme.colors.negative else DfTheme.colors.link,
                 disabledContentColor = DfTheme.colors.textTertiary,
             ),
         ) { content() }
@@ -90,9 +94,9 @@ fun DfFab(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifi
         modifier = modifier,
         icon = { Icon(icon, contentDescription = null) },
         text = { Text(text, style = DfTheme.typography.label) },
-        shape = RoundedCornerShape(DfTheme.spacing.radius),
-        containerColor = DfTheme.colors.textPrimary,
-        contentColor = DfTheme.colors.background,
+        shape = RoundedCornerShape(50),
+        containerColor = DfTheme.colors.accent,
+        contentColor = DfTheme.colors.onAccent,
         elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 2.dp, pressedElevation = 4.dp),
     )
 }

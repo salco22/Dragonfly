@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,14 +24,16 @@ import com.salco.dragonfly.core.designsystem.R
 import com.salco.dragonfly.core.designsystem.theme.DfTheme
 
 /**
- * The frame of every screen: a flat top bar (a large title on main screens, a back arrow and a
- * smaller title on inner ones), an optional floating action and one-off [message] snackbars.
+ * The frame of every screen: a page header on main screens (large title, short [subtitle] and
+ * round actions) or a flat top bar with a back arrow on inner ones, an optional floating action
+ * and one-off [message] snackbars.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DfScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     floatingAction: (@Composable () -> Unit)? = null,
@@ -52,25 +55,25 @@ fun DfScaffold(
         containerColor = DfTheme.colors.background,
         contentColor = DfTheme.colors.textPrimary,
         topBar = {
-            TopAppBar(
-                title = {
-                    titleContent?.invoke() ?: DfText(
-                        title,
-                        style = if (onBack == null) DfTheme.typography.headline else DfTheme.typography.title,
-                        maxLines = 1,
-                    )
-                },
-                navigationIcon = {
-                    if (onBack != null) {
-                        DfIconButton(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.core_designsystem_back), onBack)
-                    }
-                },
-                actions = actions,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DfTheme.colors.background,
-                    scrolledContainerColor = DfTheme.colors.background,
-                ),
-            )
+            if (onBack == null && titleContent == null) {
+                DfPageHeader(title, subtitle, Modifier.statusBarsPadding(), actions)
+            } else {
+                TopAppBar(
+                    title = {
+                        titleContent?.invoke() ?: DfText(title, style = DfTheme.typography.title, maxLines = 1)
+                    },
+                    navigationIcon = {
+                        if (onBack != null) {
+                            DfIconButton(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.core_designsystem_back), onBack)
+                        }
+                    },
+                    actions = actions,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = DfTheme.colors.background,
+                        scrolledContainerColor = DfTheme.colors.background,
+                    ),
+                )
+            }
         },
         floatingActionButton = { floatingAction?.invoke() },
         snackbarHost = {

@@ -1,8 +1,6 @@
 package com.salco.dragonfly.core.designsystem.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -92,7 +90,7 @@ fun DfCheckboxRow(label: String, checked: Boolean, onCheckedChange: (Boolean) ->
     }
 }
 
-/** A row of mutually exclusive options in a muted track, the selected one raised. */
+/** A row of mutually exclusive options in a muted pill track, the selected one raised. */
 @Composable
 fun <T> DfSegmentedControl(
     options: List<T>,
@@ -101,8 +99,8 @@ fun <T> DfSegmentedControl(
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val outer = RoundedCornerShape(DfTheme.spacing.radiusSmall)
-    val inner = RoundedCornerShape(DfTheme.spacing.radiusSmall - 2.dp)
+    val outer = RoundedCornerShape(50)
+    val inner = RoundedCornerShape(50)
     Row(
         modifier
             .fillMaxWidth()
@@ -118,7 +116,7 @@ fun <T> DfSegmentedControl(
                     .height(34.dp)
                     .clip(inner)
                     .let {
-                        if (isSelected) it.background(DfTheme.colors.surface, inner).border(1.dp, DfTheme.colors.border, inner) else it
+                        if (isSelected) it.background(DfTheme.colors.surface, inner) else it
                     }
                     .clickable { onSelect(option) },
                 contentAlignment = Alignment.Center,
@@ -135,7 +133,10 @@ fun <T> DfSegmentedControl(
     }
 }
 
-/** A pill that can be on or off; [trailingDropdown] adds a small arrow for chips that open a menu. */
+/**
+ * A filter pill that can be on (filled with the accent) or off (white); [trailingDropdown] adds a
+ * small arrow for chips that open a menu.
+ */
 @Composable
 fun DfChip(
     label: String,
@@ -149,15 +150,14 @@ fun DfChip(
     val shape = RoundedCornerShape(50)
     Row(
         modifier
-            .height(34.dp)
+            .height(38.dp)
             .clip(shape)
-            .background(if (selected) DfTheme.colors.textPrimary else DfTheme.colors.surface, shape)
-            .border(BorderStroke(1.dp, if (selected) DfTheme.colors.textPrimary else DfTheme.colors.border), shape)
+            .background(if (selected) DfTheme.colors.accent else DfTheme.colors.surface, shape)
             .clickable(onClick = onClick)
-            .padding(start = 14.dp, end = if (trailingDropdown || onRemove != null) 6.dp else 14.dp),
+            .padding(start = 16.dp, end = if (trailingDropdown || onRemove != null) 8.dp else 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val tone = if (selected) DfTheme.colors.background else DfTheme.colors.textPrimary
+        val tone = if (selected) DfTheme.colors.onAccent else DfTheme.colors.textPrimary
         DfText(label, style = DfTheme.typography.label, color = tone, maxLines = 1)
         if (trailingDropdown) DfIcon(Icons.Filled.ArrowDropDown, null, tint = tone, modifier = Modifier.size(20.dp))
         if (onRemove != null) {
@@ -217,14 +217,19 @@ fun DfChipRow(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     ) { content() }
 }
 
-/** A thin rounded progress bar; values above 1 are drawn full. */
+/** A thin rounded progress bar, green by default; values above 1 are drawn full. */
 @Composable
-fun DfProgressBar(progress: Float, modifier: Modifier = Modifier, tone: DfTone = DfTone.Accent) {
+fun DfProgressBar(progress: Float, modifier: Modifier = Modifier, tone: DfTone = DfTone.Positive) {
+    DfTrackBar(progress, tone.color(), DfTheme.colors.surfaceMuted, modifier)
+}
+
+@Composable
+internal fun DfTrackBar(progress: Float, color: androidx.compose.ui.graphics.Color, trackColor: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
     LinearProgressIndicator(
         progress = { progress.coerceIn(0f, 1f) },
-        modifier = modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(50)),
-        color = tone.color(),
-        trackColor = DfTheme.colors.surfaceMuted,
+        modifier = modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50)),
+        color = color,
+        trackColor = trackColor,
         strokeCap = StrokeCap.Round,
         gapSize = 0.dp,
         drawStopIndicator = {},
