@@ -60,8 +60,8 @@ internal fun LoginContent(form: SignInForm, actions: SyncActions, onSkip: () -> 
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 AppIcon(Modifier.size(64.dp))
-                DfText(stringResource(R.string.feature_sync_login_title), style = DfTheme.typography.display)
-                DfText(stringResource(R.string.feature_sync_login_subtitle), style = DfTheme.typography.title, tone = DfTone.Secondary)
+                DfText(stringResource(R.string.feature_sync_login_title), style = DfTheme.typography.displaySerif)
+                DfText(stringResource(R.string.feature_sync_login_subtitle), style = DfTheme.typography.body, tone = DfTone.Secondary)
                 SignInForm(form, actions)
                 DfButton(
                     stringResource(R.string.feature_sync_login_skip),

@@ -22,10 +22,10 @@ internal fun MonthSelector(month: YearMonth, onPrevious: () -> Unit, onNext: () 
     )
 }
 
-/** Progress bar, red when the budget is overspent. */
+/** Progress bar, green on track and red when the budget is overspent. */
 @Composable
 internal fun BudgetProgress(spending: BudgetSpending, modifier: Modifier = Modifier) {
-    DfProgressBar(spending.progress, modifier, tone = if (spending.isOverspent) DfTone.Negative else DfTone.Accent)
+    DfProgressBar(spending.progress, modifier, tone = if (spending.isOverspent) DfTone.Negative else DfTone.Positive)
 }
 
 /** "Rimangono €X · €Y al giorno", or how much it is overspent. */

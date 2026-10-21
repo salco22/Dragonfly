@@ -1,5 +1,6 @@
 <resources>
     <string name="feature_accounts_title">Conti</string>
+    <string name="feature_accounts_subtitle">Tutto il tuo denaro, in un posto.</string>
     <string name="feature_accounts_add">Aggiungi conto</string>
     <string name="feature_accounts_net_worth">Patrimonio netto</string>
     <string name="feature_accounts_empty_title">Nessun conto</string>

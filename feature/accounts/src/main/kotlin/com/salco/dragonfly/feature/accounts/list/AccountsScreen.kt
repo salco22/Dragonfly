@@ -4,6 +4,8 @@ import com.salco.dragonfly.core.designsystem.component.DfAmount
 import com.salco.dragonfly.core.designsystem.component.DfCard
 import com.salco.dragonfly.core.designsystem.component.DfEmptyState
 import com.salco.dragonfly.core.designsystem.component.DfFab
+import com.salco.dragonfly.core.designsystem.component.DfHeroCard
+import com.salco.dragonfly.core.designsystem.component.DfSegmentedBar
 import com.salco.dragonfly.core.designsystem.component.DfIconButton
 import com.salco.dragonfly.core.designsystem.component.DfListItem
 import com.salco.dragonfly.core.designsystem.component.DfLoading
@@ -71,6 +73,7 @@ internal fun AccountsContent(
 ) {
     DfScaffold(
         title = stringResource(R.string.feature_accounts_title),
+        subtitle = stringResource(R.string.feature_accounts_subtitle),
         actions = {
             DfIconButton(Icons.Outlined.Savings, stringResource(R.string.feature_accounts_piggy_banks), onPiggyBanksClick)
         },
@@ -89,7 +92,7 @@ internal fun AccountsContent(
                 contentPadding = PaddingValues(bottom = 96.dp),
             ) {
                 if (uiState.netWorthByCurrency.isNotEmpty()) {
-                    item { NetWorthCard(uiState.netWorthByCurrency) }
+                    item { NetWorthCard(uiState.netWorthByCurrency, uiState.sections[AccountType.ASSET].orEmpty()) }
                 }
                 uiState.sections.forEach { (type, accounts) ->
                     item(key = "header_$type") { DfSectionHeader(stringResource(type.labelRes())) }
@@ -102,13 +105,19 @@ internal fun AccountsContent(
     }
 }
 
+/** Net worth per currency; the bar shows how the main currency is split among asset accounts. */
 @Composable
-private fun NetWorthCard(netWorthByCurrency: Map<String, Long>) {
-    DfCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), highlighted = true, padding = 20.dp) {
-        DfText(stringResource(R.string.feature_accounts_net_worth), style = DfTheme.typography.label, tone = DfTone.Secondary)
-        netWorthByCurrency.forEach { (currency, amount) ->
-            DfAmount(formatMoney(amount, currency), negative = amount < 0, style = DfTheme.typography.display)
-        }
+private fun NetWorthCard(netWorthByCurrency: Map<String, Long>, assets: List<Account>) {
+    DfHeroCard(
+        title = stringResource(R.string.feature_accounts_net_worth),
+        values = netWorthByCurrency.map { (currency, amount) -> formatMoney(amount, currency) },
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+    ) {
+        val mainCurrency = netWorthByCurrency.keys.first()
+        val shares = assets.filter { it.currencyCode == mainCurrency && it.balance > 0 }
+            .sortedByDescending { it.balance }
+            .map { it.balance.toFloat() }
+        if (shares.size > 1) DfSegmentedBar(shares, Modifier.padding(top = 4.dp))
     }
 }
 

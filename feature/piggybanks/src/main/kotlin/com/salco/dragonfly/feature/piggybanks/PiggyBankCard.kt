@@ -49,7 +49,7 @@ internal fun PiggyBankSummary.planLabel(today: LocalDate): String? {
 @Composable
 internal fun PiggyBankProgress(summary: PiggyBankSummary, modifier: Modifier = Modifier) {
     val progress = summary.progress ?: return
-    DfProgressBar(progress, modifier, tone = if (summary.isComplete) DfTone.Positive else DfTone.Accent)
+    DfProgressBar(progress, modifier, tone = DfTone.Positive)
 }
 
 @Composable

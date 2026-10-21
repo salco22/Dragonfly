@@ -1,6 +1,13 @@
 package com.salco.dragonfly.feature.budgets.list
 
 import com.salco.dragonfly.core.designsystem.component.DfAmount
+import com.salco.dragonfly.core.designsystem.component.DfBudgetCard
+import com.salco.dragonfly.core.designsystem.component.DfBudgetStatus
+import com.salco.dragonfly.core.designsystem.component.DfHeroCard
+import com.salco.dragonfly.core.designsystem.component.DfHeroNote
+import com.salco.dragonfly.core.designsystem.component.DfHeroNotes
+import com.salco.dragonfly.core.designsystem.component.DfHeroProgressBar
+import com.salco.dragonfly.core.designsystem.component.DfInfoBanner
 import com.salco.dragonfly.core.designsystem.component.DfCard
 import com.salco.dragonfly.core.designsystem.component.DfEmptyState
 import com.salco.dragonfly.core.designsystem.component.DfFab
@@ -24,11 +31,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,11 +48,11 @@ import com.salco.dragonfly.core.designsystem.theme.DragonflyTheme
 import com.salco.dragonfly.core.model.Budget
 import com.salco.dragonfly.core.model.BudgetSpending
 import com.salco.dragonfly.core.model.formatMoney
-import com.salco.dragonfly.feature.budgets.BudgetProgress
 import com.salco.dragonfly.feature.budgets.MonthSelector
 import com.salco.dragonfly.feature.budgets.R
 import com.salco.dragonfly.feature.budgets.remainingText
 import java.time.YearMonth
+import kotlin.math.roundToInt
 
 @Composable
 internal fun BudgetsScreen(
@@ -65,6 +74,7 @@ internal fun BudgetsContent(
 ) {
     DfScaffold(
         title = stringResource(R.string.feature_budgets_title),
+        subtitle = stringResource(R.string.feature_budgets_subtitle),
         floatingAction = { DfFab(stringResource(R.string.feature_budgets_add), Icons.Filled.Add, onAddBudget) },
     ) { padding ->
         val state = uiState as? BudgetsUiState.Success
@@ -88,7 +98,10 @@ internal fun BudgetsContent(
         ) {
             item { MonthSelector(state.month, onPreviousMonth, onNextMonth) }
             state.totals.forEach { (currency, totals) ->
-                item(key = "totals_$currency") { TotalsCard(currency, totals) }
+                item(key = "totals_$currency") { TotalsCard(currency, totals, state.daysLeft) }
+            }
+            if (state.budgets.isNotEmpty()) {
+                item { DfText(stringResource(R.string.feature_budgets_limits), style = DfTheme.typography.title, modifier = Modifier.padding(top = 8.dp)) }
             }
             items(state.budgets, key = { it.budget.id }) { spending ->
                 BudgetCard(spending, state.daysLeft, onClick = { onBudgetClick(spending.budget.id, state.month) })
@@ -101,6 +114,11 @@ internal fun BudgetsContent(
                     }
                 }
             }
+            state.totals.entries.singleOrNull()?.takeIf { it.value.left > 0 }?.let { (currency, totals) ->
+                item {
+                    DfInfoBanner(Icons.Outlined.Spa, stringResource(R.string.feature_budgets_margin, formatMoney(totals.left, currency)))
+                }
+            }
             if (state.inactive.isNotEmpty()) {
                 item { DfText(stringResource(R.string.feature_budgets_inactive).uppercase(), style = DfTheme.typography.overline, tone = DfTone.Tertiary, modifier = Modifier.padding(top = 12.dp)) }
                 items(state.inactive, key = { it.budget.id }) { spending ->
@@ -111,37 +129,64 @@ internal fun BudgetsContent(
     }
 }
 
+/** What is left of all budgets in [currency] this month, on the dark hero card. */
 @Composable
-private fun TotalsCard(currency: String, totals: BudgetTotals) {
-    DfCard(highlighted = true) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            DfStat(stringResource(R.string.feature_budgets_budgeted), formatMoney(totals.budgeted, currency))
-            DfStat(stringResource(R.string.feature_budgets_spent), formatMoney(totals.spent, currency))
-            DfStat(
-                stringResource(R.string.feature_budgets_left),
-                formatMoney(totals.left, currency),
-                tone = if (totals.left < 0) DfTone.Negative else DfTone.Primary,
-                alignEnd = true,
-            )
-        }
+private fun TotalsCard(currency: String, totals: BudgetTotals, daysLeft: Int?) {
+    val over = totals.left < 0
+    DfHeroCard(
+        title = stringResource(if (over) R.string.feature_budgets_hero_title_over else R.string.feature_budgets_hero_title),
+        value = formatMoney(if (over) -totals.left else totals.left, currency),
+    ) {
+        val progress = if (totals.budgeted > 0) totals.spent.toFloat() / totals.budgeted else 0f
+        DfHeroProgressBar(progress, Modifier.padding(top = 4.dp))
+        DfHeroNotes(
+            stringResource(R.string.feature_budgets_hero_spent, formatMoney(totals.spent, currency)),
+            stringResource(R.string.feature_budgets_hero_of, formatMoney(totals.budgeted, currency)),
+        )
+        val percent = (progress * 100).roundToInt()
+        DfHeroNote(
+            if (daysLeft != null) {
+                pluralStringResource(R.plurals.feature_budgets_hero_used_days, daysLeft, percent, daysLeft)
+            } else {
+                stringResource(R.string.feature_budgets_hero_used, percent)
+            },
+            highlighted = true,
+        )
     }
 }
+
+/** A budget close to its limit (85% or more) is shown as a warning before it is overspent. */
+private const val NEAR_LIMIT = 0.85f
 
 @Composable
 private fun BudgetCard(spending: BudgetSpending, daysLeft: Int?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val currency = spending.budget.currencyCode
-    DfCard(modifier = modifier, onClick = onClick, spacing = 10.dp) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            DfText(spending.budget.name, style = DfTheme.typography.subtitle, modifier = Modifier.weight(1f))
-            DfText(
-                stringResource(R.string.feature_budgets_spent_of, formatMoney(spending.spent, currency), formatMoney(spending.budget.amount, currency)),
-                style = DfTheme.typography.bodySmall,
-                tone = DfTone.Secondary,
-            )
-        }
-        BudgetProgress(spending)
-        DfText(remainingText(spending, daysLeft), style = DfTheme.typography.caption, tone = if (spending.isOverspent) DfTone.Negative else DfTone.Secondary)
+    val status = when {
+        spending.isOverspent -> DfBudgetStatus.Over
+        spending.progress >= NEAR_LIMIT -> DfBudgetStatus.NearLimit
+        else -> DfBudgetStatus.OnTrack
     }
+    DfBudgetCard(
+        icon = Icons.Outlined.PieChart,
+        name = spending.budget.name,
+        amounts = stringResource(R.string.feature_budgets_spent_of, formatMoney(spending.spent, currency), formatMoney(spending.budget.amount, currency)),
+        progress = spending.progress,
+        status = status,
+        statusText = stringResource(
+            when (status) {
+                DfBudgetStatus.OnTrack -> R.string.feature_budgets_status_on_track
+                DfBudgetStatus.NearLimit -> R.string.feature_budgets_status_near_limit
+                DfBudgetStatus.Over -> R.string.feature_budgets_status_over
+            },
+        ),
+        remainingText = if (spending.isOverspent) {
+            remainingText(spending, daysLeft)
+        } else {
+            stringResource(R.string.feature_budgets_left_amount, formatMoney(spending.remaining, currency))
+        },
+        modifier = modifier,
+        onClick = onClick,
+    )
 }
 
 @Preview

@@ -5,6 +5,8 @@ import com.salco.dragonfly.core.designsystem.component.DfButton
 import com.salco.dragonfly.core.designsystem.component.DfButtonStyle
 import com.salco.dragonfly.core.designsystem.component.DfCard
 import com.salco.dragonfly.core.designsystem.component.DfEmptyState
+import com.salco.dragonfly.core.designsystem.component.DfHeroCard
+import com.salco.dragonfly.core.designsystem.component.DfHeroNote
 import com.salco.dragonfly.core.designsystem.component.DfIconButton
 import com.salco.dragonfly.core.designsystem.component.DfLoading
 import com.salco.dragonfly.core.designsystem.component.DfProgressBar
@@ -12,7 +14,6 @@ import com.salco.dragonfly.core.designsystem.component.DfScaffold
 import com.salco.dragonfly.core.designsystem.component.DfStat
 import com.salco.dragonfly.core.designsystem.component.DfText
 import com.salco.dragonfly.core.designsystem.component.DfTone
-import com.salco.dragonfly.core.designsystem.component.color
 import com.salco.dragonfly.core.designsystem.component.LineChart
 import com.salco.dragonfly.core.designsystem.component.GroupedBarChart
 import com.salco.dragonfly.core.designsystem.component.DonutChart
@@ -71,6 +72,7 @@ internal fun HomeScreen(actions: HomeActions, viewModel: HomeViewModel = hiltVie
 internal fun HomeContent(uiState: HomeUiState, actions: HomeActions) {
     DfScaffold(
         title = stringResource(R.string.feature_home_title),
+        subtitle = stringResource(R.string.feature_home_subtitle),
         actions = { DfIconButton(Icons.Outlined.BarChart, stringResource(R.string.feature_home_reports), actions.onReports) },
     ) { padding ->
         val state = uiState as? HomeUiState.Success
@@ -103,20 +105,17 @@ internal fun HomeContent(uiState: HomeUiState, actions: HomeActions) {
 @Composable
 private fun NetWorthCard(state: HomeUiState.Success, onClick: () -> Unit) {
     val currency = state.currencyCode
-    DfCard(onClick = onClick, highlighted = true, padding = 20.dp, spacing = 6.dp) {
-        DfText(stringResource(R.string.feature_home_net_worth), style = DfTheme.typography.caption, tone = DfTone.Secondary)
-        val main = state.netWorth[currency] ?: 0
-        DfAmount(formatMoney(main, currency), negative = main < 0, style = DfTheme.typography.display)
+    val main = state.netWorth[currency] ?: 0
+    DfHeroCard(stringResource(R.string.feature_home_net_worth), formatMoney(main, currency), onClick = onClick) {
         val others = state.netWorth.filterKeys { it != currency }
         if (others.isNotEmpty()) {
-            DfText(
+            DfHeroNote(
                 stringResource(
                     R.string.feature_home_other_currencies,
                     currency,
                     others.entries.joinToString { (c, v) -> formatMoney(v, c) },
                 ),
-                style = DfTheme.typography.caption,
-                tone = DfTone.Secondary,
+                highlighted = true,
             )
         }
         val history = state.netWorthHistory
@@ -130,6 +129,7 @@ private fun NetWorthCard(state: HomeUiState.Success, onClick: () -> Unit) {
                     formatMoney(history.last().amount, currency),
                 ),
                 modifier = Modifier.padding(top = 8.dp),
+                onHero = true,
             )
         }
     }
@@ -142,7 +142,7 @@ private fun CashFlowCard(state: HomeUiState.Success, onClick: () -> Unit) {
     SectionCard(stringResource(R.string.feature_home_this_month), onSeeAll = onClick) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             DfStat(stringResource(R.string.feature_home_income), formatMoney(month.income, currency), tone = DfTone.Positive)
-            DfStat(stringResource(R.string.feature_home_expenses), formatMoney(month.expenses, currency), tone = DfTone.Negative)
+            DfStat(stringResource(R.string.feature_home_expenses), formatMoney(month.expenses, currency))
             DfStat(
                 stringResource(R.string.feature_home_balance),
                 formatMoney(month.net, currency),
@@ -154,8 +154,8 @@ private fun CashFlowCard(state: HomeUiState.Success, onClick: () -> Unit) {
             first = state.cashFlow.map { it.income.toFloat() },
             second = state.cashFlow.map { it.expenses.toFloat() },
             labels = state.cashFlow.map { it.month.shortLabel() },
-            firstColor = DfTone.Positive.color(),
-            secondColor = DfTone.Negative.color(),
+            firstColor = DfTheme.colors.chartIncome,
+            secondColor = DfTheme.colors.chartExpense,
             description = stringResource(R.string.feature_home_cash_flow_chart) + ": " +
                 state.cashFlow.joinToString { "${it.month.shortLabel()} +${formatMoney(it.income, currency)} −${formatMoney(it.expenses, currency)}" },
             modifier = Modifier.padding(top = 8.dp),
@@ -200,7 +200,7 @@ private fun BudgetsCard(state: HomeUiState.Success, onSeeAll: () -> Unit) {
                 value = stringResource(R.string.feature_home_spent_of, formatMoney(spending.spent, currency), formatMoney(spending.budget.amount, currency)),
                 valueTone = if (spending.isOverspent) DfTone.Negative else DfTone.Secondary,
                 progress = spending.progress,
-                progressTone = if (spending.isOverspent) DfTone.Negative else DfTone.Accent,
+                progressTone = if (spending.isOverspent) DfTone.Negative else DfTone.Positive,
             )
         }
     }
@@ -264,7 +264,7 @@ private fun ProgressLine(label: String, value: String, valueTone: DfTone, progre
 private fun SectionCard(title: String, onSeeAll: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     DfCard {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            DfText(title, style = DfTheme.typography.subtitle, modifier = Modifier.weight(1f))
+            DfText(title, style = DfTheme.typography.title, modifier = Modifier.weight(1f))
             if (onSeeAll != null) {
                 DfButton(stringResource(R.string.feature_home_see_all), onSeeAll, style = DfButtonStyle.Text)
             }
