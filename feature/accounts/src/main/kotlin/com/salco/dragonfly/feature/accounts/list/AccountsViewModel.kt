@@ -23,13 +23,15 @@ class AccountsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountsUiState.Loading)
 
     private fun toUiState(accounts: List<Account>): AccountsUiState {
-        if (accounts.isEmpty()) return AccountsUiState.Empty
-        val netWorth = accounts
+        // Payees and payers are technical accounts behind each transaction: only own accounts are listed.
+        val own = accounts.filter { it.type == AccountType.ASSET || it.type == AccountType.LIABILITY }
+        if (own.isEmpty()) return AccountsUiState.Empty
+        val netWorth = own
             .filter { it.active && it.includeInNetWorth && it.type.hasBalance }
             .groupBy { it.currencyCode }
             .mapValues { (_, list) -> list.sumOf { it.balance } }
-        val sections = AccountType.entries.mapNotNull { type ->
-            accounts.filter { it.type == type }.takeIf { it.isNotEmpty() }?.let { type to it }
+        val sections = listOf(AccountType.ASSET, AccountType.LIABILITY).mapNotNull { type ->
+            own.filter { it.type == type }.takeIf { it.isNotEmpty() }?.let { type to it }
         }.toMap()
         return AccountsUiState.Success(netWorthByCurrency = netWorth, sections = sections)
     }

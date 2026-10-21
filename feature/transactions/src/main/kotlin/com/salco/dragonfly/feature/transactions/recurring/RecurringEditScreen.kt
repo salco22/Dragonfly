@@ -86,7 +86,6 @@ internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditVie
                     onDateChange = viewModel::onDateChange,
                     onAccountChange = viewModel::onAccountChange,
                     onToAccountChange = viewModel::onToAccountChange,
-                    onCounterpartyChange = viewModel::onCounterpartyChange,
                     onNotesChange = viewModel::onNotesChange,
                     onCategoryChange = viewModel::onCategoryChange,
                     onBudgetChange = viewModel::onBudgetChange,
@@ -100,7 +99,8 @@ internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditVie
             DfDivider()
             DfText(stringResource(R.string.feature_transactions_recurring_repeat), style = DfTheme.typography.title)
             ScheduleFields(schedule, viewModel)
-            DfButton(stringResource(R.string.feature_transactions_save), viewModel::save, fillWidth = true)
+            val unnamed = stringResource(R.string.feature_transactions_unnamed)
+            DfButton(stringResource(R.string.feature_transactions_save), { viewModel.save(unnamed) }, fillWidth = true)
         }
     }
 

@@ -53,7 +53,6 @@ import java.time.format.DateTimeFormatter
 private enum class ReportTab(val labelRes: Int) {
     OVERVIEW(R.string.feature_reports_tab_overview),
     CATEGORIES(R.string.feature_reports_tab_categories),
-    COUNTERPARTIES(R.string.feature_reports_tab_counterparties),
     BUDGETS(R.string.feature_reports_tab_budgets),
     TAGS(R.string.feature_reports_tab_tags),
 }
@@ -81,7 +80,6 @@ internal fun ReportsScreen(onBack: () -> Unit, viewModel: ReportsViewModel = hil
                 when (ReportTab.entries[tab]) {
                     ReportTab.OVERVIEW -> overview(state)
                     ReportTab.CATEGORIES -> categories(state, showIncome == 1) { showIncome = it }
-                    ReportTab.COUNTERPARTIES -> counterparties(state)
                     ReportTab.BUDGETS -> budgets(state)
                     ReportTab.TAGS -> tags(state)
                 }
@@ -230,15 +228,6 @@ private fun LazyListScope.categories(state: ReportsUiState.Success, income: Bool
             TotalRow(row.total, state.currencyCode, stringResource(R.string.feature_reports_uncategorized), share = row.share, change = row.change)
         }
     }
-}
-
-private fun LazyListScope.counterparties(state: ReportsUiState.Success) {
-    item { DfText(stringResource(R.string.feature_reports_payees), style = DfTheme.typography.subtitle) }
-    if (state.payees.isEmpty()) item { Empty(stringResource(R.string.feature_reports_empty)) }
-    items(state.payees.take(20)) { TotalRow(it, state.currencyCode, "") }
-    item { DfText(stringResource(R.string.feature_reports_payers), style = DfTheme.typography.subtitle, modifier = Modifier.padding(top = 12.dp)) }
-    if (state.payers.isEmpty()) item { Empty(stringResource(R.string.feature_reports_empty)) }
-    items(state.payers.take(20)) { TotalRow(it, state.currencyCode, "") }
 }
 
 private fun LazyListScope.budgets(state: ReportsUiState.Success) {

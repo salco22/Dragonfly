@@ -121,8 +121,8 @@ class RecurringEditViewModel internal constructor(
     fun onMaxOccurrencesChange(value: String) = _schedule.update { it.copy(maxOccurrences = value.filter(Char::isDigit), endError = false) }
     fun onActiveChange(value: Boolean) = _schedule.update { it.copy(active = value) }
 
-    fun save() {
-        val draft = validatedDraft()
+    fun save(unnamedCounterparty: String = DEFAULT_UNNAMED) {
+        val draft = validatedDraft(unnamedCounterparty = unnamedCounterparty)
         val schedule = _schedule.value
         val startDate = _uiState.value.date
         val interval = schedule.interval.toIntOrNull()?.takeIf { it >= 1 }

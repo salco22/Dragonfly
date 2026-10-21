@@ -65,7 +65,12 @@ class TransactionEditViewModel internal constructor(
 
     init {
         viewModelScope.launch {
-            val base = loadOptions(_uiState.value)
+            val base = loadOptions(_uiState.value).let { options ->
+                // A new transaction starts on the account used most recently, so a quick expense
+                // needs no account choice.
+                val recent = lastUsedAccountId()?.takeIf { id -> options.ownAccounts.any { it.id == id } }
+                if (transactionId == 0L && recent != null) options.copy(accountId = recent) else options
+            }
             val transaction = if (transactionId != 0L) transactionsRepository.observeTransaction(transactionId).first() else null
             _uiState.value = if (transaction == null) {
                 val prefill = allAccounts.firstOrNull { it.id == prefillAccountId }
@@ -123,17 +128,26 @@ class TransactionEditViewModel internal constructor(
         }
     }
 
-    fun save() {
+    private suspend fun lastUsedAccountId(): Long? {
+        val today = _uiState.value.date
+        return transactionsRepository.observeTransactions(today.minusMonths(RECENT_MONTHS), today.plusDays(1)).first()
+            .filter { it.type != TransactionType.TRANSFER }
+            .maxByOrNull { it.id }
+            ?.let { if (it.type == TransactionType.DEPOSIT) it.destination.id else it.source.id }
+    }
+
+    /** Saves the transaction; a missing payee or payer becomes [unnamedCounterparty]. */
+    fun save(unnamedCounterparty: String = DEFAULT_UNNAMED) {
         val state = _uiState.value
         if (state.isSplit && state.canSplit) {
-            val group = validatedGroup(state.transactionId) ?: return
+            val group = validatedGroup(state.transactionId, unnamedCounterparty) ?: return
             viewModelScope.launch {
                 transactionsRepository.saveSplitTransaction(group)
                 _uiState.update { it.copy(isFinished = true) }
             }
             return
         }
-        val draft = validatedDraft(id = state.transactionId) ?: return
+        val draft = validatedDraft(id = state.transactionId, unnamedCounterparty = unnamedCounterparty) ?: return
         viewModelScope.launch {
             if (state.groupId != 0L) {
                 // The other parts were removed: saving a single part dissolves the group.
@@ -146,6 +160,10 @@ class TransactionEditViewModel internal constructor(
     }
 
     /** Deletes the transaction, or every part of a split transaction. */
+    private companion object {
+        const val RECENT_MONTHS = 3L
+    }
+
     fun delete() {
         val state = _uiState.value
         if (state.transactionId == 0L) return
@@ -204,7 +222,6 @@ data class TransactionEditUiState(
     val descriptionError: Boolean = false,
     val accountError: Boolean = false,
     val sameAccountError: Boolean = false,
-    val counterpartyError: Boolean = false,
     /** Split transaction being edited; 0 when it is not one yet. */
     val groupId: Long = 0,
     /** Title of a split transaction, shown in lists instead of the parts' descriptions. */
@@ -243,7 +260,7 @@ data class TransactionEditUiState(
         get() = if (type == TransactionType.DEPOSIT) revenueNames else expenseNames
 
     internal val hasErrors: Boolean
-        get() = amountError || foreignAmountError || descriptionError || accountError || sameAccountError || counterpartyError ||
+        get() = amountError || foreignAmountError || descriptionError || accountError || sameAccountError ||
             groupTitleError || splits.any { it.hasErrors }
 
     internal fun clearErrors() = copy(accountError = false, sameAccountError = false, foreignAmountError = false)
@@ -261,7 +278,6 @@ data class SplitForm(
     val tagInput: String = "",
     val amountError: Boolean = false,
     val descriptionError: Boolean = false,
-    val counterpartyError: Boolean = false,
 ) {
-    internal val hasErrors: Boolean get() = amountError || descriptionError || counterpartyError
+    internal val hasErrors: Boolean get() = amountError || descriptionError
 }

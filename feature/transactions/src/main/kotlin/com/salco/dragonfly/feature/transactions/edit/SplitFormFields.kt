@@ -33,7 +33,6 @@ internal data class SplitActions(
     val onTitleChange: (String) -> Unit = {},
     val onDescriptionChange: (Int, String) -> Unit = { _, _ -> },
     val onAmountChange: (Int, String) -> Unit = { _, _ -> },
-    val onCounterpartyChange: (Int, String) -> Unit = { _, _ -> },
     val onCategoryChange: (Int, String) -> Unit = { _, _ -> },
     val onBudgetChange: (Int, Long?) -> Unit = { _, _ -> },
     val onTagInputChange: (Int, String) -> Unit = { _, _ -> },
@@ -73,10 +72,6 @@ internal fun SplitFormFields(uiState: TransactionEditUiState, actions: Transacti
     )
 
     val currency = uiState.currencyCode.orEmpty()
-    val counterpartyLabel = stringResource(
-        if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer else R.string.feature_transactions_payee,
-    )
-    val counterpartyError = stringResource(R.string.feature_transactions_error_counterparty)
     val amountError = stringResource(R.string.feature_transactions_error_amount)
     val descriptionError = stringResource(R.string.feature_transactions_error_description)
 
@@ -94,14 +89,6 @@ internal fun SplitFormFields(uiState: TransactionEditUiState, actions: Transacti
             onValueChange = actions.onDescriptionChange,
             label = stringResource(R.string.feature_transactions_description),
             error = descriptionError.takeIf { uiState.descriptionError },
-        )
-        AutocompleteField(
-            label = counterpartyLabel,
-            value = uiState.counterparty,
-            onValueChange = actions.onCounterpartyChange,
-            suggestions = uiState.counterpartySuggestions,
-            isError = uiState.counterpartyError,
-            supportingText = counterpartyError.takeIf { uiState.counterpartyError },
         )
         AutocompleteField(
             label = stringResource(R.string.feature_transactions_category),
@@ -144,14 +131,6 @@ internal fun SplitFormFields(uiState: TransactionEditUiState, actions: Transacti
                 onValueChange = { split.onDescriptionChange(index, it) },
                 label = stringResource(R.string.feature_transactions_description),
                 error = descriptionError.takeIf { part.descriptionError },
-            )
-            AutocompleteField(
-                label = counterpartyLabel,
-                value = part.counterparty,
-                onValueChange = { split.onCounterpartyChange(index, it) },
-                suggestions = uiState.counterpartySuggestions,
-                isError = part.counterpartyError,
-                supportingText = counterpartyError.takeIf { part.counterpartyError },
             )
             AutocompleteField(
                 label = stringResource(R.string.feature_transactions_category),

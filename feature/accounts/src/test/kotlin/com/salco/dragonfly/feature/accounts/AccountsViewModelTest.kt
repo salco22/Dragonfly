@@ -40,10 +40,8 @@ class AccountsViewModelTest {
         AccountsViewModel(repository).uiState.test {
             val state = awaitItem() as AccountsUiState.Success
             assertEquals(mapOf("EUR" to 70_000L, "USD" to 2_500L), state.netWorthByCurrency)
-            assertEquals(
-                listOf(AccountType.ASSET, AccountType.EXPENSE, AccountType.LIABILITY),
-                state.sections.keys.toList(),
-            )
+            // Payees (expense accounts) are not listed.
+            assertEquals(listOf(AccountType.ASSET, AccountType.LIABILITY), state.sections.keys.toList())
         }
     }
 }

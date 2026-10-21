@@ -134,7 +134,12 @@ private fun RecurringRow(item: RecurringTransaction, onClick: () -> Unit) {
         onClick = onClick,
         supportingContent = {
             Column {
-                DfText("${item.sourceName} → ${item.destinationName}", style = DfTheme.typography.bodySmall, tone = DfTone.Secondary, maxLines = 1)
+                DfText(
+                    when (template.type) {
+                        TransactionType.WITHDRAWAL -> item.sourceName
+                        TransactionType.DEPOSIT -> item.destinationName
+                        TransactionType.TRANSFER -> "${item.sourceName} → ${item.destinationName}"
+                    }, style = DfTheme.typography.bodySmall, tone = DfTone.Secondary, maxLines = 1)
                 DfText(
                     text = everyLabel(item.rule.frequency, item.rule.interval) + " · " + when {
                         next == null -> stringResource(R.string.feature_transactions_recurring_ended)

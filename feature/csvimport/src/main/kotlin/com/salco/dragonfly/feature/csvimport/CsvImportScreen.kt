@@ -108,14 +108,6 @@ internal fun CsvImportScreen(onBack: () -> Unit, viewModel: CsvImportViewModel =
                 optionLabel = { it.lowercase() },
                 onSelected = viewModel::onDatePatternChange,
             )
-            if (ColumnRole.COUNTERPARTY !in state.roles) {
-                DfTextField(
-                    value = state.unnamedCounterparty,
-                    onValueChange = viewModel::onUnnamedChange,
-                    label = stringResource(R.string.feature_csvimport_unnamed),
-                    placeholder = defaultUnnamed,
-                )
-            }
             DfCheckboxRow(stringResource(R.string.feature_csvimport_skip_duplicates), state.skipDuplicates, viewModel::onSkipDuplicatesChange)
 
             if (state.hasRequiredRoles) Preview(state)
@@ -212,13 +204,6 @@ private fun FireflySection(
             )
         }
     }
-    DfTextField(
-        value = state.unnamedCounterparty,
-        onValueChange = viewModel::onUnnamedChange,
-        label = stringResource(R.string.feature_csvimport_firefly_unnamed),
-        placeholder = defaultUnnamed,
-        helper = stringResource(R.string.feature_csvimport_firefly_unnamed_hint),
-    )
     DfCheckboxRow(stringResource(R.string.feature_csvimport_skip_duplicates), state.skipDuplicates, viewModel::onSkipDuplicatesChange)
     val toImport = firefly.movements - if (state.skipDuplicates) firefly.preview?.duplicates ?: 0 else 0
     DfButton(

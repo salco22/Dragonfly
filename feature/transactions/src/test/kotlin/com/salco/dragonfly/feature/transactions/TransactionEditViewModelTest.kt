@@ -67,7 +67,6 @@ class TransactionEditViewModelTest {
         with(vm.uiState.value) {
             assertTrue(amountError)
             assertTrue(descriptionError)
-            assertTrue(counterpartyError)
             assertFalse(isFinished)
         }
     }
@@ -283,7 +282,6 @@ class TransactionEditViewModelTest {
             assertTrue(groupTitleError)
             assertTrue(splits.single().amountError)
             assertTrue(splits.single().descriptionError)
-            assertTrue(splits.single().counterpartyError)
         }
         assertTrue(transactions.transactions.value.isEmpty())
     }
@@ -323,5 +321,24 @@ class TransactionEditViewModelTest {
 
         viewModel(transactions.transactions.value.maxOf { it.id }).delete()
         assertTrue(transactions.transactions.value.isEmpty())
+    }
+
+    @Test
+    fun quickExpense_needsNoPayee_andStartsOnTheLastAccountUsed() = runTest {
+        // Something was last spent from the dollar account.
+        val first = viewModel(accountId = savingsUsdId)
+        first.onAmountChange("3")
+        first.onDescriptionChange("Caffè")
+        first.save()
+        assertEquals("Senza nome", transactions.transactions.value.single().destination.name)
+
+        val vm = viewModel()
+        assertEquals(savingsUsdId, vm.uiState.value.accountId)
+        vm.onAmountChange("12")
+        vm.onDescriptionChange("Pranzo")
+        vm.save("Contanti")
+        val lunch = transactions.transactions.value.single { it.description == "Pranzo" }
+        assertEquals(savingsUsdId, lunch.source.id)
+        assertEquals("Contanti", lunch.destination.name)
     }
 }

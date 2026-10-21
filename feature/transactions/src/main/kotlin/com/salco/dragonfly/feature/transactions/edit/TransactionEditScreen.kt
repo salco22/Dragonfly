@@ -1,5 +1,9 @@
 package com.salco.dragonfly.feature.transactions.edit
 
+import com.salco.dragonfly.core.designsystem.component.DfIcon
+import com.salco.dragonfly.core.designsystem.component.DfListItem
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.salco.dragonfly.core.designsystem.component.DfButton
 import com.salco.dragonfly.core.designsystem.component.DfButtonStyle
 import com.salco.dragonfly.core.designsystem.component.DfChipFlow
@@ -69,12 +73,13 @@ internal fun TransactionEditScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.isFinished) { if (uiState.isFinished) onBack() }
+    val unnamed = stringResource(R.string.feature_transactions_unnamed)
 
     TransactionEditContent(
         uiState = uiState,
         actions = TransactionEditActions(
             onBack = onBack,
-            onSave = viewModel::save,
+            onSave = { viewModel.save(unnamed) },
             onDelete = viewModel::delete,
             onTypeChange = viewModel::onTypeChange,
             onAmountChange = viewModel::onAmountChange,
@@ -83,7 +88,6 @@ internal fun TransactionEditScreen(
             onDateChange = viewModel::onDateChange,
             onAccountChange = viewModel::onAccountChange,
             onToAccountChange = viewModel::onToAccountChange,
-            onCounterpartyChange = viewModel::onCounterpartyChange,
             onNotesChange = viewModel::onNotesChange,
             onCategoryChange = viewModel::onCategoryChange,
             onBudgetChange = viewModel::onBudgetChange,
@@ -97,7 +101,6 @@ internal fun TransactionEditScreen(
                 onTitleChange = viewModel::onGroupTitleChange,
                 onDescriptionChange = viewModel::onSplitDescriptionChange,
                 onAmountChange = viewModel::onSplitAmountChange,
-                onCounterpartyChange = viewModel::onSplitCounterpartyChange,
                 onCategoryChange = viewModel::onSplitCategoryChange,
                 onBudgetChange = viewModel::onSplitBudgetChange,
                 onTagInputChange = viewModel::onSplitTagInputChange,
@@ -119,7 +122,6 @@ internal data class TransactionEditActions(
     val onDateChange: (LocalDate) -> Unit = {},
     val onAccountChange: (Long) -> Unit = {},
     val onToAccountChange: (Long) -> Unit = {},
-    val onCounterpartyChange: (String) -> Unit = {},
     val onNotesChange: (String) -> Unit = {},
     val onCategoryChange: (String) -> Unit = {},
     val onBudgetChange: (Long?) -> Unit = {},
@@ -227,30 +229,12 @@ internal fun TransactionFormFields(
         if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_to_account
         else R.string.feature_transactions_from_account,
     )
-    val counterpartyField = @Composable {
-        AutocompleteField(
-            label = stringResource(
-                if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer
-                else R.string.feature_transactions_payee,
-            ),
-            value = uiState.counterparty,
-            onValueChange = actions.onCounterpartyChange,
-            suggestions = uiState.counterpartySuggestions,
-            isError = uiState.counterpartyError,
-            supportingText = stringResource(R.string.feature_transactions_error_counterparty).takeIf { uiState.counterpartyError },
-        )
-    }
     val accountField = @Composable { AccountDropdown(accountLabel, uiState.ownAccounts, uiState.account, actions.onAccountChange) }
 
     when (uiState.type) {
-        TransactionType.WITHDRAWAL -> {
-            accountField()
-            counterpartyField()
-        }
-        TransactionType.DEPOSIT -> {
-            counterpartyField()
-            accountField()
-        }
+        // A spending or an income is just "spent" or "received": the account is a detail,
+        // prefilled with the last one used. There is no payee to enter.
+        TransactionType.WITHDRAWAL, TransactionType.DEPOSIT -> AccountDetails(uiState, accountLabel) { accountField() }
         TransactionType.TRANSFER -> {
             accountField()
             AccountDropdown(
@@ -316,6 +300,22 @@ internal fun TransactionFormFields(
         label = stringResource(R.string.feature_transactions_notes),
         singleLine = false,
         minLines = 2,
+    )
+}
+
+/** The account, folded into one line until the user opens it to change it. */
+@Composable
+private fun AccountDetails(uiState: TransactionEditUiState, accountLabel: String, field: @Composable () -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    if (open) {
+        field()
+        return
+    }
+    DfListItem(
+        headline = "$accountLabel: ${uiState.account?.name.orEmpty()}",
+        icon = Icons.Outlined.AccountBalance,
+        onClick = { open = true },
+        trailing = { DfIcon(Icons.Outlined.ExpandMore, contentDescription = stringResource(R.string.feature_transactions_change_account)) },
     )
 }
 
@@ -391,7 +391,6 @@ private fun TransactionEditContentPreview() {
                 amount = "42,50",
                 description = "Spesa",
                 accountId = 1,
-                counterparty = "Supermercato",
                 ownAccounts = listOf(checking),
             ),
             actions = TransactionEditActions(),
