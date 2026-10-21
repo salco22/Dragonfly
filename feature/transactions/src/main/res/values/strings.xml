@@ -101,8 +101,5 @@
     <string name="feature_transactions_recurring_notify_allow">Attiva le notifiche</string>
     <string name="feature_transactions_recurring_notify_decline">No, grazie</string>
     <string name="feature_transactions_unnamed">Senza nome</string>
-    <string name="feature_transactions_optional">Facoltativo</string>
-    <string name="feature_transactions_payee_summary">Beneficiario: %s</string>
-    <string name="feature_transactions_payer_summary">Pagante: %s</string>
-    <string name="feature_transactions_change_details">Cambia conto e beneficiario</string>
+    <string name="feature_transactions_change_account">Cambia conto</string>
 </resources>

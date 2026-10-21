@@ -70,7 +70,7 @@ fun TransactionRow(
         supportingContent = {
             Column {
                 DfText(
-                    "${transaction.source.name} → ${transaction.destination.name}",
+                    transaction.accountsLabel(),
                     style = DfTheme.typography.bodySmall,
                     tone = DfTone.Secondary,
                     maxLines = 1,
@@ -95,6 +95,16 @@ fun DayHeader(date: LocalDate) {
             .fillMaxWidth()
             .padding(start = DfTheme.spacing.screen, end = DfTheme.spacing.screen, top = DfTheme.spacing.l, bottom = DfTheme.spacing.xs),
     )
+}
+
+/**
+ * The user's own accounts of a transaction: where a spending came from, where an income went,
+ * or both ends of a transfer. Payees and payers are not shown.
+ */
+fun Transaction.accountsLabel(): String = when (type) {
+    TransactionType.WITHDRAWAL -> source.name
+    TransactionType.DEPOSIT -> destination.name
+    TransactionType.TRANSFER -> "${source.name} → ${destination.name}"
 }
 
 /** Transactions grouped by date, keeping the incoming order (newest first). */

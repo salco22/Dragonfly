@@ -88,7 +88,6 @@ internal fun TransactionEditScreen(
             onDateChange = viewModel::onDateChange,
             onAccountChange = viewModel::onAccountChange,
             onToAccountChange = viewModel::onToAccountChange,
-            onCounterpartyChange = viewModel::onCounterpartyChange,
             onNotesChange = viewModel::onNotesChange,
             onCategoryChange = viewModel::onCategoryChange,
             onBudgetChange = viewModel::onBudgetChange,
@@ -102,7 +101,6 @@ internal fun TransactionEditScreen(
                 onTitleChange = viewModel::onGroupTitleChange,
                 onDescriptionChange = viewModel::onSplitDescriptionChange,
                 onAmountChange = viewModel::onSplitAmountChange,
-                onCounterpartyChange = viewModel::onSplitCounterpartyChange,
                 onCategoryChange = viewModel::onSplitCategoryChange,
                 onBudgetChange = viewModel::onSplitBudgetChange,
                 onTagInputChange = viewModel::onSplitTagInputChange,
@@ -124,7 +122,6 @@ internal data class TransactionEditActions(
     val onDateChange: (LocalDate) -> Unit = {},
     val onAccountChange: (Long) -> Unit = {},
     val onToAccountChange: (Long) -> Unit = {},
-    val onCounterpartyChange: (String) -> Unit = {},
     val onNotesChange: (String) -> Unit = {},
     val onCategoryChange: (String) -> Unit = {},
     val onBudgetChange: (Long?) -> Unit = {},
@@ -232,27 +229,12 @@ internal fun TransactionFormFields(
         if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_to_account
         else R.string.feature_transactions_from_account,
     )
-    val counterpartyField = @Composable {
-        AutocompleteField(
-            label = stringResource(
-                if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer
-                else R.string.feature_transactions_payee,
-            ),
-            value = uiState.counterparty,
-            onValueChange = actions.onCounterpartyChange,
-            suggestions = uiState.counterpartySuggestions,
-            supportingText = stringResource(R.string.feature_transactions_optional),
-        )
-    }
     val accountField = @Composable { AccountDropdown(accountLabel, uiState.ownAccounts, uiState.account, actions.onAccountChange) }
 
     when (uiState.type) {
-        // A spending or an income is just "spent" or "received": account and payee are details,
-        // prefilled with the last account used and an unnamed payee.
-        TransactionType.WITHDRAWAL, TransactionType.DEPOSIT -> AccountDetails(uiState, accountLabel) {
-            accountField()
-            counterpartyField()
-        }
+        // A spending or an income is just "spent" or "received": the account is a detail,
+        // prefilled with the last one used. There is no payee to enter.
+        TransactionType.WITHDRAWAL, TransactionType.DEPOSIT -> AccountDetails(uiState, accountLabel) { accountField() }
         TransactionType.TRANSFER -> {
             accountField()
             AccountDropdown(
@@ -321,26 +303,19 @@ internal fun TransactionFormFields(
     )
 }
 
-/** Account and payee/payer, folded into one line until the user opens them. */
+/** The account, folded into one line until the user opens it to change it. */
 @Composable
-private fun AccountDetails(uiState: TransactionEditUiState, accountLabel: String, fields: @Composable () -> Unit) {
-    // Open when editing a transaction that has a named payee, so it is visible what it is.
-    var open by rememberSaveable { mutableStateOf(!uiState.isNew && uiState.counterparty.isNotBlank()) }
+private fun AccountDetails(uiState: TransactionEditUiState, accountLabel: String, field: @Composable () -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
     if (open) {
-        fields()
+        field()
         return
     }
-    val unnamed = stringResource(R.string.feature_transactions_unnamed)
-    val payee = uiState.counterparty.ifBlank { unnamed }
     DfListItem(
         headline = "$accountLabel: ${uiState.account?.name.orEmpty()}",
-        supporting = stringResource(
-            if (uiState.type == TransactionType.DEPOSIT) R.string.feature_transactions_payer_summary else R.string.feature_transactions_payee_summary,
-            payee,
-        ),
         icon = Icons.Outlined.AccountBalance,
         onClick = { open = true },
-        trailing = { DfIcon(Icons.Outlined.ExpandMore, contentDescription = stringResource(R.string.feature_transactions_change_details)) },
+        trailing = { DfIcon(Icons.Outlined.ExpandMore, contentDescription = stringResource(R.string.feature_transactions_change_account)) },
     )
 }
 
@@ -416,7 +391,6 @@ private fun TransactionEditContentPreview() {
                 amount = "42,50",
                 description = "Spesa",
                 accountId = 1,
-                counterparty = "Supermercato",
                 ownAccounts = listOf(checking),
             ),
             actions = TransactionEditActions(),

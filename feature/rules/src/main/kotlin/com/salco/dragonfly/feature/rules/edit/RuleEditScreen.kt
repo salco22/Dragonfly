@@ -135,7 +135,8 @@ private fun TriggerCard(index: Int, trigger: TriggerDraft, state: RuleEditUiStat
     RowCard(onRemove = { viewModel.removeTrigger(index) }) {
         DropdownField(
             label = stringResource(R.string.feature_rules_field),
-            options = TriggerField.entries,
+            // Payees are not used: an existing condition on them stays, but new ones cannot pick it.
+            options = TriggerField.entries.filter { it != TriggerField.COUNTERPARTY || trigger.field == it },
             selected = trigger.field,
             optionLabel = { stringResource(it.labelRes()) },
             onSelected = { viewModel.onTriggerFieldChange(index, it) },
@@ -178,7 +179,7 @@ private fun ActionCard(index: Int, action: ActionDraft, state: RuleEditUiState, 
     RowCard(onRemove = { viewModel.removeAction(index) }) {
         DropdownField(
             label = stringResource(R.string.feature_rules_action),
-            options = ActionType.entries,
+            options = ActionType.entries.filter { it != ActionType.SET_COUNTERPARTY || action.type == it },
             selected = action.type,
             optionLabel = { stringResource(it.labelRes()) },
             onSelected = { viewModel.onActionTypeChange(index, it) },

@@ -86,7 +86,6 @@ internal fun RecurringEditScreen(onBack: () -> Unit, viewModel: RecurringEditVie
                     onDateChange = viewModel::onDateChange,
                     onAccountChange = viewModel::onAccountChange,
                     onToAccountChange = viewModel::onToAccountChange,
-                    onCounterpartyChange = viewModel::onCounterpartyChange,
                     onNotesChange = viewModel::onNotesChange,
                     onCategoryChange = viewModel::onCategoryChange,
                     onBudgetChange = viewModel::onBudgetChange,

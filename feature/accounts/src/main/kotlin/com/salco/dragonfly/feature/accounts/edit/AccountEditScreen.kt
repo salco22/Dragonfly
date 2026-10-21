@@ -117,7 +117,8 @@ internal fun AccountEditContent(uiState: AccountEditUiState, actions: AccountEdi
             )
             DropdownField(
                 label = stringResource(R.string.feature_accounts_type),
-                options = AccountType.entries,
+                // Payees are not managed by the user; an old one keeps its type while edited.
+                options = listOf(AccountType.ASSET, AccountType.LIABILITY).let { own -> if (uiState.type in own) own else own + uiState.type },
                 selected = uiState.type,
                 optionLabel = { stringResource(it.labelRes()) },
                 onSelected = actions.onTypeChange,

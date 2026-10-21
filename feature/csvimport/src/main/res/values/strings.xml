@@ -11,7 +11,6 @@
     <string name="feature_csvimport_column">Colonna %1$d: %2$s</string>
     <string name="feature_csvimport_example">es. %1$s</string>
     <string name="feature_csvimport_date_format">Formato data</string>
-    <string name="feature_csvimport_unnamed">Beneficiario quando manca</string>
     <string name="feature_csvimport_unnamed_default">Senza nome</string>
     <string name="feature_csvimport_skip_duplicates">Salta i movimenti già presenti (stessa data, importo e descrizione)</string>
     <string name="feature_csvimport_preview">Anteprima</string>
@@ -48,8 +47,6 @@
     <string name="feature_csvimport_firefly_existing_accounts">Conti già presenti: %s</string>
     <string name="feature_csvimport_firefly_duplicates">%d movimenti sono già presenti</string>
     <string name="feature_csvimport_firefly_invalid">%d righe non leggibili verranno saltate</string>
-    <string name="feature_csvimport_firefly_unnamed">Beneficiario per i pagamenti in contanti</string>
-    <string name="feature_csvimport_firefly_unnamed_hint">Firefly li registra su \"Cash account\", senza un beneficiario</string>
     <string name="feature_csvimport_firefly_reconciliation">Riconciliazione</string>
     <string name="feature_csvimport_firefly_done">%1$d movimenti importati, %2$d conti creati, %3$d già presenti saltati. Le regole non sono state applicate: i dati restano come in Firefly III.</string>
 </resources>
