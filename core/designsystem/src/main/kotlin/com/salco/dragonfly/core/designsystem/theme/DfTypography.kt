@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.salco.dragonfly.core.designsystem.R
@@ -34,11 +35,17 @@ private val Inter = FontFamily(
     Font(R.font.inter_bold, FontWeight.Bold),
 )
 
+/** Lora (variable weight), bundled under the SIL Open Font License, for emotional display titles. */
+private val Lora = FontFamily(
+    Font(R.font.lora, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
+    Font(R.font.lora, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
+)
+
 private val base = TextStyle(fontFamily = Inter)
 
 internal val DefaultDfTypography = DfTypography(
     display = base.copy(fontSize = 38.sp, lineHeight = 44.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.8).sp),
-    displaySerif = TextStyle(fontFamily = FontFamily.Serif, fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = (-0.4).sp),
+    displaySerif = TextStyle(fontFamily = Lora, fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = (-0.4).sp),
     headline = base.copy(fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.6).sp),
     title = base.copy(fontSize = 19.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.2).sp),
     subtitle = base.copy(fontSize = 15.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold),
