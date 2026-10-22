@@ -1,6 +1,5 @@
 package com.salco.dragonfly.core.designsystem.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,20 +11,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import com.salco.dragonfly.core.designsystem.theme.DfTheme
 
 /**
- * A flat container with a hairline border. [highlighted] cards use the light accent fill, for
- * the one summary that matters most on a screen.
+ * A flat white container without border or shadow. [highlighted] cards use the sage fill, for
+ * secondary summaries; the most important number of a screen goes in a [DfHeroCard].
  */
 @Composable
 fun DfCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     highlighted: Boolean = false,
-    padding: Dp = DfTheme.spacing.l,
+    padding: Dp = DfTheme.spacing.screen,
     spacing: Dp = DfTheme.spacing.s,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -38,7 +36,6 @@ fun DfCard(
         shape = shape,
         color = if (highlighted) DfTheme.colors.accentMuted else DfTheme.colors.surface,
         contentColor = DfTheme.colors.textPrimary,
-        border = if (highlighted) null else BorderStroke(1.dp, DfTheme.colors.border),
     ) {
         Column(Modifier.padding(padding), verticalArrangement = Arrangement.spacedBy(spacing), content = content)
     }

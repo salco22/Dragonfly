@@ -246,7 +246,7 @@ private fun LazyListScope.budgets(state: ReportsUiState.Success) {
                     style = DfTheme.typography.caption,
                 )
             }
-            DfProgressBar(row.progress, tone = if (over) DfTone.Negative else DfTone.Accent)
+            DfProgressBar(row.progress, tone = if (over) DfTone.Negative else DfTone.Positive)
         }
     }
 }

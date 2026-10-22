@@ -1,5 +1,6 @@
 <resources>
     <string name="feature_budgets_title">Budget</string>
+    <string name="feature_budgets_subtitle">Dai spazio a ciò che conta.</string>
     <string name="feature_budgets_add">Nuovo budget</string>
     <string name="feature_budgets_back">Indietro</string>
     <string name="feature_budgets_previous_month">Mese precedente</string>
@@ -31,4 +32,19 @@
     <string name="feature_budgets_delete_title">Eliminare il budget?</string>
     <string name="feature_budgets_delete_message">Le uscite assegnate resteranno, ma senza budget.</string>
     <string name="feature_budgets_no_transactions">Nessuna uscita assegnata a questo budget nel mese.</string>
+    <string name="feature_budgets_hero_title">Ti restano questo mese</string>
+    <string name="feature_budgets_hero_title_over">Oltre il budget questo mese</string>
+    <string name="feature_budgets_hero_spent">Spesi %1$s</string>
+    <string name="feature_budgets_hero_of">su %1$s</string>
+    <string name="feature_budgets_hero_used">%1$d%% utilizzato</string>
+    <plurals name="feature_budgets_hero_used_days">
+        <item quantity="one">%1$d%% utilizzato · %2$d giorno a fine mese</item>
+        <item quantity="other">%1$d%% utilizzato · %2$d giorni a fine mese</item>
+    </plurals>
+    <string name="feature_budgets_limits">I tuoi limiti</string>
+    <string name="feature_budgets_status_on_track">In linea con il budget</string>
+    <string name="feature_budgets_status_near_limit">Quasi al limite</string>
+    <string name="feature_budgets_status_over">Oltre il limite</string>
+    <string name="feature_budgets_left_amount">Restano %1$s</string>
+    <string name="feature_budgets_margin">Un po\' di margine, più serenità. Hai ancora %1$s nel tuo budget.</string>
 </resources>

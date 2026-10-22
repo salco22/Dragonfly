@@ -27,7 +27,7 @@ object DfTheme {
         @Composable @ReadOnlyComposable get() = LocalDfSpacing.current
 }
 
-/** Applies the minimal Dragonfly theme, following the system light/dark setting. */
+/** Applies the Dragonfly theme, following the system light/dark setting. */
 @Composable
 fun DragonflyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -58,9 +58,9 @@ fun DragonflyTheme(
             ),
             shapes = Shapes(
                 extraSmall = RoundedCornerShape(8.dp),
-                small = RoundedCornerShape(10.dp),
-                medium = RoundedCornerShape(14.dp),
-                large = RoundedCornerShape(20.dp),
+                small = RoundedCornerShape(12.dp),
+                medium = RoundedCornerShape(16.dp),
+                large = RoundedCornerShape(24.dp),
                 extraLarge = RoundedCornerShape(28.dp),
             ),
             content = content,
@@ -72,7 +72,7 @@ private fun DfColors.toMaterial() = if (isDark) {
     darkColorScheme(
         primary = accent, onPrimary = onAccent, primaryContainer = accentMuted, onPrimaryContainer = textPrimary,
         secondary = textSecondary, onSecondary = background, secondaryContainer = surfaceMuted, onSecondaryContainer = textPrimary,
-        tertiary = warning, background = background, onBackground = textPrimary, surface = surface, onSurface = textPrimary,
+        tertiary = highlight, onTertiary = onHighlight, tertiaryContainer = warningContainer, background = background, onBackground = textPrimary, surface = surface, onSurface = textPrimary,
         surfaceVariant = surfaceMuted, onSurfaceVariant = textSecondary, outline = border, outlineVariant = border,
         error = negative, onError = onAccent, surfaceTint = surface,
         surfaceContainerLowest = background, surfaceContainerLow = surface, surfaceContainer = surface,
@@ -82,7 +82,7 @@ private fun DfColors.toMaterial() = if (isDark) {
     lightColorScheme(
         primary = accent, onPrimary = onAccent, primaryContainer = accentMuted, onPrimaryContainer = textPrimary,
         secondary = textSecondary, onSecondary = surface, secondaryContainer = surfaceMuted, onSecondaryContainer = textPrimary,
-        tertiary = warning, background = background, onBackground = textPrimary, surface = surface, onSurface = textPrimary,
+        tertiary = highlight, onTertiary = onHighlight, tertiaryContainer = warningContainer, background = background, onBackground = textPrimary, surface = surface, onSurface = textPrimary,
         surfaceVariant = surfaceMuted, onSurfaceVariant = textSecondary, outline = border, outlineVariant = border,
         error = negative, onError = onAccent, surfaceTint = surface,
         surfaceContainerLowest = surface, surfaceContainerLow = surface, surfaceContainer = surface,

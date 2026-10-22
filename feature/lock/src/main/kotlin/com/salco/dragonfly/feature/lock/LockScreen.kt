@@ -59,7 +59,7 @@ private fun LockContent(error: String?, onUnlockClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             DfIcon(Icons.Outlined.Lock, contentDescription = null, tone = DfTone.Primary, modifier = Modifier.padding(bottom = 8.dp))
-            DfText(stringResource(R.string.feature_lock_title), style = DfTheme.typography.headline, textAlign = TextAlign.Center)
+            DfText(stringResource(R.string.feature_lock_title), style = DfTheme.typography.displaySerif, textAlign = TextAlign.Center)
             DfText(
                 stringResource(R.string.feature_lock_message),
                 tone = DfTone.Secondary,

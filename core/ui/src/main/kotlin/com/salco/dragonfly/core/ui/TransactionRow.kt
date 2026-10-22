@@ -1,17 +1,16 @@
 package com.salco.dragonfly.core.ui
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import com.salco.dragonfly.core.designsystem.component.DfAmount
+import com.salco.dragonfly.core.designsystem.component.DfDateHeader
 import com.salco.dragonfly.core.designsystem.component.DfListItem
 import com.salco.dragonfly.core.designsystem.component.DfText
 import com.salco.dragonfly.core.designsystem.component.DfTone
@@ -22,7 +21,6 @@ import com.salco.dragonfly.core.model.TransactionType
 import com.salco.dragonfly.core.model.formatMoney
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 /** Green used for money coming in. */
 val IncomeColor: Color
@@ -77,7 +75,7 @@ fun TransactionRow(
                 )
                 val labels = listOfNotNull(transaction.category?.name) + transaction.tags.map { "#${it.name}" }
                 if (labels.isNotEmpty()) {
-                    DfText(labels.joinToString(" · "), style = DfTheme.typography.caption, tone = DfTone.Accent, maxLines = 1)
+                    DfText(labels.joinToString(" · "), style = DfTheme.typography.caption, tone = DfTone.Secondary, maxLines = 1)
                 }
             }
         },
@@ -85,15 +83,17 @@ fun TransactionRow(
     )
 }
 
+/** "Oggi · 21 ottobre", "Ieri · 20 ottobre", "19 ottobre", or with the year when it is not this one. */
 @Composable
 fun DayHeader(date: LocalDate) {
-    DfText(
-        text = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)).replaceFirstChar { it.uppercase() },
-        style = DfTheme.typography.label,
-        tone = DfTone.Tertiary,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = DfTheme.spacing.screen, end = DfTheme.spacing.screen, top = DfTheme.spacing.l, bottom = DfTheme.spacing.xs),
+    val today = LocalDate.now()
+    val day = date.format(DateTimeFormatter.ofPattern(if (date.year == today.year) "d MMMM" else "d MMMM yyyy"))
+    DfDateHeader(
+        when (date) {
+            today -> stringResource(R.string.core_ui_today, day)
+            today.minusDays(1) -> stringResource(R.string.core_ui_yesterday, day)
+            else -> day
+        },
     )
 }
 

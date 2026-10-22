@@ -1,7 +1,7 @@
 package com.salco.dragonfly.feature.settings
 
-import com.salco.dragonfly.core.designsystem.component.DfIcon
-import com.salco.dragonfly.core.designsystem.component.DfListItem
+import com.salco.dragonfly.core.designsystem.component.DfMenuGroup
+import com.salco.dragonfly.core.designsystem.component.DfMenuItem
 import com.salco.dragonfly.core.designsystem.component.DfScaffold
 import com.salco.dragonfly.core.designsystem.component.DfSectionHeader
 import com.salco.dragonfly.core.designsystem.component.DfSwitch
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Backup
@@ -122,7 +121,10 @@ internal fun SettingsContent(
     onReportsClick: () -> Unit = {},
     onSyncClick: () -> Unit = {},
 ) {
-    DfScaffold(title = stringResource(R.string.feature_settings_title)) { padding ->
+    DfScaffold(
+        title = stringResource(R.string.feature_settings_title),
+        subtitle = stringResource(R.string.feature_settings_subtitle),
+    ) { padding ->
         val preferences = (uiState as? SettingsUiState.Success)?.preferences ?: return@DfScaffold
         Column(
             modifier = Modifier
@@ -132,97 +134,99 @@ internal fun SettingsContent(
                 .padding(bottom = 24.dp),
         ) {
             DfSectionHeader(stringResource(R.string.feature_settings_account))
-            DfListItem(
-                headline = stringResource(R.string.feature_settings_sync),
-                supporting = stringResource(R.string.feature_settings_sync_description),
-                icon = Icons.Outlined.Sync,
-                iconTone = DfTone.Accent,
-                onClick = onSyncClick,
-                trailing = { DfIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tone = DfTone.Tertiary) },
-            )
+            DfMenuGroup {
+                DfMenuItem(
+                    title = stringResource(R.string.feature_settings_sync),
+                    subtitle = stringResource(R.string.feature_settings_sync_description),
+                    icon = Icons.Outlined.Sync,
+                    onClick = onSyncClick,
+                )
+            }
 
             DfSectionHeader(stringResource(R.string.feature_settings_analysis))
-            NavigationItem(Icons.Outlined.BarChart, stringResource(R.string.feature_settings_reports), onReportsClick)
+            DfMenuGroup {
+                DfMenuItem(stringResource(R.string.feature_settings_reports), icon = Icons.Outlined.BarChart, onClick = onReportsClick)
+            }
 
             DfSectionHeader(stringResource(R.string.feature_settings_planning))
-            NavigationItem(Icons.AutoMirrored.Outlined.EventNote, stringResource(R.string.feature_settings_bills), onBillsClick)
-            NavigationItem(Icons.Outlined.Savings, stringResource(R.string.feature_settings_piggy_banks), onPiggyBanksClick)
-            NavigationItem(Icons.Outlined.EventRepeat, stringResource(R.string.feature_settings_recurring), onRecurringClick)
+            DfMenuGroup {
+                DfMenuItem(stringResource(R.string.feature_settings_bills), icon = Icons.AutoMirrored.Outlined.EventNote, onClick = onBillsClick)
+                DfMenuItem(stringResource(R.string.feature_settings_piggy_banks), icon = Icons.Outlined.Savings, onClick = onPiggyBanksClick, divider = true)
+                DfMenuItem(stringResource(R.string.feature_settings_recurring), icon = Icons.Outlined.EventRepeat, onClick = onRecurringClick, divider = true)
+            }
 
             DfSectionHeader(stringResource(R.string.feature_settings_organization))
-            NavigationItem(Icons.Outlined.Category, stringResource(R.string.feature_settings_categories), onCategoriesClick)
-            NavigationItem(Icons.Outlined.Sell, stringResource(R.string.feature_settings_tags), onTagsClick)
-            NavigationItem(Icons.Outlined.AutoFixHigh, stringResource(R.string.feature_settings_rules), onRulesClick)
+            DfMenuGroup {
+                DfMenuItem(stringResource(R.string.feature_settings_categories), icon = Icons.Outlined.Category, onClick = onCategoriesClick)
+                DfMenuItem(stringResource(R.string.feature_settings_tags), icon = Icons.Outlined.Sell, onClick = onTagsClick, divider = true)
+                DfMenuItem(stringResource(R.string.feature_settings_rules), icon = Icons.Outlined.AutoFixHigh, onClick = onRulesClick, divider = true)
+            }
 
             DfSectionHeader(stringResource(R.string.feature_settings_notifications))
             val blocked = preferences.recurringNotificationsEnabled && !notificationsAllowed
-            DfListItem(
-                headline = stringResource(R.string.feature_settings_recurring_notifications),
-                supporting = stringResource(
-                    if (blocked) R.string.feature_settings_notifications_blocked
-                    else R.string.feature_settings_recurring_notifications_description,
-                ),
-                supportingTone = if (blocked) DfTone.Negative else DfTone.Secondary,
-                icon = Icons.Outlined.Notifications,
-                onClick = if (blocked) onAllowNotifications else null,
-                trailing = {
-                    DfSwitch(
-                        checked = preferences.recurringNotificationsEnabled,
-                        onCheckedChange = onRecurringNotificationsChange,
-                    )
-                },
-            )
+            DfMenuGroup {
+                DfMenuItem(
+                    title = stringResource(R.string.feature_settings_recurring_notifications),
+                    subtitle = stringResource(
+                        if (blocked) R.string.feature_settings_notifications_blocked
+                        else R.string.feature_settings_recurring_notifications_description,
+                    ),
+                    subtitleTone = if (blocked) DfTone.Negative else DfTone.Secondary,
+                    icon = Icons.Outlined.Notifications,
+                    onClick = if (blocked) onAllowNotifications else null,
+                    trailing = {
+                        DfSwitch(
+                            checked = preferences.recurringNotificationsEnabled,
+                            onCheckedChange = onRecurringNotificationsChange,
+                        )
+                    },
+                )
+            }
 
             DfSectionHeader(stringResource(R.string.feature_settings_security))
-            DfListItem(
-                headline = stringResource(R.string.feature_settings_app_lock),
-                supporting = stringResource(
-                    if (lockAvailable) R.string.feature_settings_app_lock_description
-                    else R.string.feature_settings_app_lock_unavailable,
-                ),
-                icon = Icons.Outlined.Fingerprint,
-                trailing = {
-                    DfSwitch(
-                        checked = preferences.appLockEnabled,
-                        onCheckedChange = onAppLockChange,
-                        enabled = lockAvailable || preferences.appLockEnabled,
-                    )
-                },
-            )
-
-            DfListItem(
-                headline = stringResource(R.string.feature_settings_hide_in_recents),
-                supporting = stringResource(
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.feature_settings_hide_in_recents_description
-                    else R.string.feature_settings_hide_in_recents_description_legacy,
-                ),
-                icon = Icons.Outlined.VisibilityOff,
-                onClick = { onHideInRecentsChange(!preferences.hideInRecents) },
-                trailing = { DfSwitch(checked = preferences.hideInRecents, onCheckedChange = onHideInRecentsChange) },
-            )
+            DfMenuGroup {
+                DfMenuItem(
+                    title = stringResource(R.string.feature_settings_app_lock),
+                    subtitle = stringResource(
+                        if (lockAvailable) R.string.feature_settings_app_lock_description
+                        else R.string.feature_settings_app_lock_unavailable,
+                    ),
+                    icon = Icons.Outlined.Fingerprint,
+                    trailing = {
+                        DfSwitch(
+                            checked = preferences.appLockEnabled,
+                            onCheckedChange = onAppLockChange,
+                            enabled = lockAvailable || preferences.appLockEnabled,
+                        )
+                    },
+                )
+                DfMenuItem(
+                    title = stringResource(R.string.feature_settings_hide_in_recents),
+                    subtitle = stringResource(
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.feature_settings_hide_in_recents_description
+                        else R.string.feature_settings_hide_in_recents_description_legacy,
+                    ),
+                    icon = Icons.Outlined.VisibilityOff,
+                    onClick = { onHideInRecentsChange(!preferences.hideInRecents) },
+                    divider = true,
+                    trailing = { DfSwitch(checked = preferences.hideInRecents, onCheckedChange = onHideInRecentsChange) },
+                )
+            }
 
             DfSectionHeader(stringResource(R.string.feature_settings_general))
-            NavigationItem(Icons.Outlined.Backup, stringResource(R.string.feature_settings_backup), onBackupClick)
+            DfMenuGroup {
+                DfMenuItem(stringResource(R.string.feature_settings_backup), icon = Icons.Outlined.Backup, onClick = onBackupClick)
+            }
             DropdownField(
                 label = stringResource(R.string.feature_settings_default_currency),
                 options = SupportedCurrencyCodes,
                 selected = preferences.defaultCurrencyCode,
                 optionLabel = { it },
                 onSelected = onDefaultCurrencyChange,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
             )
         }
     }
-}
-
-@Composable
-private fun NavigationItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    DfListItem(
-        headline = label,
-        icon = icon,
-        onClick = onClick,
-        trailing = { DfIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tone = DfTone.Tertiary) },
-    )
 }
 
 private tailrec fun Context.findFragmentActivity(): FragmentActivity? = when (this) {

@@ -68,7 +68,9 @@ Dragonfly è un'app Android per le finanze personali che porta sul telefono le f
 
 ### Interfaccia
 
-- **Design minimal**, con tema chiaro e scuro che segue il sistema.
+- **Stile caldo e calmo**: sfondo crema, card bianche senza bordi, verde foresta per le azioni e i titoli, lime come secondo accento. Il numero più importante di ogni schermata (patrimonio, budget rimanente) sta in una card scura "hero".
+- Tipografia **Inter** per interfaccia e importi; il serif **Lora** solo per i titoli di accesso e blocco.
+- Tema chiaro e scuro che segue il sistema; il tema scuro deriva la stessa palette su un fondo verde-nero.
 - Navigazione con cinque schede: **Home, Conti, Transazioni, Budget, Altro**. In "Altro" trovi account, report, bollette, salvadanai, ricorrenti, categorie, tag, regole, notifiche, sicurezza e backup.
 
 ---
@@ -142,7 +144,7 @@ supabase/migrations/  schema SQL del server
 | `core:datastore` | `UserPreferencesDataSource` (Preferences DataStore). |
 | `core:network` | `SyncNetworkDataSource` e l'implementazione Supabase (Auth e PostgREST, motore OkHttp). |
 | `core:data` | Repository: conti, transazioni (con `RuleApplier`), categorie, tag, budget, bollette, salvadanai, ricorrenti, regole, statistiche, backup, import, sincronizzazione, preferenze. |
-| `core:designsystem` | `DfTheme` (colori, tipografia, spaziature) e componenti `Df*`: scaffold, card, liste, pulsanti, campi, menu, chip, schede, dialoghi, grafici, barra di navigazione. |
+| `core:designsystem` | `DfTheme` (colori, tipografia, spaziature) e componenti `Df*`: scaffold con header di pagina, card e hero card, card budget, barre di progresso e segmentate, liste e menu raggruppati, banner, pulsanti, campi, chip, schede, dialoghi, grafici, barra di navigazione. Include i font Inter e Lora (SIL Open Font License) in `res/font`; la licenza di Lora è in `core/designsystem/licenses`. |
 | `core:ui` | Composable che conoscono il dominio: `TransactionRow`, `DayHeader`, testi delle ricorrenze, permesso di notifica. |
 | `core:work` | `RecurringTransactionsWorker` con `RecurringNotifier`, `SyncWorker`, `AutoBackupWorker`. |
 | `core:testing` | Fake in memoria di tutti i repository e `MainDispatcherRule`. |

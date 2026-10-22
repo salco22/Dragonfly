@@ -123,6 +123,7 @@ internal fun TransactionsContent(uiState: TransactionsUiState, actions: Transact
 
     DfScaffold(
         title = stringResource(R.string.feature_transactions_title),
+        subtitle = stringResource(R.string.feature_transactions_subtitle),
         titleContent = if (searchOpen) {
             {
                 DfSearchField(
@@ -256,7 +257,7 @@ private fun FilterRow(state: TransactionsUiState.Success, actions: TransactionsA
 
 @Composable
 private fun TotalsCard(totals: Map<String, MonthTotals>) {
-    DfCard(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+    DfCard(Modifier.padding(horizontal = 20.dp, vertical = 8.dp), highlighted = true) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Column(Modifier.weight(1f)) {
                 totals.forEach { (currency, t) ->
